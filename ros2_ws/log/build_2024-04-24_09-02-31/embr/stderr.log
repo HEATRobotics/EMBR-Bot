@@ -1,5 +1,0 @@
-  File "/home/ubuntu/Documents/EMBR-Bot/ros2_ws/install/embr/lib/python3.10/site-packages/embr/getTemp.py", line 32
-    (temp.2f)
-          ^
-SyntaxError: invalid decimal literal
-

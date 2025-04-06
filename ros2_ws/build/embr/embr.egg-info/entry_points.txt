@@ -1,6 +1,0 @@
-[console_scripts]
-getCube = embr.getCube:main
-getGas = embr.getGas:main
-getTemp = embr.getTemp:main
-sendRf = embr.sendRf:main
-

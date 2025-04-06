@@ -5,11 +5,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='embr',
-            executable='getGas',
-            name='getGas'
-        ),
-        Node(
-            package='embr',
             executable='getTemp',
             name='getTemp'
         ),

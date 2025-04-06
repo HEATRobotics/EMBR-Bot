@@ -1,6 +1,0 @@
-{
-  "package_name": "msg_interface",
-  "non_idl_tuples": [
-    "/home/ubuntu/Documents/EMBR-Bot/ros2_ws/src/msg_interface:msg/Gps.msg"
-  ]
-}

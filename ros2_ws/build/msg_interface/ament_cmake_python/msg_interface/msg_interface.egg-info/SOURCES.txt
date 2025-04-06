@@ -1,8 +1,0 @@
-setup.py
-msg_interface/__init__.py
-msg_interface.egg-info/PKG-INFO
-msg_interface.egg-info/SOURCES.txt
-msg_interface.egg-info/dependency_links.txt
-msg_interface.egg-info/top_level.txt
-msg_interface/msg/__init__.py
-msg_interface/msg/_gps.py
