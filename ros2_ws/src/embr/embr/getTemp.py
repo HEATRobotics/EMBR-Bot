@@ -1,3 +1,6 @@
+"""
+CURRENTLY ONLY SENDS MOCK DATA
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Temperature
@@ -19,11 +22,11 @@ class TemperaturePublisher(Node):
         self.publisher_ = self.create_publisher(Temperature, 'temperature', 10)
         self.timer = self.create_timer(1, self.publish_temperature)
 
-        busNum = self.find_device()
-        if busNum != None:
-            self.bus = smbus.SMBus(busNum)
-        else:
-            self.get_logger().error("No device found")
+        # busNum = self.find_device()
+        # if busNum != None:
+        #     self.bus = smbus.SMBus(busNum)
+        # else:
+        #     self.get_logger().error("No device found")
         
     
     
@@ -62,16 +65,17 @@ class TemperaturePublisher(Node):
         return temperature
 
     def publish_temperature(self):
-        adc_value = self.read_adc(ANALOG_CHANNEL)
+        # adc_value = self.read_adc(ANALOG_CHANNEL)
         # self.get_logger().info(f"ADC: {adc_value}")
 
-        voltage = adc_value * 3.3 / 255
+        # voltage = adc_value * 3.3 / 255
         # self.get_logger().info(f"Voltage: {voltage} V")
 
-        resistance = (voltage * R0) / (3.3 - voltage)
+        # resistance = (voltage * R0) / (3.3 - voltage)
         # self.get_logger().info(f"Resistance: {resistance} Ohms")
         
-        temperature = self.resistance_to_temperature(resistance)
+        # temperature = self.resistance_to_temperature(resistance)
+        temperature = 36.10
         self.get_logger().info(f"Temperature: {temperature:.2f} °C")
 
         temperature_msg = Temperature()

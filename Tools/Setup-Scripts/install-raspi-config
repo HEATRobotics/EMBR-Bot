@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "deb http://archive.raspberrypi.org/debian/ buster main" | sudo tee -a /etc/apt/sources.list
+
+wget -qO - https://archive.raspberrypi.org/debian/raspberrypi.gpg.key | sudo tee /etc/apt/trusted.gpg.d/raspberrypi.asc
+
+sudo apt update
+
+sudo apt install raspi-config
