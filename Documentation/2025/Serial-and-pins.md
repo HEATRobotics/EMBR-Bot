@@ -11,7 +11,7 @@ You may have to manually enable serial by editing the firmware. You can do this 
 # Pins
 
 ## Raspberry Pi
-![Raspberry Pi4b Pinout](Images/raspberrypi4b-pinouts)
+![Raspberry Pi4b Pinout](Images/raspberrypi4b-pinouts.jpg)
 
 This is the pinout for the raspberry Pi4b. BCM stands for Broadcom, and refers to the microcontroller used for the pi. You may see Raspi pins referred to either in BCM or regular notation. This document will use regular notation unless (BCM) is specified.
 
