@@ -41,7 +41,7 @@ class CommSubscriber(Node):
             name = b'temp',
             value = msg.temperature)
 
-    def pointcloud_callback(self, msg: PointCloud2):
+    def lidar_callback(self, msg: PointCloud2):
         points = pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True)
         distances = [0] * 72  # 72 bins over 360°
         counts = [0] * 72
