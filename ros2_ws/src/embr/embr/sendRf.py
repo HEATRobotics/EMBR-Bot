@@ -48,7 +48,7 @@ class CommSubscriber(Node):
             value = msg.temperature)
 
     
-    def listener_callback(self, msg):
+    def lidar_callback(self, msg):
         # Correct time since boot
         boot_time = time.monotonic()
         timems = int(boot_time * 1000) % 4294967296
