@@ -55,7 +55,7 @@ class CommSubscriber(Node):
     
     def lidar_callback(self, msg):
         self.get_logger().info('Lidar Callback Called')
-        
+
         # Create a set to track which sectors are updated
         updated_sectors = set()
 
@@ -65,16 +65,37 @@ class CommSubscriber(Node):
         for (x, y, z) in points:
             distance = sqrt(x**2 + y**2)
             angle = atan2(y, x)
+            
+            # Normalize angle to be within [0, 2*pi]
             if angle < 0:
                 angle += 2 * pi
+            
+            # Calculate the primary sector index
             sector_idx = int(angle / self.sector_size_rad)
+            
+            # Handle sector index wrapping (circular sectors)
+            next_sector_idx = (sector_idx + 1) % self.num_sectors
+            prev_sector_idx = (sector_idx - 1) % self.num_sectors
+
+            # Calculate fractional part of the angle within the sector
+            fractional_angle = (angle % self.sector_size_rad) / self.sector_size_rad
+            
+            # Calculate distances in centimeters
             distance_cm = int(distance * 100)
 
-            if 0 <= sector_idx < self.num_sectors:
-                # Only update if not max distance
-                if distance_cm < 10000: 
-                    self.previous_sector_distances[sector_idx] = distance_cm
-                    updated_sectors.add(sector_idx)
+            # Only update if distance is below max threshold
+            if distance_cm < 10000:
+                # Distribute distance into the current and adjacent sectors, based on angle proximity
+                self.previous_sector_distances[sector_idx] += distance_cm * (1 - fractional_angle)
+                self.previous_sector_distances[next_sector_idx] += distance_cm * fractional_angle
+
+                # Ensure the distance does not exceed max range
+                self.previous_sector_distances[sector_idx] = min(self.previous_sector_distances[sector_idx], 10000)
+                self.previous_sector_distances[next_sector_idx] = min(self.previous_sector_distances[next_sector_idx], 10000)
+                
+                # Mark the sectors as updated
+                updated_sectors.add(sector_idx)
+                updated_sectors.add(next_sector_idx)
 
         # Use current time since boot
         boot_time_sec = time.monotonic()
@@ -105,7 +126,9 @@ class CommSubscriber(Node):
             frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
 
+        # Log the updated sectors
         self.get_logger().info(f"Updated sectors: {sorted(list(updated_sectors))}")
+
 
 
 
