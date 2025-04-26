@@ -29,6 +29,7 @@ class TemperaturePublisher(Node):
 
     def read_serial_data(self):
         raw = self.ser.readline().decode('utf-8', errors='ignore').strip()
+
         match = re.search(r"[-+]?\d*\.\d+|\d+", raw)  # Match a float or int
         if match:
             temperature = float(match.group())

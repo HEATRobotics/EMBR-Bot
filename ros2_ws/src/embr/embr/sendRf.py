@@ -4,6 +4,7 @@ import rclpy
 import time
 from rclpy.node import Node
 from msg_interface.msg import Gps
+from pymavlink.dialects.v20 import common as mavlink2
 from pymavlink import mavutil
 from sensor_msgs.msg import Temperature
 from std_msgs.msg import Float32
@@ -18,6 +19,9 @@ class CommSubscriber(Node):
         self.subscription_temperature = self.create_subscription(Temperature, 'temperature', self.temperature_callback, 10)
         self.subscription   # prevent unused variable warning
         self.mavlink_connection = mavutil.mavserial(device='/dev/serial0', baud=57600)
+        
+        self.mavlink_connection.mav = mavlink2.MAVLink(self.mavlink_connection)
+        
         self.get_logger().info('Mavlink Subscriber node initialized')
 
         # Lidar Subscription:
@@ -43,43 +47,97 @@ class CommSubscriber(Node):
             name = b'temp',
             value = msg.temperature)
 
-    def lidar_callback(self, msg: PointCloud2):
-        points = pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True)
-        distances = [0] * 72  # 72 bins over 360°
-        counts = [0] * 72
-
-        for (x, y, z) in points:
-            angle = (degrees(atan2(y, x)) + 360) % 360  # [0, 360)
-            index = int(angle // 5)  # 5° resolution
-            distance = sqrt(x**2 + y**2)
-            distance_cm = int(distance * 100)
-
-            # Accumulate for averaging
-            distances[index] += distance_cm
-            counts[index] += 1
-
-        # Average distances
-        for i in range(72):
-            if counts[i] > 0:
-                distances[i] = distances[i] // counts[i]
-            else:
-                distances[i] = 0xFFFF  # Indicate "no data"
-
+    
+    def listener_callback(self, msg):
+        # Compute time since boot in milliseconds
         timems = int((time.time() - time.mktime(time.gmtime(0))) * 1000) % 4294967296
 
+        # Read and process points
+        points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
+
+        num_sectors = 72
+        sector_size_rad = (2 * math.pi) / num_sectors
+        sector_distances = [10000 for _ in range(num_sectors)]  # Initialize with max (100 meters)
+
+        for (x, y, z) in points:
+            distance = math.sqrt(x**2 + y**2)
+            angle = math.atan2(y, x)
+            if angle < 0:
+                angle += 2 * math.pi
+
+            sector_idx = int(angle / sector_size_rad)
+            distance_cm = int(distance * 100)
+
+            if 0 <= sector_idx < num_sectors:
+                if distance_cm < sector_distances[sector_idx]:
+                    sector_distances[sector_idx] = distance_cm
+
+        # Log for debug
+        self.get_logger().info(f"Sending OBSTACLE_DISTANCE with {len(sector_distances)} sectors at {timems} ms.")
+
+        # Send MAVLink message
         self.mavlink_connection.mav.obstacle_distance_send(
-            time_boot_ms=timems,
-            sensor_type=1,  # MAV_DISTANCE_SENSOR_LASER
-            distances=distances,
-            increment=5,  # degrees between measurements
-            min_distance=30,  # e.g., 30 cm
-            max_distance=4000,  # 40 meters
-            increment_f=float(5.0),
-            angle_offset=0.0,
-            frame=8  # MAV_FRAME_BODY_FRD (forward-right-down), change as needed
+            time_usec=timems * 1000,  # Must be in microseconds
+            sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
+            distances=sector_distances,
+            increment=5,  # Degrees per sector
+            min_distance=20,   # cm
+            max_distance=10000,  # cm
+            increment_f=5.0 * math.pi / 180.0,  # Radians per sector
+            angle_offset=0.0,  # Offset angle
+            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
 
-        self.get_logger().info(f"Published OBSTACLE_DISTANCE with {sum(c > 0 for c in counts)} populated bins")
+        self.log_obstacle_distance(
+            time_usec=timems * 1000,
+            sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
+            distances=sector_distances,
+            increment=5,
+            min_distance=20,
+            max_distance=10000,
+            increment_f=5.0 * math.pi/180.0,
+            angle_offset=0.0,
+            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
+        )
+
+    def log_obstacle_distance(self, time_usec, sensor_type, distances, increment, min_distance, max_distance, increment_f, angle_offset, frame):
+        distance_summary = distances[:10]  # Only print first 10 values to keep log readable
+        distance_summary_str = ', '.join(str(d) for d in distance_summary)
+        if len(distances) > 10:
+            distance_summary_str += ", ..."
+
+        self.get_logger().info(
+            "\n--- OBSTACLE_DISTANCE MAVLink Packet ---\n"
+            f"Time (boot, usec): {time_usec}\n"
+            f"Sensor Type: {sensor_type} ({self.sensor_type_to_string(sensor_type)})\n"
+            f"Distances (cm): [{distance_summary_str}]\n"
+            f"Increment: {increment} deg\n"
+            f"Increment_f: {increment_f:.5f} rad\n"
+            f"Min Distance: {min_distance} cm\n"
+            f"Max Distance: {max_distance} cm\n"
+            f"Angle Offset: {angle_offset} rad\n"
+            f"Frame: {frame} ({self.frame_to_string(frame)})\n"
+            "----------------------------------------"
+        )
+
+    def sensor_type_to_string(self, sensor_type):
+        types = {
+            0: "LASER",
+            1: "ULTRASOUND",
+            2: "INFRARED",
+            3: "RADAR",
+            4: "UNKNOWN"
+        }
+        return types.get(sensor_type, "UNDEFINED")
+
+    def frame_to_string(self, frame):
+        frames = {
+            0: "GLOBAL",
+            1: "LOCAL_NED",
+            2: "MAV_FRAME_BODY_NED",
+            8: "MAV_FRAME_BODY_FRD"
+        }
+        return frames.get(frame, "CUSTOM")
 
 
 

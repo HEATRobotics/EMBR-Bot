@@ -1,7 +1,7 @@
 from pymavlink import mavutil
 import time
 
-connection = mavutil.mavlink_connection('COM9', 57600, mavlink_version='2.0')
+connection = mavutil.mavlink_connection('/dev/ttyUSB0', 57600, mavlink_version='2.0')
 
 def handle_named_value_float(message):
     print(f"Received {message.name}: {message.value}")
