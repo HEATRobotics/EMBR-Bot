@@ -52,10 +52,10 @@ class CommSubscriber(Node):
             name = b'temp',
             value = msg.temperature)
 
-    
+            
     def lidar_callback(self, msg):
         self.get_logger().info('Lidar Callback Called')
-
+        
         # Create a set to track which sectors are updated
         updated_sectors = set()
 
@@ -65,37 +65,41 @@ class CommSubscriber(Node):
         for (x, y, z) in points:
             distance = sqrt(x**2 + y**2)
             angle = atan2(y, x)
-            
-            # Normalize angle to be within [0, 2*pi]
             if angle < 0:
                 angle += 2 * pi
-            
-            # Calculate the primary sector index
             sector_idx = int(angle / self.sector_size_rad)
-            
-            # Handle sector index wrapping (circular sectors)
-            next_sector_idx = (sector_idx + 1) % self.num_sectors
-            prev_sector_idx = (sector_idx - 1) % self.num_sectors
-
-            # Calculate fractional part of the angle within the sector
-            fractional_angle = (angle % self.sector_size_rad) / self.sector_size_rad
-            
-            # Calculate distances in centimeters
             distance_cm = int(distance * 100)
 
-            # Only update if distance is below max threshold
-            if distance_cm < 10000:
-                # Distribute distance into the current and adjacent sectors, based on angle proximity
-                self.previous_sector_distances[sector_idx] += distance_cm * (1 - fractional_angle)
-                self.previous_sector_distances[next_sector_idx] += distance_cm * fractional_angle
+            if 0 <= sector_idx < self.num_sectors:
+                # Only update if not max distance
+                if distance_cm < 10000: 
+                    self.previous_sector_distances[sector_idx] = distance_cm
+                    updated_sectors.add(sector_idx)
 
-                # Ensure the distance does not exceed max range
-                self.previous_sector_distances[sector_idx] = min(self.previous_sector_distances[sector_idx], 10000)
-                self.previous_sector_distances[next_sector_idx] = min(self.previous_sector_distances[next_sector_idx], 10000)
-                
-                # Mark the sectors as updated
-                updated_sectors.add(sector_idx)
-                updated_sectors.add(next_sector_idx)
+        # Interpolate missing values
+        all_sectors = np.zeros(self.num_sectors) + 10000  # Assume max distance if not updated
+        for sector in updated_sectors:
+            all_sectors[sector] = self.previous_sector_distances[sector]
+
+        # Perform linear interpolation between sectors with values
+        for i in range(self.num_sectors):
+            if all_sectors[i] == 10000:  # if the sector is not updated
+                left = i - 1
+                right = i + 1
+
+                # Find the nearest left and right updated sectors
+                while left >= 0 and all_sectors[left] == 10000:
+                    left -= 1
+                while right < self.num_sectors and all_sectors[right] == 10000:
+                    right += 1
+
+                # Interpolate if both left and right sectors are available
+                if left >= 0 and right < self.num_sectors:
+                    all_sectors[i] = (all_sectors[left] + all_sectors[right]) / 2
+                elif left >= 0:  # No right sector, copy left
+                    all_sectors[i] = all_sectors[left]
+                elif right < self.num_sectors:  # No left sector, copy right
+                    all_sectors[i] = all_sectors[right]
 
         # Use current time since boot
         boot_time_sec = time.monotonic()
@@ -105,7 +109,7 @@ class CommSubscriber(Node):
         self.mavlink_connection.mav.obstacle_distance_send(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=self.previous_sector_distances,
+            distances=all_sectors.tolist(),
             increment=5,  # degrees per sector
             min_distance=20,
             max_distance=10000,
@@ -117,7 +121,7 @@ class CommSubscriber(Node):
         self.log_obstacle_distance(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=self.previous_sector_distances,
+            distances=all_sectors.tolist(),
             increment=5,
             min_distance=20,
             max_distance=10000,
@@ -126,7 +130,6 @@ class CommSubscriber(Node):
             frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
 
-        # Log the updated sectors
         self.get_logger().info(f"Updated sectors: {sorted(list(updated_sectors))}")
 
 
