@@ -32,6 +32,11 @@ class CommSubscriber(Node):
             10
         )
 
+        # Lidar Variables
+        self.num_sectors = 72
+        self.sector_size_rad = (2 * math.pi) / self.num_sectors
+        self.previous_sector_distances = [10000] * self.num_sectors  # Initialize to max distance
+        
 
         # Create a publisher for any received data (example: String message)
         #self.received_data_publisher = self.create_publisher(String, 'mavlink_rx', 3)
