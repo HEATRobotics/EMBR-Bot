@@ -1,4 +1,4 @@
-from math import atan2, degrees, sqrt
+from math import atan2, degrees, sqrt, pi
 import numpy as np
 import rclpy
 import time
@@ -49,21 +49,22 @@ class CommSubscriber(Node):
 
     
     def listener_callback(self, msg):
-        # Compute time since boot in milliseconds
-        timems = int((time.time() - time.mktime(time.gmtime(0))) * 1000) % 4294967296
+        # Correct time since boot
+        boot_time = time.monotonic()
+        timems = int(boot_time * 1000) % 4294967296
+        time_usec = timems * 1000
 
-        # Read and process points
         points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
 
         num_sectors = 72
         sector_size_rad = (2 * math.pi) / num_sectors
-        sector_distances = [10000 for _ in range(num_sectors)]  # Initialize with max (100 meters)
+        sector_distances = [10000 for _ in range(num_sectors)]  # Default distance to max (10000 cm)
 
         for (x, y, z) in points:
-            distance = math.sqrt(x**2 + y**2)
-            angle = math.atan2(y, x)
+            distance = sqrt(x**2 + y**2)
+            angle = atan2(y, x)
             if angle < 0:
-                angle += 2 * math.pi
+                angle += 2 * pi
 
             sector_idx = int(angle / sector_size_rad)
             distance_cm = int(distance * 100)
@@ -72,33 +73,32 @@ class CommSubscriber(Node):
                 if distance_cm < sector_distances[sector_idx]:
                     sector_distances[sector_idx] = distance_cm
 
-        # Log for debug
-        self.get_logger().info(f"Sending OBSTACLE_DISTANCE with {len(sector_distances)} sectors at {timems} ms.")
+        frame = mavutil.mavlink.MAV_FRAME_BODY_FRD  # Correct frame type
 
-        # Send MAVLink message
         self.mavlink_connection.mav.obstacle_distance_send(
-            time_usec=timems * 1000,  # Must be in microseconds
-            sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=sector_distances,
-            increment=5,  # Degrees per sector
-            min_distance=20,   # cm
-            max_distance=10000,  # cm
-            increment_f=5.0 * math.pi / 180.0,  # Radians per sector
-            angle_offset=0.0,  # Offset angle
-            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
-        )
-
-        self.log_obstacle_distance(
-            time_usec=timems * 1000,
+            time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
             distances=sector_distances,
             increment=5,
             min_distance=20,
             max_distance=10000,
-            increment_f=5.0 * math.pi/180.0,
+            increment_f=5.0 * pi/180.0,
             angle_offset=0.0,
-            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
+            frame=frame
         )
+
+        self.log_obstacle_distance(
+            time_usec=time_usec,
+            sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
+            distances=sector_distances,
+            increment=5,
+            min_distance=20,
+            max_distance=10000,
+            increment_f=5.0 * pi/180.0,
+            angle_offset=0.0,
+            frame=frame
+        )
+
 
     def log_obstacle_distance(self, time_usec, sensor_type, distances, increment, min_distance, max_distance, increment_f, angle_offset, frame):
         distance_summary = distances[:10]  # Only print first 10 values to keep log readable
