@@ -58,10 +58,10 @@ class CommSubscriber(Node):
         points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
         
         for (x, y, z) in points:
-            distance = math.sqrt(x**2 + y**2)
-            angle = math.atan2(y, x)
+            distance = sqrt(x**2 + y**2)
+            angle = atan2(y, x)
             if angle < 0:
-                angle += 2 * math.pi
+                angle += 2 * pi
             sector_idx = int(angle / self.sector_size_rad)
             distance_cm = int(distance * 100)
 
@@ -83,7 +83,7 @@ class CommSubscriber(Node):
             increment=5,  # degrees per sector
             min_distance=20,
             max_distance=10000,
-            increment_f=5.0 * math.pi/180.0,
+            increment_f=5.0 * pi/180.0,
             angle_offset=0.0,
             frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
@@ -95,7 +95,7 @@ class CommSubscriber(Node):
             increment=5,
             min_distance=20,
             max_distance=10000,
-            increment_f=5.0 * math.pi/180.0,
+            increment_f=5.0 * pi/180.0,
             angle_offset=0.0,
             frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
