@@ -57,7 +57,7 @@ class CommSubscriber(Node):
         points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
 
         num_sectors = 72
-        sector_size_rad = (2 * math.pi) / num_sectors
+        sector_size_rad = (2 * pi) / num_sectors
         sector_distances = [10000 for _ in range(num_sectors)]  # Default distance to max (10000 cm)
 
         for (x, y, z) in points:
