@@ -49,54 +49,59 @@ class CommSubscriber(Node):
 
     
     def lidar_callback(self, msg):
-        # Correct time since boot
-        boot_time_sec = time.monotonic()
-        time_usec = int(boot_time_sec * 1e6)  # microseconds
+        self.get_logger().info('Lidar Callback Called')
+        
+        # Create a set to track which sectors are updated
+        updated_sectors = set()
 
+        # Process the incoming point cloud
         points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
-
-        num_sectors = 72
-        sector_size_rad = (2 * pi) / num_sectors
-        sector_distances = [10000 for _ in range(num_sectors)]  # Default distance to max (10000 cm)
-
+        
         for (x, y, z) in points:
-            distance = sqrt(x**2 + y**2)
-            angle = atan2(y, x)
+            distance = math.sqrt(x**2 + y**2)
+            angle = math.atan2(y, x)
             if angle < 0:
-                angle += 2 * pi
-
-            sector_idx = int(angle / sector_size_rad)
+                angle += 2 * math.pi
+            sector_idx = int(angle / self.sector_size_rad)
             distance_cm = int(distance * 100)
 
-            if 0 <= sector_idx < num_sectors:
-                if distance_cm < sector_distances[sector_idx]:
-                    sector_distances[sector_idx] = distance_cm
+            if 0 <= sector_idx < self.num_sectors:
+                # Only update if not max distance
+                if distance_cm < 10000: 
+                    self.previous_sector_distances[sector_idx] = distance_cm
+                    updated_sectors.add(sector_idx)
 
-        frame = mavutil.mavlink.MAV_FRAME_BODY_FRD  # Correct frame type
+        # Use current time since boot
+        boot_time_sec = time.monotonic()
+        time_usec = int(boot_time_sec * 1e6)
 
+        # Send MAVLink message with updated distances
         self.mavlink_connection.mav.obstacle_distance_send(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=sector_distances,
-            increment=5,
+            distances=self.previous_sector_distances,
+            increment=5,  # degrees per sector
             min_distance=20,
             max_distance=10000,
-            increment_f=5.0 * pi/180.0,
+            increment_f=5.0 * math.pi/180.0,
             angle_offset=0.0,
-            frame=frame
+            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
 
         self.log_obstacle_distance(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=sector_distances,
+            distances=self.previous_sector_distances,
             increment=5,
             min_distance=20,
             max_distance=10000,
-            increment_f=5.0 * pi/180.0,
+            increment_f=5.0 * math.pi/180.0,
             angle_offset=0.0,
-            frame=frame
+            frame=mavutil.mavlink.MAV_FRAME_BODY_FRD
         )
+
+        self.get_logger().info(f"Updated sectors: {sorted(list(updated_sectors))}")
+
 
 
     def log_obstacle_distance(self, time_usec, sensor_type, distances, increment, min_distance, max_distance, increment_f, angle_offset, frame):
