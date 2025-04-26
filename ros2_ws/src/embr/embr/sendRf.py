@@ -131,7 +131,7 @@ class CommSubscriber(Node):
         }
         return types.get(sensor_type, "UNDEFINED")
 
-    def frame_to_string(self, frame):
+    def frame_to_string(self, frame_id):
         frame_names = {
             0: "GLOBAL",
             1: "LOCAL_NED",
