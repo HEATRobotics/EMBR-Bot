@@ -111,6 +111,7 @@ class CommSubscriber(Node):
             f"Time (boot, usec): {time_usec}\n"
             f"Sensor Type: {sensor_type} ({self.sensor_type_to_string(sensor_type)})\n"
             f"Distances (cm): [{distance_summary_str}]\n"
+            f"Number of Distance Values: {len(distances)}"
             f"Increment: {increment} deg\n"
             f"Increment_f: {increment_f:.5f} rad\n"
             f"Min Distance: {min_distance} cm\n"
@@ -131,13 +132,19 @@ class CommSubscriber(Node):
         return types.get(sensor_type, "UNDEFINED")
 
     def frame_to_string(self, frame):
-        frames = {
+        frame_names = {
             0: "GLOBAL",
             1: "LOCAL_NED",
-            2: "MAV_FRAME_BODY_NED",
-            8: "MAV_FRAME_BODY_FRD"
+            2: "LOCAL_ENU",
+            3: "GLOBAL_RELATIVE_ALT",
+            4: "LOCAL_OFFSET_NED",
+            5: "BODY_NED",
+            6: "BODY_OFFSET_NED",
+            7: "GLOBAL_TERRAIN_ALT",
+            8: "BODY_FRD",
+            12: "BODY_FRD",  # Confirmed for MAV_FRAME_BODY_FRD
         }
-        return frames.get(frame, "CUSTOM")
+        return frame_names.get(frame_id, f"Unknown ({frame_id})")
 
 
 
