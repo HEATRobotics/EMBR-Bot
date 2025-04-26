@@ -50,9 +50,8 @@ class CommSubscriber(Node):
     
     def lidar_callback(self, msg):
         # Correct time since boot
-        boot_time = time.monotonic()
-        timems = int(boot_time * 1000) % 4294967296
-        time_usec = timems * 1000
+        boot_time_sec = time.monotonic()
+        time_usec = int(boot_time_sec * 1e6)  # microseconds
 
         points = list(pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True))
 
@@ -111,7 +110,7 @@ class CommSubscriber(Node):
             f"Time (boot, usec): {time_usec}\n"
             f"Sensor Type: {sensor_type} ({self.sensor_type_to_string(sensor_type)})\n"
             f"Distances (cm): [{distance_summary_str}]\n"
-            f"Number of Distance Values: {len(distances)}"
+            f"Number of Distance Values: {len(distances)}\n"
             f"Increment: {increment} deg\n"
             f"Increment_f: {increment_f:.5f} rad\n"
             f"Min Distance: {min_distance} cm\n"
