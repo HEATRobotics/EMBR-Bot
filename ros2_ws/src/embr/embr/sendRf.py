@@ -34,7 +34,7 @@ class CommSubscriber(Node):
 
         # Lidar Variables
         self.num_sectors = 72
-        self.sector_size_rad = (2 * math.pi) / self.num_sectors
+        self.sector_size_rad = (2 * pi) / self.num_sectors
         self.previous_sector_distances = [10000] * self.num_sectors  # Initialize to max distance
         
 
