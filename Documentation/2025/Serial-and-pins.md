@@ -8,10 +8,31 @@ This is different from serial interface for the Kria.
 
 You may have to manually enable serial by editing the firmware. You can do this manually by editing the `config.txt` and `cmdline.txt` files in `/boot/firmware/`, or run the [install script for raspi-config](../../Tools/Setup-Scripts/install-raspi-config), and use that interface to do so.
 
+## Enabling 2nd UART Connection
+```bash
+sudo su
+cd /boot/firmware
+nano config.txt
+```
+Edit or add 
+```
+# Enable the serial pins
+enable_uart=1
+dtoverlay=uart2
+dtoverlay=disable-bt
+```
+reboot. 
+Run `ls -l /dev/serial*` and ensure 2 devices are shown. The pins are then the following:
+| UART Interface | TXD Pin | RXD Pin | CTS Pin | RTS Pin | Device         |
+|----------------|---------|---------|---------|---------|----------------|
+| UART0/ttyAMA0          | GPIO14  | GPIO15  | GPIO16  | GPIO17  | Cube Orange    |
+| UART2/ttyAMA1          | GPIO0  | GPIO1  | N/A     | N/A     | RF-900x Radio  |
+
+
 # Pins
 
 ## Raspberry Pi
-![Raspberry Pi4b Pinout](Images/raspberrypi4b-pinouts.jpg)
+![Raspberry Pi4b Pinout](Images/raspberrypi4b-pinouts.png)
 
 This is the pinout for the raspberry Pi4b. BCM stands for Broadcom, and refers to the microcontroller used for the pi. You may see Raspi pins referred to either in BCM or regular notation. This document will use regular notation unless (BCM) is specified.
 
@@ -43,6 +64,19 @@ This is the pinout for the raspberry Pi4b. BCM stands for Broadcom, and refers t
 |--------------------|-----------|
 | 4 (5V)            | 4 (5V)    |
 | 6 (GND)           | 1 (GND)   |
-| 8 (BCM 14) (TX)   | 7 (RX)    |
-| 10 (BCM 15) (RX)  | 9 (TX)    |
+| 27 (GPIO0) (TX)   | 7 (RX)    |
+| 28 (GPIO1) (RX)  | 9 (TX)    |
+
+
+# Connection between Raspi and Cube Orange
+
+| Cube Orange TELEM Pin | Signal Name | Raspberry Pi 4 GPIO Pin | RPi Physical Pin # |
+|:---------------------:|:-----------:|:----------------------:|:------------------:|
+| 1                     | 5V (VCC)    | 5V Power                | Pin 2              |
+| 2                     | TX (from Cube) | RXD2 (GPOI15)         | Pin 10              |
+| 3                     | RX (to Cube)  | TXD2 (GPIO14)          | Pin 8              |
+| 4                     | CTS (from Cube) | RTS2 (GPIO17)       | Pin 11              |
+| 5                     | RTS (to Cube)  | CTS2 (GPIO16)         | Pin 36             |
+| 6                     | GND          | Ground                 | Pin 14              |
+
 

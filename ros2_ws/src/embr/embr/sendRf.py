@@ -18,7 +18,7 @@ class CommSubscriber(Node):
         self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(Temperature, 'temperature', self.temperature_callback, 10)
         self.subscription   # prevent unused variable warning
-        self.mavlink_connection = mavutil.mavserial(device='/dev/serial0', baud=57600)
+        self.mavlink_connection = mavutil.mavserial(device='/dev/ttyAMA1', baud=57600)
         
         self.mavlink_connection.mav = mavlink2.MAVLink(self.mavlink_connection)
         
@@ -189,6 +189,7 @@ class CommSubscriber(Node):
         alt = msg.alt
         vel = int(msg.vel * 100)
         timems = int((time.time() - time.mktime(time.gmtime(0))) * 1000) % 4294967296
+        self.get_logger().info(f"Received Gps: Lat: {lat}, Lon: {lon}, Alt: {alt}, Vel: {vel}")
         self.mavlink_connection.mav.global_position_int_send(timems, lat, lon, alt, 0, vel, 0, 0, 0)
 
     def read_mavlink_messages(self):
