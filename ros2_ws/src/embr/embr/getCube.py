@@ -8,7 +8,7 @@ class AttitudePublisher(Node):
     def __init__(self):
         super().__init__('attitude_publisher')
         self.publisher_ = self.create_publisher(Gps, 'gps', 10)
-        self.vehicle = connect("/dev/ttyUL0", wait_ready=False, baud=57600)
+        self.vehicle = connect("/dev/ttyAMA0", wait_ready=False, baud=57600)
         self.get_logger().info('Attitude Publisher node initialized')
 
     def publish_attitude(self):
