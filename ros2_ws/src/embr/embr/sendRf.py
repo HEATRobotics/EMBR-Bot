@@ -18,7 +18,7 @@ class CommSubscriber(Node):
         self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(Temperature, 'temperature', self.temperature_callback, 10)
         self.subscription   # prevent unused variable warning
-        self.mavlink_connection = mavutil.mavserial(device='/dev/serial0', baud=57600)
+        self.mavlink_connection = mavutil.mavserial(device='/dev/ttyAMA1', baud=57600)
         
         self.mavlink_connection.mav = mavlink2.MAVLink(self.mavlink_connection)
         
@@ -52,7 +52,7 @@ class CommSubscriber(Node):
             name = b'temp',
             value = msg.temperature)
 
-    
+            
     def lidar_callback(self, msg):
         self.get_logger().info('Lidar Callback Called')
         
@@ -76,6 +76,31 @@ class CommSubscriber(Node):
                     self.previous_sector_distances[sector_idx] = distance_cm
                     updated_sectors.add(sector_idx)
 
+        # Interpolate missing values
+        all_sectors = np.zeros(self.num_sectors) + 10000  # Assume max distance if not updated
+        for sector in updated_sectors:
+            all_sectors[sector] = self.previous_sector_distances[sector]
+
+        # Perform linear interpolation between sectors with values
+        for i in range(self.num_sectors):
+            if all_sectors[i] == 10000:  # if the sector is not updated
+                left = i - 1
+                right = i + 1
+
+                # Find the nearest left and right updated sectors
+                while left >= 0 and all_sectors[left] == 10000:
+                    left -= 1
+                while right < self.num_sectors and all_sectors[right] == 10000:
+                    right += 1
+
+                # Interpolate if both left and right sectors are available
+                if left >= 0 and right < self.num_sectors:
+                    all_sectors[i] = (all_sectors[left] + all_sectors[right]) / 2
+                elif left >= 0:  # No right sector, copy left
+                    all_sectors[i] = all_sectors[left]
+                elif right < self.num_sectors:  # No left sector, copy right
+                    all_sectors[i] = all_sectors[right]
+
         # Use current time since boot
         boot_time_sec = time.monotonic()
         time_usec = int(boot_time_sec * 1e6)
@@ -84,7 +109,7 @@ class CommSubscriber(Node):
         self.mavlink_connection.mav.obstacle_distance_send(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=self.previous_sector_distances,
+            distances=all_sectors.tolist(),
             increment=5,  # degrees per sector
             min_distance=20,
             max_distance=10000,
@@ -96,7 +121,7 @@ class CommSubscriber(Node):
         self.log_obstacle_distance(
             time_usec=time_usec,
             sensor_type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,
-            distances=self.previous_sector_distances,
+            distances=all_sectors.tolist(),
             increment=5,
             min_distance=20,
             max_distance=10000,
@@ -106,6 +131,7 @@ class CommSubscriber(Node):
         )
 
         self.get_logger().info(f"Updated sectors: {sorted(list(updated_sectors))}")
+
 
 
 
@@ -163,6 +189,7 @@ class CommSubscriber(Node):
         alt = msg.alt
         vel = int(msg.vel * 100)
         timems = int((time.time() - time.mktime(time.gmtime(0))) * 1000) % 4294967296
+        self.get_logger().info(f"Received Gps: Lat: {lat}, Lon: {lon}, Alt: {alt}, Vel: {vel}")
         self.mavlink_connection.mav.global_position_int_send(timems, lat, lon, alt, 0, vel, 0, 0, 0)
 
     def read_mavlink_messages(self):

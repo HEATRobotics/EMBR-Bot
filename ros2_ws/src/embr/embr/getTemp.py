@@ -1,23 +1,9 @@
-"""
-CURRENTLY ONLY SENDS MOCK DATA
-"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Temperature
-import smbus
 import time
-import math
-import serial
 import re
-
-
-# Constants for Steinhart-Hart / Beta parameter equation
-T0 = 298.15  # Reference temperature (25°C in Kelvin)
-R0 = 10000   # Reference resistance at T0
-B = 3950     # Beta parameter
-
-I2C_ADDRESS = 0x48
-ANALOG_CHANNEL = 0x40
+import serial
 
 class TemperaturePublisher(Node):
     def __init__(self):
