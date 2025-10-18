@@ -14,7 +14,7 @@ MAX_VELOCITY_REG = 0x008B  # Maximum velocity register address
 
 # Define the motor speed you want to set (in steps per second or RPM, adjust as needed)
 LOW_SPEED = 1  # Example low speed in steps per second
-HIGH_SPEED = 5  # Example high speed in steps per second
+HIGH_SPEED = 1  # Example high speed in steps per second
 
 # Connect to the motor
 client = ModbusTcpClient(MOTOR_IP, port=MOTOR_PORT)
@@ -22,7 +22,7 @@ client.connect()
 
 # Define positions
 position_0_rev = 0
-position_10_rev = 10
+position_10_rev = 20
 
 def set_motor_speed(initial_velocity, max_velocity):
     # Write to initial velocity register

@@ -4,4 +4,3 @@
 3. We are using `ROS2 Humble`. This can be installed on the operating system with [this script](../../Tools/Setup-Scripts/install-ROS2-Humble) for your convenience. Please note that this script exclusively works on Ubuntu, and not on any debian-based OS (including RaspberryPi OS). 
 4. The radio being used is the RFD 900x-US.
 
-
