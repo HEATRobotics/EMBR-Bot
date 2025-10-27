@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "========================================="
+echo "Setting up Thermal Camera (PureThermal 3)"
+echo "========================================="
+
+# Create udev rule for PureThermal 3
+echo "Creating udev rule for PureThermal 3..."
+sudo sh -c "echo 'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"1e4e\", ATTRS{idProduct}==\"0100\", SYMLINK+=\"pt3\", GROUP=\"usb\", MODE=\"666\"' > /etc/udev/rules.d/99-pt3.rules"
+
+# Reload udev rules
+echo "Reloading udev rules..."
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+echo "========================================="
+echo "Thermal camera setup complete!"
+echo "========================================="
