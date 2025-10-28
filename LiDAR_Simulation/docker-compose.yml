@@ -1,0 +1,20 @@
+services:
+  heat_robotics:
+    container_name: heat_jazzy
+    image: heat_rb_jazzy
+    restart: unless-stopped
+
+    network_mode: host
+    ipc: host
+
+    environment:
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_INDIRECT=0
+
+    working_dir: /home/ros/ros2_ws
+    user: ros
+    stdin_open: true
+    tty: true
+
+    security_opt:
+      - seccomp:unconfined
