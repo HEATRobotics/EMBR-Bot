@@ -275,7 +275,7 @@ EMBR-Bot/
 │   │   │   │   └── sendRf.py
 │   │   │   ├── launch/        # Launch files
 │   │   │   └── setup.py       # Package configuration
-│   │   └── msg_interface/     # Custom message 
+│   │   └── msg_interface/     # Custom message definitions
 │   └── requirements.txt       # Python dependencies
 ├── Tools/
 │   ├── Setup-Scripts/         # Installation scripts
