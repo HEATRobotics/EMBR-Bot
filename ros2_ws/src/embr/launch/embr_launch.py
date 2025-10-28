@@ -17,5 +17,12 @@ def generate_launch_description():
             package='embr',
             executable='sendRf',
             name='sendRf'
-        )
+        ),
+        Node(
+            package='embr',
+            executable='thermalStream',
+            name='thermal_stream',
+            output='screen',
+            emulate_tty=True
+        ),
     ])

@@ -56,9 +56,27 @@ src/
 │   ├── launch/          # embr_launch.py
 │   └── setup.py         # entry points
 └── msg_interface/
-	 ├── msg/             # custom msgs (e.g., Gps.msg)
+	 ├── msg/             # custom msgs (e.g., GPSAndIMU.msg)
 	 └── package.xml
 ```
+
+## Nodes
+
+### getCube
+Interfaces with Cube Orange flight controller via MAVLink.
+
+### getTemp
+Publishes temperature data from serial sensor.
+
+### sendRf
+Handles RF communication for telemetry.
+
+### thermalStream
+**New!** Thermal camera streaming node with HDMI output and intelligent frame publishing.
+- Streams color-mapped thermal video over HDMI using FFmpeg
+- Highlights and annotates hotspots above configurable temperature threshold
+- Publishes raw radiometric frames when vehicle velocity is zero
+- See [Thermal Stream Node Documentation](../Documentation/2025/Thermal-Stream-Node.md) for details
 
 ## Also see
 
