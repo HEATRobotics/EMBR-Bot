@@ -2,3 +2,7 @@ pyserial
 pymavlink
 dronekit
 smbus
+flirpy
+numpy
+opencv-python
+geopy
