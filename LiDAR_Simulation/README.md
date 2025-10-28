@@ -206,7 +206,7 @@ git reset --hard
 1. Create a feature branch: `git checkout -b feature/my-feature`
 2. Make your changes 
 3. Test inside the container
-4. Commit: `git commit -am 'Add my feature'`
+4. Commit: `git commit -m 'Add my feature'`
 5. Push: `git push origin feature/my-feature`
 6. Create a Pull Request
 

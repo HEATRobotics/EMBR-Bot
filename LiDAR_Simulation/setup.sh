@@ -6,8 +6,11 @@ echo "HEAT Robotics Docker Setup"
 echo "===================================="
 echo ""
 
-# Detect platform
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+# Detect platform - CHECK WSL FIRST before Linux
+if [[ -n "${WSL_DISTRO_NAME}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    PLATFORM="wsl"
+    echo "✓ Detected: WSL (Windows Subsystem for Linux)"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     PLATFORM="linux"
     echo "✓ Detected: Linux"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
@@ -38,7 +41,17 @@ echo "✓ Docker and Docker Compose found"
 echo ""
 
 # Platform-specific X11 setup
-if [ "$PLATFORM" = "linux" ]; then
+if [ "$PLATFORM" = "wsl" ]; then
+    echo "Setting up GUI for WSL..."
+    # WSL2 has built-in WSLg support - force correct display
+    export DISPLAY=:0
+    export WAYLAND_DISPLAY=wayland-0
+    export XDG_RUNTIME_DIR=/run/user/$(id -u)
+    export PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
+    echo "✓ Using WSLg for GUI support (no X server needed)"
+    echo "  DISPLAY=$DISPLAY"
+    echo "  XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR"
+elif [ "$PLATFORM" = "linux" ]; then
     echo "Setting up X11 display for Linux..."
     export DISPLAY=${DISPLAY:-:0}
     xhost +local:docker 2>/dev/null || echo "⚠ Warning: Could not configure xhost (GUI may not work)"
@@ -78,7 +91,10 @@ fi
 
 # Start the container with appropriate compose file
 echo "Starting container..."
-if [ "$PLATFORM" = "linux" ] && [ -f "docker-compose.linux.yml" ]; then
+if [ "$PLATFORM" = "wsl" ] && [ -f "docker-compose.linux.yml" ]; then
+    # WSL uses Linux kernel with WSLg, so use Linux config
+    docker compose -f docker-compose.yml -f docker-compose.linux.yml up -d
+elif [ "$PLATFORM" = "linux" ] && [ -f "docker-compose.linux.yml" ]; then
     docker compose -f docker-compose.yml -f docker-compose.linux.yml up -d
 elif [ "$PLATFORM" = "mac" ] && [ -f "docker-compose.mac.yml" ]; then
     docker compose -f docker-compose.yml -f docker-compose.mac.yml up -d
