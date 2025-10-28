@@ -1,6 +1,27 @@
-# Overview
-1. This repository (mostly) contains code written to be run on a **Raspberry Pi 4b Rev 1.4**.
-2. The raspberry pi is running `Ubuntu 22.04.05 LTS`. Kernel version at time of writing: `5.15.0-1074-raspi`
-3. We are using `ROS2 Humble`. This can be installed on the operating system with [this script](../../Tools/Setup-Scripts/install-ROS2-Humble) for your convenience. Please note that this script exclusively works on Ubuntu, and not on any debian-based OS (including RaspberryPi OS). 
-4. The radio being used is the RFD 900x-US.
+# Overview and basics
+
+This project targets a Raspberry Pi 4B running Ubuntu 22.04 LTS and ROS 2 Humble.
+
+## Platform
+
+- Hardware: Raspberry Pi 4B (Rev 1.4)
+- OS: Ubuntu 22.04.05 LTS (example kernel at time of writing: 5.15.0-1074-raspi)
+- ROS: ROS 2 Humble
+- Flight controller: Cube Orange
+- Radio telemetry: RFD 900x-US
+- Sensors: FLIR Lepton 3.1R (PureThermal 3), external temperature sensor (Arduino)
+
+## Install baseline
+
+Use the setup scripts on Ubuntu 22.04 (not Raspberry Pi OS):
+
+- ROS 2 Humble: `Tools/Setup-Scripts/install-ROS2-Humble`
+- Full setup (ROS + deps + thermal camera + DroneKit patch): `Tools/Setup-Scripts/setup-all`
+
+For details on running and building, see `ros2_ws/README.md`. To start everything, see `Tools/Readme.md` for the launcher scripts.
+
+## Notes
+
+- The setup scripts are Linux/Ubuntu-oriented; they will not work on Raspberry Pi OS.
+- Serial/UART configuration and wiring are covered in `Serial-and-pins.md`.
 

@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# Master setup script for EMBR-Bot
+# This script runs all setup scripts in the correct order
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "========================================="
+echo "EMBR-Bot Complete Setup"
+echo "========================================="
+echo ""
+echo "This script will:"
+echo "  1. Install ROS2 Humble"
+echo "  2. Install system dependencies"
+echo "  3. Install Python requirements (ros2_ws/requirements.txt)"
+echo "  4. Patch DroneKit for Python 3.10+ compatibility"
+echo "  5. Setup thermal camera (PureThermal 3)"
+echo "  6. Install raspi-config"
+echo ""
+read -p "Press Enter to continue or Ctrl+C to cancel..."
+echo ""
+
+# Step 1: Install ROS2 Humble
+echo ""
+echo "Step 1/6: Installing ROS2 Humble..."
+if [ -f "$SCRIPT_DIR/install-ROS2-Humble" ]; then
+    bash "$SCRIPT_DIR/install-ROS2-Humble"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: ROS2 installation failed!"
+        exit 1
+    fi
+else
+    echo "ERROR: install-ROS2-Humble script not found!"
+    exit 1
+fi
+
+# Step 2: Install dependencies
+echo ""
+echo "Step 2/6: Installing dependencies..."
+if [ -f "$SCRIPT_DIR/install-dependencies" ]; then
+    bash "$SCRIPT_DIR/install-dependencies"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Dependency installation failed!"
+        exit 1
+    fi
+else
+    echo "ERROR: install-dependencies script not found!"
+    exit 1
+fi
+
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Step 3: Install Python requirements
+echo ""
+echo "Step 3/6: Installing Python requirements..."
+REQ_FILE="$PROJECT_ROOT/ros2_ws/requirements.txt"
+if [ -f "$REQ_FILE" ]; then
+    echo "Using requirements file: $REQ_FILE"
+    pip3 install --user -r "$REQ_FILE"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Python dependency installation failed!"
+        exit 1
+    fi
+else
+    echo "WARNING: requirements.txt not found at $REQ_FILE"
+fi
+
+# Step 4: Patch DroneKit for Python 3.10+
+echo ""
+echo "Step 4/6: Patching DroneKit for Python 3.10+..."
+PYVER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+DK_INIT="$HOME/.local/lib/python$PYVER/site-packages/dronekit/__init__.py"
+if [ -f "$DK_INIT" ]; then
+    echo "Found DroneKit at: $DK_INIT"
+    TMP1=$(mktemp)
+    TMP2=$(mktemp)
+    # Patch import collections -> collections.abc and add MutableMapping import (idempotent)
+    awk 'BEGIN{patched=0} {
+        if ($0 ~ /^import collections$/ && patched==0) {
+            print "import collections.abc as collections";
+            print "from collections.abc import MutableMapping";
+            patched=1;
+        } else {
+            print $0;
+        }
+    }' "$DK_INIT" > "$TMP1"
+    # Patch class Parameters(collections.MutableMapping, HasObservers) -> class Parameters(MutableMapping, HasObservers)
+    sed -E 's/class Parameters\(\s*collections\.MutableMapping\s*,\s*HasObservers\)/class Parameters(MutableMapping, HasObservers)/' "$TMP1" > "$TMP2"
+    if cmp -s "$DK_INIT" "$TMP2"; then
+        echo "DroneKit already appears to be patched."
+    else
+        echo "Applying DroneKit patch..."
+        cp "$DK_INIT" "$DK_INIT.bak"
+        mv "$TMP2" "$DK_INIT"
+        echo "Patch applied. Backup saved to $DK_INIT.bak"
+    fi
+    rm -f "$TMP1" 2>/dev/null || true
+    # TMP2 moved if patched; remove if still present
+    [ -f "$TMP2" ] && rm -f "$TMP2" 2>/dev/null || true
+else
+    echo "WARNING: DroneKit not found at $DK_INIT. Ensure Python requirements were installed for the current user."
+fi
+
+# Step 5: Setup thermal camera
+echo ""
+echo "Step 5/6: Setting up thermal camera..."
+if [ -f "$SCRIPT_DIR/setup-thermal-camera" ]; then
+    bash "$SCRIPT_DIR/setup-thermal-camera"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Thermal camera setup failed!"
+        exit 1
+    fi
+else
+    echo "ERROR: setup-thermal-camera script not found!"
+    exit 1
+fi
+
+# Step 6: Install raspi-config
+echo ""
+echo "Step 6/6: Installing raspi-config..."
+if [ -f "$SCRIPT_DIR/install-raspi-config" ]; then
+    bash "$SCRIPT_DIR/install-raspi-config"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: raspi-config installation failed!"
+        exit 1
+    fi
+else
+    echo "ERROR: install-raspi-config script not found!"
+    exit 1
+fi
+
+echo ""
+echo "========================================="
+echo "EMBR-Bot Setup Complete!"
+echo "========================================="
+echo ""
+echo "All components have been installed successfully."
+echo "You may need to reboot for all changes to take effect."
+echo ""
+read -p "Would you like to reboot now? (y/N): " -n 1 -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Rebooting..."
+    sudo reboot
+else
+    echo "Please remember to reboot later for all changes to take effect."
+fi
