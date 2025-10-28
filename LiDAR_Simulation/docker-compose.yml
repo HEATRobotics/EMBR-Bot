@@ -2,7 +2,7 @@ services:
   heat_robotics:
     container_name: heat_jazzy
     image: heat_rb_jazzy
-    restart: unless-stopped
+    restart: "no"
 
     network_mode: host
     ipc: host
