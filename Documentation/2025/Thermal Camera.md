@@ -19,21 +19,21 @@ This is why we need a software stack based on `libuvc`.
 
 For accessing temperature data in Python, `flirpy` is the most direct and recommended tool. It handles all the low-level complexity for you.
 
-### **1\. `libuvc` (The C-Library / "Driver")**
+### **1. `libuvc` (The C-Library / "Driver")**
 
-* **What it is:** A low-level C library that enables direct communication with USB Video Class (UVC) devices like your PureThermal 3\.  
+* **What it is:** A low-level C library that enables direct communication with USB Video Class (UVC) devices like your PureThermal 3.  
 * **Why you need it:** It's the foundation that allows `flirpy` (via `pyuvc`) to send the custom commands to enable radiometric mode. It is a required system-level dependency.  
 * **Installation:**  
   * **Ubuntu/Debian:** `sudo apt install libuvc-dev`  
   * **macOS:** `brew install libuvc`  
   * **Windows:** This is more complex; it's often easier to use the Windows-specific FLIR application for diagnostics.
 
-### **2\. `pyuvc` (The Python Wrapper)**
+### **2. `pyuvc` (The Python Wrapper)**
 
 * **What it is:** A Python library that "wraps" libuvc. It allows Python code to access the low-level controls of the UVC device.  
 * **Why you need it:** `flirpy` uses this library to do the actual work. You don't interact with it directly, but `flirpy` will install it as a dependency.
 
-### **3\. `flirpy` (The High-Level FLIR Library)**
+### **3. `flirpy` (The High-Level FLIR Library)**
 
 * **What it is:** A high-level Python library specifically for FLIR Lepton cameras on PureThermal boards.  
 * **Why you need it:** This is the tool for your job. It finds the camera, sends the command to enable radiometry, and grabs the 14-bit raw image. This image is a 2D NumPy array where values are in **centiKelvin**. You must convert this to Celsius manually.  
@@ -125,5 +125,5 @@ These are other tools you might encounter, but they are generally *not* what you
 * **FLIR Lepton Page (Downloads):** https://oem.flir.com/en-hk/products/lepton/?vertical=microcam\&segment=oem\&docPage=2\#Downloads  
 * **FLIR Windows Integration:** https://oem.flir.com/en-ca/developer/lepton-family/lepton-integration-with-windows/  
 * **3.1R Dewarping App Note:** https://oem.flir.com/en-ca/learn/thermal-integration-made-easy/lepton-3.1r-dewarping-application-note/  
-* **flirpy Repository:** https://www.google.com/search?q=https://github.com/groupgets/flirpy  
+* **flirpy Repository:** https://github.com/LJMUAstroecology/flirpy
 * **uvc-radiometry.py Example:** The [purethermal1-uvc-capture repo](https://github.com/groupgets/purethermal1-uvc-capture/tree/master/python) contains a uvc-radiometry.py script. This is a great example of how to do what `flirpy` does, but manually using pyuvc.

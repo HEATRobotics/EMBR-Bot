@@ -26,6 +26,8 @@ setup(
             'getCube = embr.getCube:main',
             'getTemp = embr.getTemp:main',
             'sendRf = embr.sendRf:main',
+            'thermalStream = embr.thermalStream:main',
+            'thermalHotspot = embr.thermalHotspotLocator:main',
         ],
     },
 )
