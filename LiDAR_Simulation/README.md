@@ -3,7 +3,14 @@ ROS2 Jazzy + Gazebo Harmonic development environment for robotics simulation, fu
 Simulation Goal: Working LiDAR Robot🤖🫨🚨
 
 ## 🚀 Quick Start
-
+**If Container exists**
+```bash
+bash start.sh
+```
+## 🚨 If Having Display Issues
+```bash
+bash diagnose-display.sh
+```
 ### Prerequisites
 
 **All Platforms:**
@@ -79,6 +86,7 @@ LiDAR_Simulation/
 ├── entrypoint.sh                 # Container startup script
 ├── setup.sh                      # Initial setup script (first time)
 ├── start.sh                      # Quick start script (daily use)
+├── diagnose-display.sh           # Check Display If having issues
 ```
 
 ## 🛠️ Development Workflow
@@ -115,8 +123,7 @@ docker compose up -d
 ### ROS2 Jazzy Commands
 ```
 ...
----
-
+```
 ## 🖥️ Platform-Specific Notes
 
 ### Windows
