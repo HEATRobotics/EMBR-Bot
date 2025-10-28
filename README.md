@@ -200,8 +200,7 @@ source install/setup.bash
 
 **2. Launch all nodes:**
 ```bash
-cd src/embr/launch
-ros2 launch embr_launch.py
+ros2 launch embr embr_launch.py
 ```
 
 **3. Run individual nodes:**
