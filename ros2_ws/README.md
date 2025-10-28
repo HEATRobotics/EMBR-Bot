@@ -1,40 +1,68 @@
-# What is this?
+# ROS 2 workspace (ros2_ws)
 
-ROS2_WS is the root directory for the project
+ROS 2 workspace containing:
+- `src/embr` – main EMBR package with runtime nodes and launch files
+- `src/msg_interface` – custom message definitions
 
 ## Prerequisites
 
-If this is the first time building the system install the python dependencies required for the project. This command installs all pythons dependencies:
+- ROS 2 Humble installed (use `Tools/Setup-Scripts/setup-all` on Raspberry Pi)
+- Python dependencies:
+  ```
+  pip install -r ./requirements.txt
+  ```
+  Note: `pyserial` is imported as `serial`.
+
+## Build
+
+`colcon` builds all packages in the workspace.
+
+1. Ensure new nodes are registered in `./src/embr/setup.py` and launches in `./src/embr/launch/embr_launch.py`.
+2. Build:
+	```
+	colcon build
+	```
+3. Source the overlay:
+	```
+	source install/setup.bash
+	```
+
+## Run
+
+Launch all EMBR nodes via the launch file:
+
 ```
-pip install -r ./requirements.txt
-```
-> Note: serial and pyserial aren't the same package, even though pyserial is imported as serial.
-
-## Usage
-
-### Build
-`colcon build` is the build system used by ros2. It is used to compile all packages within the system. 
-
-To actually be able to get your executables, you must:
-1. Make sure your new nodes are represented in `./src/embr/setup.py` and `./src/embr/launch/embr_launch.py`
-2. Run `colcon build`. This compiles all packages with in the project.
-3. Run `source install/setup.bash`. This executes commands within the file in order to setup the environment.
-
-### Run
-
-Used to run a particular ROS2 node:
-```
-ros2 run <package_name> <executable_name>
+ros2 launch embr embr_launch.py
 ```
 
-Example:
+Run a specific node:
+
 ```
 ros2 run embr sendRf
 ```
 
+If you run with `sudo`, manually source ROS 2 in that shell:
 
-You may (probably will) run into errors here if you try to run the `ros2` command with sudo or in superuser mode in general. This is because the source call (`echo "source /opt/ros/humble/setup.bash"`) in your `~/.bashrc` file isn't read, as you are no longer operating as the same user.
+```
+source /opt/ros/humble/setup.bash
+```
 
-If you are executing certain bits of code (mostly the ones that deal with serial communication) then you will have to run it in superuser mode and manually source the setup file.
+## Package layout
 
-# ALSO SEE
+```
+src/
+├── embr/
+│   ├── embr/            # nodes: getCube.py, getTemp.py, sendRf.py
+│   ├── launch/          # embr_launch.py
+│   └── setup.py         # entry points
+└── msg_interface/
+	 ├── msg/             # custom msgs (e.g., Gps.msg)
+	 └── package.xml
+```
+
+## Also see
+
+- Top-level quick start: `../README.md`
+- Docs index: `../Documentation/README.md`
+- Serial and wiring: `../Documentation/2025/Serial-and-pins.md`
+- Start scripts and utilities: `../Tools/Readme.md`
