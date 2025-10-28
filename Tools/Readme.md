@@ -3,15 +3,12 @@
 Utilities for setup and running EMBR.
 
 ## Start scripts
-
-- `start-all.sh` – launches the full stack (EMBR + LiDAR path if present)
-- `start-embr.sh` – launches only EMBR core nodes
-- `start-lidar.sh` – launches LiDAR components (if configured)
+- `start-embr.sh` – launches EMBR 
 
 Run from the `Tools/` directory:
 
 ```
-./start-all.sh
+./start-embr.sh
 ```
 
 ## Setup scripts (Raspberry Pi)

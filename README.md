@@ -41,7 +41,7 @@ To start all system components:
 
 ```bash
 cd Tools
-./start-all.sh
+./start-embr.sh
 ```
 
 ## Installation
@@ -184,13 +184,6 @@ Use the provided startup script to launch all ROS2 nodes:
 
 ```bash
 cd Tools
-./start-all.sh
-```
-
-Or start just the EMBR system (without LIDAR):
-
-```bash
-cd Tools
 ./start-embr.sh
 ```
 
@@ -287,8 +280,7 @@ EMBR-Bot/
 │   └── requirements.txt       # Python dependencies
 ├── Tools/
 │   ├── Setup-Scripts/         # Installation scripts
-│   ├── start-all.sh           # Main startup script
-│   └── start-embr.sh          # EMBR-only startup
+│   └── start-embr.sh          # EMBR startup
 ├── Documentation/
 │   └── 2025/                  # Current documentation
 └── temp_sensor/               # Arduino temperature sensor code
