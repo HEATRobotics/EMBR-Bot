@@ -1,8 +1,3 @@
-# Serial
-
-The serial hardware interface is `/dev/serial0`. I am of the understanding that it maps to `/dev/AMA0`, although can only write to `/dev/serial0`.
-
-This is different from serial interface for the Kria.
 # Serial and pins
 
 UART configuration and wiring for Raspberry Pi 4B with Cube Orange and RFD 900x-US.
