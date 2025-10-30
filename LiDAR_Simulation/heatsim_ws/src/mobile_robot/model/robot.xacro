@@ -109,7 +109,7 @@
 <!-- ################################################ -->
 
 <!-- ################################################ -->
-<!-- DEFINE LINKS, JOINTS HERE                        -->
+<!-- MARK: LINKS, JOINTS HERE                        -->
 <!-- ################################################ -->
 
 <!-- ################################################ -->
@@ -124,5 +124,28 @@
 </joint>
 
 <!-- ################################################ -->
-<!-- END: Fictious Link of the Robot                -->
+<!-- END: Fictious Link of the Robot                  -->
 <!-- ################################################ -->
+
+
+<!-- ################################################ -->
+<!-- START: Body Link of the Robot                    -->
+<!-- ################################################ -->
+<link name="body_link">
+    <visual>
+        <geometry>
+            <box size="${a} ${c} ${b}"/>
+        </geometry>
+        <!-- Discplacement & Orientation of the Geomtric Centre of the link with respec to the link -->
+        <origin rpy="0 0 0" xyz="0 0 ${s1}"/>
+    </visual>
+    
+    <collision>
+        <geometry>
+            <box size="${a} ${c} ${b}"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 ${s1}"/>
+    </collision>
+
+    <xacro:inertia_body/>
+</link>
