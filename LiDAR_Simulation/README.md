@@ -11,6 +11,16 @@ bash start.sh
 ```bash
 bash diagnose-display.sh
 ```
+## 🚨 If Having LF/CRLF Issues
+: invalid optionline 2: set: -
+set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
+/entrypoint.sh: line 3: $'\r': command not found
+: No such file or directoryt/ros/jazzy/setup.bash
+/entrypoint.sh: line 6: $'\r': command not found
+/entrypoint.sh: line 13: syntax error: unexpected end of file
+
+**Make sure files End of Line Sequence are in LF**
+
 ### Prerequisites
 
 **All Platforms:**
