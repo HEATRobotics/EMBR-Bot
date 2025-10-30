@@ -139,7 +139,7 @@
         <!-- Discplacement & Orientation of the Geomtric Centre of the link with respec to the link -->
         <origin rpy="0 0 0" xyz="0 0 ${s1}"/>
     </visual>
-    
+    <!-- This allows for collision physics etc -->
     <collision>
         <geometry>
             <box size="${a} ${c} ${b}"/>
@@ -149,3 +149,107 @@
 
     <xacro:inertia_body/>
 </link>
+
+<!-- ################################################ -->
+<!-- End: Body Link of the Robot                      -->
+<!-- ################################################ -->
+
+
+<!-- ################################################  -->
+<!-- START: Back Right Wheel of the Robot and the Joint-->
+<!-- ################################################  -->
+
+<joint name="wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="wheel1_link"/>
+    <origin xyz="${-s2} ${-s4} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="50000" velocity="10"/>
+    <dynamics damping="1.0" friction="1.0"/>
+</joint>
+
+<link name="wheel1_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="1.570795 0 0"/>
+        <geometry>
+            <cylinder radius="${r}" length="${d}"/>
+        </geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="1.570795 0 0"/>
+        <geometry>
+            <cylinder radius="${r}" length="${d}"/>
+        </geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- END: Back Right Wheel of the Robot and the Joint  -->
+<!-- ################################################  -->
+
+<!-- ################################################  -->
+<!-- START: Back Left Wheel of the Robot and the Joint-->
+<!-- ################################################  -->
+
+<joint name="wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="wheel2_link"/>
+    <origin xyz="${-s2} ${-s4} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="50000" velocity="10"/>
+    <dynamics damping="1.0" friction="1.0"/>
+</joint>
+
+<link name="wheel2_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="1.570795 0 0"/>
+        <geometry>
+            <cylinder radius="${r}" length="${d}"/>
+        </geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="1.570795 0 0"/>
+        <geometry>
+            <cylinder radius="${r}" length="${d}"/>
+        </geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- START: Caster Wheel                               -->
+<!-- ################################################  -->
+
+<joint name="caster_wheel" type="fixed">
+    <parent link="body_link"/>
+    <child link="caster_link"/>
+    <origin xyz="${s3} 0 ${r}" rpy="0 0 0"/>
+</joint>
+
+<link name="caster_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="${r}"/>
+        </geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="${r}"/>
+        </geometry>
+    </collision>
+
+    <xacro:inertia_caster/>
+</link>
+
+
+<!-- ################################################  -->
+<!-- END: Caster Wheel                                 -->
+<!-- ################################################  -->
