@@ -95,3 +95,34 @@
         <inertia ixx="${I_caster}" ixy="0.0" ixz="0.0" iyy="${I_caster}" iyz="0" izz="${I_caster}"/>
     </inertial>
 </xacro:macro>
+
+<!-- ################################################ -->
+
+<!-- ################################################ -->
+<!--            Include Additional Files              -->
+<!--            MARK: File Incl.                      -->
+<!-- ################################################ -->
+
+<!-- Over Here We Include the File that Defines Extra GZ Options and Motion Control Driver -->
+<xacro:include filename="$(find mobile_robot)/model/robot.gazebo"/>
+
+<!-- ################################################ -->
+
+<!-- ################################################ -->
+<!-- DEFINE LINKS, JOINTS HERE                        -->
+<!-- ################################################ -->
+
+<!-- ################################################ -->
+<!-- START: Fictious Link of the Robot                -->
+<!-- ################################################ -->
+<!-- Minute 26:07 of tutorial -->
+<!-- We need to have this link otherwise GZ will complain -->
+<link name="base_footprint"></link>
+<joint name="body_link_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="body_link"/>
+</joint>
+
+<!-- ################################################ -->
+<!-- END: Fictious Link of the Robot                -->
+<!-- ################################################ -->
