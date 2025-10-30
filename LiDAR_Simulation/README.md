@@ -20,6 +20,14 @@ set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
 /entrypoint.sh: line 13: syntax error: unexpected end of file
 
 **Make sure files End of Line Sequence are in LF**
+Can also change this in your .vscode/launch..json by adding. 
+```Javascript
+{
+  "files.eol": "\n", 
+  "editor.defaultFormatter": null,
+  "files.autoGuessEncoding": true
+}
+```
 
 ### Prerequisites
 
