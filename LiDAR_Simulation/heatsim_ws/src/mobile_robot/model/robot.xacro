@@ -9,10 +9,11 @@
 
 <robot name="ember_bot" xmlns:xacro="https://www.ros.org/wiki/xacro">
 <!-- ################################################    -->
-<!--            Geometry & Constants-->
+<!--            Geometry & Constants                     -->
+<!--            MARK: G & C                              -->
 <!-- ################################################    -->
 <!-- Pi Constant-->
-<xacro:property name="pi_constant" value="3.14159265"/>
+<xacro:property name="pi_const" value="3.14159265"/>
 
 <!-- Body Dimensions -->
 <xacro:property name="a" value="1.0"/>
@@ -24,3 +25,44 @@
 <xacro:property name="r" value="0.15"/>
 <!-- Wheel Width -->
 <xacro:property name="d" value="0.1"/>
+
+<!-- Distances Between Certain Centres In Reference Robot -->
+<xacro:property name="s1" value="${b/2+r}"/>
+<xacro:property name="s2" value="${2*r}"/>
+<xacro:property name="s3" value="${2*r}"/>
+<xacro:property name="s4" value="${c/2+d/2}"/>
+
+
+<!-- ################################################    -->
+
+<!-- ################################################    -->
+<!--                  Mass & Inertia                     -->
+<!--                  MARK: M & I                        -->
+<!-- ################################################    -->
+
+<!-- Material Density -->
+<!-- Body <Material Density> -->
+<xacro:property name="d1" value="2710.0"/>
+<!-- Wheel <Material Density> -->
+<xacro:property name="d2" value="2710.0"/>
+<!-- Caster <Material Density> -->
+<xacro:property name="d3" value="2710.0"/>
+
+<!-- Robot Body, Wheel, and Caster Mass -->
+<!-- Body <Mass> -->
+<xacro:property name="m1" value="${d1*a*b*c}"/>
+<!-- Wheel <Mass> -->
+<xacro:property name="m2" value="${d2*pi_const*r*r*d}"/>
+<!-- Caster <Mass> -->
+<xacro:property name="m3" value="${d3*(4.0/3.0)*pi_const*r*r*r}"/>
+
+<!-- Moments of Inertia of the Robot Body -->
+<xacro:property name="Ix_body" value="${(1/12)*m1*(b*b+c*c)}"/>
+<xacro:property name="Iy_body" value="${(1/12)*m1*(a*a+b*b)}"/>
+<xacro:property name="Iz_body" value="${(1/12)*m1*(a*a+c*c)}"/>
+
+<!-- Moments of Intertia of the Wheel -->
+<xacro:property name="Iz_wheel" value="${0.5*m2*r*r}"/>
+<xacro:property name="I_wheel" value="${(1.0/12.0)*m2*(3.0*r*r+d*d))}"/>
+
+<!--  -->
