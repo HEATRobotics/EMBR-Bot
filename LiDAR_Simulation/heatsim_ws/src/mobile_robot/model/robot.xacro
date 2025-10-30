@@ -57,6 +57,7 @@
 <xacro:property name="m3" value="${d3*(4.0/3.0)*pi_const*r*r*r}"/>
 
 <!-- Moments of Inertia of the Robot Body -->
+<!-- Note Due to reference bot being symmetric, number of inertias are cut in half -->
 <xacro:property name="Ix_body" value="${(1/12)*m1*(b*b+c*c)}"/>
 <xacro:property name="Iy_body" value="${(1/12)*m1*(a*a+b*b)}"/>
 <xacro:property name="Iz_body" value="${(1/12)*m1*(a*a+c*c)}"/>
@@ -65,4 +66,32 @@
 <xacro:property name="Iz_wheel" value="${0.5*m2*r*r}"/>
 <xacro:property name="I_wheel" value="${(1.0/12.0)*m2*(3.0*r*r+d*d))}"/>
 
-<!--  -->
+<!-- Moments of Inertia of the Caster Sphere -->
+<xacro:property name="I_caster" value="${(2.0/5.0)*m3*r*r)}"/>
+
+<!-- This Macro Defines the Complete Inertial Section of the Robot Body -->
+<!-- Utilized Later in the Code -->
+<xacro:macro name="inertia_body">
+    <inertial>
+        <mass value="${m1}"/>
+        <inertia ixx="${Ix_body}" ixy="0.0" ixz="0.0" iyy="${Iy_body}" iyz="0" izz="${Iz_body}"/>
+    </inertial>
+</xacro:macro>
+
+<!-- This Macro Defines the Complete Inertial Section of the Wheel -->
+<xacro:macro name="inertia_wheel">
+    <inertial>
+        <origin rpy="1.570795 0 0" xyz="0 0 0"/>
+        <mass value="${m2}"/>
+        <inertia ixx="${I_wheel}" ixy="0.0" ixz="0.0" iyy="${I_wheel}" iyz="0" izz="${Iz_wheel}"/>
+    </inertial>
+</xacro:macro>
+
+<!-- This Macro Defines the Complete Inertial Section of the Caster -->
+<xacro:macro name="inertia_caster">
+    <inertial>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="${m3}"/>
+        <inertia ixx="${I_caster}" ixy="0.0" ixz="0.0" iyy="${I_caster}" iyz="0" izz="${I_caster}"/>
+    </inertial>
+</xacro:macro>
