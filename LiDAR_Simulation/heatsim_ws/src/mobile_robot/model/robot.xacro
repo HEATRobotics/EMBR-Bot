@@ -12,6 +12,7 @@
 <!--            Geometry & Constants                     -->
 <!--            MARK: G & C                              -->
 <!-- ################################################    -->
+
 <!-- Pi Constant-->
 <xacro:property name="pi_const" value="3.14159265"/>
 
@@ -253,3 +254,31 @@
 <!-- ################################################  -->
 <!-- END: Caster Wheel                                 -->
 <!-- ################################################  -->
+
+<!-- ################################################  -->
+<!-- START: LiDAR                                      -->
+<!-- ################################################  -->
+
+<joint name="lidar" type="fixed">
+    <parent link="body_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+</joint>
+
+<link name="lidar_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="${r}"/>
+        </geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="${r}"/>
+        </geometry>
+    </collision>
+
+    <xacro:inertia_caster/>
+</link>
