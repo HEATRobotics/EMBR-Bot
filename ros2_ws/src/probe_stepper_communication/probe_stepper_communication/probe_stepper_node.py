@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
 
-from servo_interfaces.action import Servo
+from msg_interface.action import Probe_Stepper_Operation
 
 from pymodbus.client import ModbusTcpClient
 
@@ -173,23 +173,21 @@ class ProbeStepperNode(Node):
     def __init__(self):
         super().__init__("probe_stepper")
 
-        # do: servo parameters. global variables must be changed to node parameters where needed.
+        # do: drive parameters. global variables must be changed to node parameters where needed.
         
-        # do: servo_feedback topic
+        # do: drive_feedback topic
 
-        #servo_action_server
-        self.servo_operation = ActionServer(self, Servo, 'probe_stepper_operation', self.servo_callback)
+        #drive_action_server
+        self.drive_operation = ActionServer(self, Probe_Stepper_Operation, 'probe_stepper_operation', self.drive_operation_callback)
 
-        self.switchCaseOperation = SwitchCaseOperation(self.get_logger()) #instantiate switchCaseOperation once for servo_callback to use multiple times
+        self.switchCaseOperation = SwitchCaseOperation(self.get_logger()) #instantiate switchCaseOperation once for drive_operation_callback to use multiple times
 
-    def servo_callback(self, goal_handle):
+    def drive_operation_callback(self, goal_handle):
         
         operation_ID = goal_handle.request.operation
 
-        self.get_logger().info(f"servo: operation[{operation_ID}]")
-
         # call operations based on received operation ID
-        result = Servo.Result()
+        result = Probe_Stepper_Operation.Result()
         result.success = self.switchCaseOperation.do_operation(operation_ID)
         goal_handle.succeed()
         return result
