@@ -12,6 +12,11 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Gps.msg"
 )
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/Probe_Stepper_Operation.action"
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
