@@ -250,7 +250,6 @@
     <xacro:inertia_caster/>
 </link>
 
-
 <!-- ################################################  -->
 <!-- END: Caster Wheel                                 -->
 <!-- ################################################  -->
@@ -259,26 +258,38 @@
 <!-- START: LiDAR                                      -->
 <!-- ################################################  -->
 
-<joint name="lidar" type="fixed">
+<joint name="lidar_joint" type="fixed">
+    <origin xyz="0.0 0 ${b+r}" rpy="0 0 0"/>
     <parent link="body_link"/>
     <child link="lidar_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <!--This means LiDAR should rotate around the y-axis -->
+    <origin xyz="0 1 0" rpy="0 0 0"/> 
 </joint>
 
 <link name="lidar_link">
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0.5" rpy="0 0 0"/>
         <geometry>
-            <sphere radius="${r}"/>
+            <cylinder radius="0.1" length="0.1"/>
         </geometry>
     </visual>
 
-    <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+    <collision name="collision">
+        <origin xyz="0 0 0.5" rpy="0 0 0"/>
         <geometry>
-            <sphere radius="${r}"/>
+            <cylinder radius="0.1" length="0.1"/>
         </geometry>
     </collision>
 
+    <inertial>
+        <mass value="le-6"/>
+
+    </inertial>
+    
     <xacro:inertia_caster/>
 </link>
+<!-- ################################################  -->
+<!-- END: LiDAR                                        -->
+<!-- ################################################  -->
+
+</robot>
