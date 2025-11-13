@@ -2,4 +2,13 @@ ros2_ws/build
 ros2_ws/install
 ros2_ws/logs
 
+# ROS2 colcon build artifacts
+build/
+install/
+log/
+
+# Colcon metadata
+.colcon/
+.colcon_meta/
+
 .vscode
