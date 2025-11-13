@@ -105,7 +105,7 @@
 <!-- ################################################ -->
 
 <!-- Over Here We Include the File that Defines Extra GZ Options and Motion Control Driver -->
-<xacro:include filename="$(find mobile_robot)/model/robot.gazebo"/>
+<xacro:include filename="$(find ember_robot)/model/robot.gazebo"/>
 
 <!-- ################################################ -->
 
