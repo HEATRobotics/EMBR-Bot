@@ -243,6 +243,7 @@ git reset --hard
 - [Gazebo Documentation](https://gazebosim.org/docs)
 - [Docker Documentation](https://docs.docker.com/)
 - [ROS-Gazebo Integration](https://github.com/gazebosim/ros_gz)
+- [Universal Robot Description Format in Gazebo](https://classic.gazebosim.org/tutorials/?tut=ros_urdf)
 
 ---
 
@@ -256,7 +257,8 @@ HEAT Robotics - [Your Team Info]
 
 For issues or questions:
 - Open an issue on GitHub
-- Contact: [Maison Gulyas (250)258 1736]
+- Contact: [Maison Gulyas (250)258 1736] : Let me know you're a Heat Robotics Member, will get lost in emails but can also contact @ maison.personal03@gmail.com
+
 
 ---
 
