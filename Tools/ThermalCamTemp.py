@@ -632,7 +632,7 @@ def main():
         'pitch_deg': 0,       # Camera pitch angle (0=horizontal, 90=down) - MEASURE THIS
         
         # Detection parameters
-        'temp_threshold_celsius': -90.0,  # Only detect above this temperature
+        'temp_threshold_celsius': 25.0,  # Only detect above this temperature
         
         # Simulation settings (SIMULATION_MODE only)
         'sim_gps': (49.8880, -119.4960),  # Example: Kelowna, BC

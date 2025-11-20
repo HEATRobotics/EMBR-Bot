@@ -14,6 +14,9 @@ sudo apt install -y python3-pip
 echo "Installing libuvc-dev..."
 sudo apt install -y libuvc-dev
 
+echo "Installing ffmpeg..."
+sudo apt install -y ffmpeg
+
 echo "========================================="
 echo "Dependencies installed successfully!"
 echo "========================================="

@@ -9,7 +9,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray, MultiArrayDimension, MultiArrayLayout
-from msg_interface.msg import Gps
+from msg_interface.msg import GPSAndIMU
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
@@ -24,12 +24,12 @@ class ThermalStreamNode(Node):
         super().__init__('thermal_stream_node')
         
         # Configuration - can be modified here directly
-        self.temp_threshold = 40.0  # Celsius - temperature threshold for hotspot detection
+        self.temp_threshold = 20.0  # Celsius - temperature threshold for hotspot detection
         self.video_fps = 9.0  # Lepton typical fps
-        self.display_width = 640
-        self.display_height = 480
+        self.display_width = 160
+        self.display_height = 120
         self.colormap = cv2.COLORMAP_JET
-        self.min_temp = 20.0  # Celsius - minimum temperature for colormap scaling
+        self.min_temp = 10.0  # Celsius - minimum temperature for colormap scaling
         self.max_temp = 80.0  # Celsius - maximum temperature for colormap scaling
         
         # State variables
@@ -51,7 +51,7 @@ class ThermalStreamNode(Node):
         
         # Subscribers
         self.gps_subscription = self.create_subscription(
-            Gps,
+            GPSAndIMU,
             'gps',
             self.gps_callback,
             10

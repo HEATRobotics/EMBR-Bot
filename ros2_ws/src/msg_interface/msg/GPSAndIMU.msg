@@ -1,7 +1,7 @@
-int32 lat
-int32 lon
-int32 alt
+float32 lat
+float32 lon
+float32 alt
 float32 vel
-int32 pitch
-int32 yaw
-int32 roll
+float32 pitch
+float32 yaw
+float32 roll
