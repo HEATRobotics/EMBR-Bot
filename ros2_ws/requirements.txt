@@ -3,6 +3,6 @@ pymavlink
 dronekit
 smbus
 flirpy
-numpy
+numpy<2
 opencv-python
 geopy
