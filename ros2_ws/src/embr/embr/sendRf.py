@@ -3,7 +3,7 @@ import numpy as np
 import rclpy
 import time
 from rclpy.node import Node
-from msg_interface.msg import Gps
+from msg_interface.msg import GPSAndIMU
 from pymavlink.dialects.v20 import common as mavlink2
 from pymavlink import mavutil
 from sensor_msgs.msg import Temperature
@@ -15,7 +15,7 @@ import sensor_msgs_py.point_cloud2 as pc2
 class CommSubscriber(Node):
     def __init__(self):
         super().__init__('mavlink_subscriber')
-        self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
+        self.subscription = self.create_subscription(GPSAndIMU, 'gps_imu', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(Temperature, 'temperature', self.temperature_callback, 10)
         self.subscription   # prevent unused variable warning
         self.mavlink_connection = mavutil.mavserial(device='/dev/ttyAMA1', baud=57600)

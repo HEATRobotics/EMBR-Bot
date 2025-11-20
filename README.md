@@ -222,8 +222,8 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 ### 1. getCube Node
 - **Purpose**: Reads telemetry from Cube Orange flight controller
 - **Device**: `/dev/ttyAMA0` (UART0)
-- **Published Topic**: `gps` (GPS location, altitude, velocity)
-- **Data**: Latitude, Longitude, Altitude, Ground Speed
+- **Published Topic**: `gps_imu` (GPS location, altitude, velocity, yaw, pitch, roll)
+- **Data**: Latitude, Longitude, Altitude, Ground Speed, Yaw, Pitch, Roll
 
 ### 2. getTemp Node
 - **Purpose**: Reads temperature data from Arduino sensor
@@ -234,7 +234,7 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 ### 3. sendRf Node
 - **Purpose**: Transmits data via RFD 900x radio using MAVLink protocol
 - **Device**: `/dev/ttyAMA1` (UART2)
-- **Subscribed Topics**: `gps`, `temperature`, `/pointcloud` (LIDAR)
+- **Subscribed Topics**: `gps_imu`, `temperature`, `/pointcloud` (LIDAR)
 - **Protocol**: MAVLink v2.0
 - **Features**: 
   - Transmits GPS and temperature data
