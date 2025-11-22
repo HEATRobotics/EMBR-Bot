@@ -244,6 +244,10 @@ if docker ps | grep -q heat_jazzy; then
     echo ""
     echo "Entering container..."
     docker exec -it heat_jazzy bash
+    # Make sure on the right directory
+    echo ""
+    echo "Entering the Sim Dir"
+    cd ~/heatsim_ws
 else
     echo "❌ Container failed to start. Check logs with:"
     echo "  docker logs heat_jazzy"
