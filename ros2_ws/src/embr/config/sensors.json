@@ -1,0 +1,39 @@
+{
+  "temperature": {
+    "mode": "auto",
+    "device": "/dev/ttyACM0",
+    "baud": 9600,
+    "params": {
+      "base_temp": 22.0,
+      "variation": 2.0,
+      "noise": 0.1
+    }
+  },
+  "cube": {
+    "mode": "auto",
+    "device": "/dev/ttyAMA0",
+    "baud": 57600,
+    "params": {
+      "start_lat": 37.7749,
+      "start_lon": -122.4194,
+      "start_alt": 100.0,
+      "velocity": 5.0,
+      "pattern": "circle"
+    }
+  },
+  "thermal": {
+    "mode": "auto",
+    "params": {
+      "camera_id": 1,
+      "width": 640,
+      "height": 480,
+      "hotspot_count": 1,
+      "moving": true
+    }
+  },
+  "mavlink": {
+    "mode": "auto",
+    "device": "/dev/ttyAMA1",
+    "baud": 57600
+  }
+}

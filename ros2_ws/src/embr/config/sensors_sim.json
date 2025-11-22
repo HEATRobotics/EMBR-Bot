@@ -1,0 +1,37 @@
+{
+  "comment": "Example configuration for full simulation mode - no hardware required",
+  
+  "temperature": {
+    "mode": "sim",
+    "params": {
+      "base_temp": 22.0,
+      "variation": 2.0,
+      "noise": 0.1
+    }
+  },
+  
+  "cube": {
+    "mode": "sim",
+    "params": {
+      "start_lat": 37.7749,
+      "start_lon": -122.4194,
+      "start_alt": 100.0,
+      "velocity": 5.0,
+      "pattern": "circle"
+    }
+  },
+  
+  "thermal": {
+    "mode": "sim",
+    "params": {
+      "width": 640,
+      "height": 480,
+      "hotspot_count": 1,
+      "moving": true
+    }
+  },
+  
+  "mavlink": {
+    "mode": "sim"
+  }
+}
