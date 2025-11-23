@@ -72,22 +72,24 @@ fi\n\
 # Source workspace\n\
 source /workspace/ros2_ws/install/setup.bash\n\
 \n\
-# Set sensor mode to simulation\n\
-export EMBR_SENSOR_MODE=sim\n\
-\n\
 echo "================================================="\n\
 echo "EMBR-Bot Docker Container - Simulation Mode"\n\
 echo "================================================="\n\
 echo ""\n\
 echo "ROS 2 Humble is ready!"\n\
 echo "Workspace: /workspace/ros2_ws"\n\
-echo "Sensor Mode: SIMULATION (no hardware required)"\n\
+echo "Sensor Mode: Uses config/sensors_sim.json by default"\n\
 echo ""\n\
 echo "Available commands:"\n\
-echo "  ros2 launch embr embr_launch_v2.py    - Launch all nodes"\n\
-echo "  ros2 run embr getTemp_v2              - Temperature node"\n\
-echo "  ros2 run embr getCube_v2              - GPS node"\n\
-echo "  ros2 run embr sendRf_v2               - MAVLink node"\n\
+echo "  # Simulation mode (default):"\n\
+echo "  ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json"\n\
+echo ""\n\
+echo "  # Individual nodes:"\n\
+echo "  ros2 run embr getTemp_v2 --ros-args -p config_file:=config/sensors_sim.json"\n\
+echo "  ros2 run embr getCube_v2 --ros-args -p config_file:=config/sensors_sim.json"\n\
+echo "  ros2 run embr sendRf_v2 --ros-args -p config_file:=config/sensors_sim.json"\n\
+echo ""\n\
+echo "  # Monitoring:"\n\
 echo "  ros2 topic list                       - List topics"\n\
 echo "  ros2 topic echo /temperature          - Monitor temperature"\n\
 echo "  ros2 topic echo /gps                  - Monitor GPS"\n\
@@ -95,6 +97,7 @@ echo ""\n\
 echo "Run examples:"\n\
 echo "  python3 /workspace/ros2_ws/src/embr/examples/sensor_testing_examples.py"\n\
 echo ""\n\
+echo "Configuration: /workspace/ros2_ws/src/embr/config/CONFIG.md"\n\
 echo "Documentation: /workspace/ros2_ws/src/embr/DOC_INDEX.md"\n\
 echo "================================================="\n\
 echo ""\n\

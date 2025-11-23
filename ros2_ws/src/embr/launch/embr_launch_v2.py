@@ -1,6 +1,7 @@
 """
 Launch file with sensor abstraction support.
-Sensors can be configured via config file or environment variables.
+Sensors are configured via config file (default: config/sensors.json).
+Users can override the config file by passing a different one via config_file parameter.
 """
 
 from launch import LaunchDescription
@@ -10,25 +11,17 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    # Declare launch arguments
-    sensor_mode_arg = DeclareLaunchArgument(
-        'sensor_mode',
-        default_value='auto',
-        description='Sensor mode: auto, real, or sim'
-    )
-    
+    # Declare launch argument for config file
     config_file_arg = DeclareLaunchArgument(
         'config_file',
-        default_value='config/sensors.json',
-        description='Path to sensor configuration file'
+        default_value='',
+        description='Path to sensor configuration file (default: config/sensors.json)'
     )
     
-    # Get launch configurations
-    sensor_mode = LaunchConfiguration('sensor_mode')
+    # Get launch configuration
     config_file = LaunchConfiguration('config_file')
     
     return LaunchDescription([
-        sensor_mode_arg,
         config_file_arg,
         
         Node(
@@ -36,7 +29,6 @@ def generate_launch_description():
             executable='getTemp_v2',
             name='getTemp',
             parameters=[{
-                'sensor_mode': sensor_mode,
                 'config_file': config_file,
             }]
         ),
@@ -45,7 +37,6 @@ def generate_launch_description():
             executable='getCube_v2',
             name='getCube',
             parameters=[{
-                'sensor_mode': sensor_mode,
                 'config_file': config_file,
             }]
         ),
@@ -54,7 +45,6 @@ def generate_launch_description():
             executable='sendRf_v2',
             name='sendRf',
             parameters=[{
-                'sensor_mode': sensor_mode,
                 'config_file': config_file,
             }]
         )

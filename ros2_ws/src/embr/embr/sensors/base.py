@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 @dataclass
 class SensorConfig:
     """Configuration for a sensor instance."""
-    mode: str = "auto"  # auto, real, sim
+    mode: str = "real"  # real, sim
     device: Optional[str] = None
     baud: int = 9600
     params: Dict[str, Any] = field(default_factory=dict)

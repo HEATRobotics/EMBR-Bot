@@ -13,7 +13,6 @@ services:
     
     # Environment variables
     environment:
-      - EMBR_SENSOR_MODE=sim
       - ROS_DOMAIN_ID=0
     
     # Mount workspace for live development (optional)
