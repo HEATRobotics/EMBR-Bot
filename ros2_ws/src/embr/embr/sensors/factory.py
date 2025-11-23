@@ -51,10 +51,8 @@ class SensorFactory:
         
         config = config or SensorConfig()
         
-        # Determine mode
-        mode = config.mode
-        if mode == "auto":
-            mode = cls._probe_hardware(sensor_type, config)
+        # Determine mode - default to 'real' unless specified otherwise
+        mode = cls._determine_mode(sensor_type, config)
         
         # Get the appropriate class
         sensor_classes = cls.SENSOR_MAP[sensor_type]
@@ -70,42 +68,23 @@ class SensorFactory:
             raise RuntimeError(f"Failed to create {sensor_type} sensor in {mode} mode: {e}")
     
     @classmethod
-    def _probe_hardware(cls, sensor_type: str, config: SensorConfig) -> str:
+    def _determine_mode(cls, sensor_type: str, config: SensorConfig) -> str:
         """
-        Probe for hardware availability.
+        Determine the sensor mode based on configuration.
+        
+        Priority order:
+        1. Explicit mode in config (if 'real' or 'sim')
+        2. Default to 'real'
         
         Returns:
-            'real' if hardware is available, 'sim' otherwise
+            'real' or 'sim'
         """
-        # Check environment variable override
-        env_mode = os.getenv('EMBR_SENSOR_MODE', '').lower()
-        if env_mode in ('real', 'sim'):
-            return env_mode
+        # If mode is explicitly set to 'real' or 'sim', use it
+        if config.mode in ('real', 'sim'):
+            return config.mode
         
-        # Check for specific sensor environment variable
-        sensor_env = os.getenv(f'EMBR_{sensor_type.upper()}_MODE', '').lower()
-        if sensor_env in ('real', 'sim'):
-            return sensor_env
-        
-        # Attempt hardware probe
-        try:
-            if sensor_type == 'temperature':
-                device = config.device or '/dev/ttyACM0'
-                return 'real' if os.path.exists(device) else 'sim'
-            
-            elif sensor_type == 'cube':
-                device = config.device or '/dev/ttyAMA0'
-                return 'real' if os.path.exists(device) else 'sim'
-            
-            elif sensor_type == 'mavlink':
-                device = config.device or '/dev/ttyAMA1'
-                return 'real' if os.path.exists(device) else 'sim'
-            
-        except Exception:
-            pass
-        
-        # Default to simulation
-        return 'sim'
+        # Default to real hardware
+        return 'real'
     
     @classmethod
     def load_config(cls, config_path: Optional[str] = None) -> Dict[str, SensorConfig]:
@@ -113,16 +92,16 @@ class SensorFactory:
         Load sensor configuration from JSON file.
         
         Args:
-            config_path: Path to config file (default: sensors.json in workspace)
+            config_path: Path to config file (default: config/sensors.json in workspace)
         
         Returns:
             Dictionary mapping sensor names to SensorConfig objects
         """
         if config_path is None:
-            # Look for config in common locations
+            # Look for config in common locations within workspace
             search_paths = [
-                'sensors.json',
                 'config/sensors.json',
+                'sensors.json',
                 os.path.expanduser('~/.embr/sensors.json'),
                 '/etc/embr/sensors.json',
             ]
@@ -141,8 +120,11 @@ class SensorFactory:
             
             configs = {}
             for sensor_name, sensor_data in data.items():
+                # Get mode from config, default to 'real'
+                mode = sensor_data.get('mode', 'real')
+                
                 configs[sensor_name] = SensorConfig(
-                    mode=sensor_data.get('mode', 'auto'),
+                    mode=mode,
                     device=sensor_data.get('device'),
                     baud=sensor_data.get('baud', 9600),
                     params=sensor_data.get('params', {})

@@ -79,39 +79,35 @@ EMBR-Bot includes a comprehensive sensor abstraction layer that allows you to ru
 
 ### Sensor Simulation Modes
 
-The system supports three modes for each sensor:
+The system supports two modes for each sensor:
 
-1. **`real`** - Use actual hardware sensors
+1. **`real`** (default) - Use actual hardware sensors
 2. **`sim`** - Use simulated sensors (no hardware required)
-3. **`auto`** - Automatically detect hardware; fall back to simulation if unavailable
 
 ### Running in Simulation
 
+All sensor modes are configured through JSON configuration files in `ros2_ws/src/embr/config/`.
+
 **Option 1: Full Simulation (All Sensors)**
-```bash
-export EMBR_SENSOR_MODE=sim
-ros2 launch embr embr_launch_v2.py
-```
-
-**Option 2: Individual Sensor Control**
-```bash
-export EMBR_TEMPERATURE_MODE=sim
-export EMBR_CUBE_MODE=sim
-export EMBR_MAVLINK_MODE=sim
-ros2 launch embr embr_launch_v2.py
-```
-
-**Option 3: Configuration File**
 ```bash
 ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
 ```
 
-**Option 4: Mixed Mode (Some Real, Some Simulated)**
+**Option 2: Mixed Mode (Some Real, Some Simulated)**
 ```bash
-# Edit config/sensors_mixed.json
-export EMBR_TEMPERATURE_MODE=real  # Real Arduino sensor
-export EMBR_CUBE_MODE=sim           # Simulated GPS
+ros2 launch embr embr_launch_v2.py config_file:=config/sensors_mixed.json
+```
+
+**Option 3: Real Hardware (Default)**
+```bash
 ros2 launch embr embr_launch_v2.py
+# Uses config/sensors.json by default
+```
+
+**Option 4: Custom Configuration**
+```bash
+# Create your own config file based on examples
+ros2 launch embr embr_launch_v2.py config_file:=/path/to/custom_config.json
 ```
 
 ### Configuration Options
@@ -138,8 +134,28 @@ Create custom sensor configurations in JSON format:
       "start_lon": -122.4194
     }
   },
-  "thermal": {"mode": "sim"},
   "mavlink": {"mode": "sim"}
+}
+```
+
+**Real Hardware (`config/sensors.json` - default)**
+```json
+{
+  "temperature": {
+    "mode": "real",
+    "device": "/dev/ttyACM0",
+    "baud": 9600
+  },
+  "cube": {
+    "mode": "real",
+    "device": "/dev/ttyAMA0",
+    "baud": 57600
+  },
+  "mavlink": {
+    "mode": "real",
+    "device": "/dev/ttyAMA1",
+    "baud": 57600
+  }
 }
 ```
 
@@ -152,10 +168,11 @@ Create custom sensor configurations in JSON format:
     "baud": 9600
   },
   "cube": {"mode": "sim"},
-  "thermal": {"mode": "sim"},
   "mavlink": {"mode": "sim"}
 }
 ```
+
+For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/config/CONFIG.md).
 
 ### Simulation Features
 
@@ -178,23 +195,24 @@ Create custom sensor configurations in JSON format:
 - Compatible with real MAVLink message types
 
 ## Docker Setup for development off raspberry pi
-To start docker and run embr inside container:
+To start Docker and run EMBR in simulation mode:
 ```bash
-# Build and start
+# Build and start container
 docker compose up -d
 
 # Access container
 docker compose exec embr-sim /bin/bash
 
-# Source ROS
+# Inside container: Source ROS
 source install/setup.bash
 
-# Inside container: Launch all nodes
-ros2 launch embr embr_launch_v2.py
+# Launch with simulation config
+ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
 ```
 
 ### Docker Documentation
 - **[DOCKER_CHEATSHEET.md](DOCKER_CHEATSHEET.md)** - Quick command reference
+- **[Configuration Guide](ros2_ws/src/embr/config/CONFIG.md)** - Sensor config documentation
 
 ## Installation
 

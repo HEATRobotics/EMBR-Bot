@@ -14,24 +14,27 @@ class AttitudePublisher(Node):
     def __init__(self):
         super().__init__('attitude_publisher')
         
-        # Load sensor configuration
-        self.declare_parameter('sensor_mode', 'auto')
-        self.declare_parameter('sensor_device', '/dev/ttyAMA0')
-        self.declare_parameter('sensor_baud', 57600)
-        self.declare_parameter('config_file', 'config/sensors.json')
-        
-        mode = self.get_parameter('sensor_mode').value
-        device = self.get_parameter('sensor_device').value
-        baud = self.get_parameter('sensor_baud').value
+        # Declare parameter for config file path
+        self.declare_parameter('config_file', '')
         config_file = self.get_parameter('config_file').value
         
-        # Try to load from config file first
+        # Use default config path if not provided
+        if not config_file:
+            config_file = 'config/sensors.json'
+        
+        # Try to load from config file
         try:
             configs = SensorFactory.load_config(config_file)
-            config = configs.get('cube', SensorConfig(mode=mode, device=device, baud=baud))
+            config = configs.get('cube')
+            
+            if config is None:
+                self.get_logger().error(f'Cube sensor not found in config file: {config_file}')
+                raise ValueError(f'Cube sensor configuration not found in {config_file}')
+            
+            self.get_logger().info(f'Loaded cube config from {config_file}')
         except Exception as e:
-            self.get_logger().warn(f'Could not load config file: {e}. Using parameters.')
-            config = SensorConfig(mode=mode, device=device, baud=baud)
+            self.get_logger().error(f'Failed to load config file: {e}')
+            raise
         
         # Create sensor
         try:

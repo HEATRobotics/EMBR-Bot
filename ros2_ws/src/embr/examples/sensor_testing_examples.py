@@ -90,14 +90,16 @@ def example_config_loading():
         print(f"GPS: {gps.lat}, {gps.lon}")
 
 
-def example_auto_mode():
-    """Auto-detect hardware availability."""
-    # Will automatically use real hardware if available, sim otherwise
-    config = SensorConfig(mode='auto')
+def example_mixed_mode():
+    """Using different modes for different sensors."""
+    # You can mix real and simulated sensors as needed
+    configs = {
+        'temperature': SensorConfig(mode='sim', params={'base_temp': 25.0}),
+        'cube': SensorConfig(mode='sim', params={'pattern': 'hover'}),
+        'mavlink': SensorConfig(mode='sim')
+    }
     
-    sensors_to_test = ['temperature', 'cube', 'mavlink']
-    
-    for sensor_type in sensors_to_test:
+    for sensor_type, config in configs.items():
         try:
             sensor = create_sensor(sensor_type, config)
             sensor.start()
@@ -127,5 +129,5 @@ if __name__ == '__main__':
     print("\n5. Configuration File Loading:")
     example_config_loading()
     
-    print("\n6. Auto-detect Mode:")
-    example_auto_mode()
+    print("\n6. Mixed Mode Configuration:")
+    example_mixed_mode()
