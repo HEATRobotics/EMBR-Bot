@@ -77,20 +77,60 @@ class SimCubeSensor(CubeSensor):
         self.start_alt = params.get('start_alt', 100.0)  # meters
         self.velocity = params.get('velocity', 5.0)  # m/s
         self.pattern = params.get('pattern', 'circle')  # circle, line, hover
+        self.pause_interval = params.get('pause_interval', 20.0)  # seconds between pauses
+        self.pause_duration = params.get('pause_duration', 5.0)  # seconds to pause
         self._start_time = 0.0
+        self._last_pause_time = 0.0
+        self._pause_position = None  # Store position during pause
     
     def start(self) -> None:
         """Initialize simulated sensor."""
         self._start_time = time.time()
+        self._last_pause_time = self._start_time
         self._running = True
     
     def read(self) -> GpsData:
-        """Generate simulated GPS data with movement patterns."""
+        """Generate simulated GPS data with movement patterns and random pauses."""
         if not self._running:
             raise RuntimeError("Sensor not started")
         
-        elapsed = time.time() - self._start_time
+        current_time = time.time()
+        elapsed = current_time - self._start_time
+        time_since_last_pause = current_time - self._last_pause_time
         
+        # Check if we should pause
+        if time_since_last_pause >= self.pause_interval and time_since_last_pause < (self.pause_interval + self.pause_duration):
+            # Currently paused - return stored position with zero velocity
+            if self._pause_position is None:
+                # First read during pause - store current position
+                lat, lon, alt = self._calculate_position(elapsed)
+                self._pause_position = (lat, lon, alt)
+            else:
+                lat, lon, alt = self._pause_position
+            
+            return GpsData(
+                lat=int(lat * 1e7),
+                lon=int(lon * 1e7),
+                alt=int(alt * 1000),
+                vel=0.0  # Zero velocity during pause
+            )
+        elif time_since_last_pause >= (self.pause_interval + self.pause_duration):
+            # Pause ended - reset for next pause cycle
+            self._last_pause_time = current_time
+            self._pause_position = None
+        
+        # Normal movement
+        lat, lon, alt = self._calculate_position(elapsed)
+        
+        return GpsData(
+            lat=int(lat * 1e7),
+            lon=int(lon * 1e7),
+            alt=int(alt * 1000),
+            vel=self.velocity
+        )
+    
+    def _calculate_position(self, elapsed: float) -> tuple:
+        """Calculate position based on movement pattern."""
         if self.pattern == 'circle':
             # Circle pattern
             radius = 0.0001  # ~11 meters
@@ -110,12 +150,7 @@ class SimCubeSensor(CubeSensor):
             lon = self.start_lon + random.uniform(-0.000001, 0.000001)
             alt = self.start_alt + random.uniform(-0.5, 0.5)
         
-        return GpsData(
-            lat=int(lat * 1e7),
-            lon=int(lon * 1e7),
-            alt=int(alt * 1000),
-            vel=self.velocity
-        )
+        return lat, lon, alt
     
     def stop(self) -> None:
         """Stop simulated sensor."""
