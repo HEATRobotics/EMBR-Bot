@@ -19,7 +19,7 @@ class TemperaturePublisher(Node):
         
         # Use default config path if not provided
         if not config_file:
-            config_file = 'config/sensors.json'
+            config_file = 'src/embr/config/sensors.json'
         
         # Try to load from config file
         try:
