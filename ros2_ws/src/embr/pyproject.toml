@@ -7,7 +7,7 @@ python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
 [tool.pytest.markers]
-unit: Unit tests
-integration: Integration tests
-slow: Slow tests
-hardware: Tests requiring real hardware
+unit = "Unit tests"
+integration = "Integration tests"
+slow = "Slow tests"
+hardware = "Tests requiring real hardware"

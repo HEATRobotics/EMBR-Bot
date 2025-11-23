@@ -506,9 +506,24 @@ source install/setup.bash
 colcon test
 ```
 
-**View test results:**
+**View test results summary:**
+```bash
+colcon test-result
+```
+
+**View detailed failures only:**
 ```bash
 colcon test-result --verbose
+```
+
+**View all test details (including passed tests):**
+```bash
+colcon test-result --all
+```
+
+**Run tests with live output:**
+```bash
+colcon test --event-handlers console_direct+
 ```
 
 **Run specific test file:**
