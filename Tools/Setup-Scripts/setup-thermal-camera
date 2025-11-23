@@ -16,3 +16,27 @@ sudo udevadm trigger
 echo "========================================="
 echo "Thermal camera setup complete!"
 echo "========================================="
+
+echo "Configuring HDMI / framebuffer for display output..."
+# Backup config.txt if present
+if [ -f /boot/firmware/config.txt ]; then
+	sudo cp /boot/firmware/config.txt /boot/firmware/config.txt.embr_bak || true
+	echo "Backing up /boot/firmware/config.txt to /boot/firmware/config.txt.embr_bak"
+	# Append vc4 KMS overlay and HDMI force options if not already present
+	grep -q "dtoverlay=vc4-kms-v3d" /boot/firmware/config.txt 2>/dev/null || sudo bash -c 'cat >> /boot/firmware/config.txt <<"EOF"
+
+# EMBR-Bot: enable vc4 KMS and force HDMI output for framebuffer streaming
+dtoverlay=vc4-kms-v3d
+hdmi_force_hotplug=1
+hdmi_group=2
+hdmi_mode=16
+max_framebuffers=2
+EOF'
+	echo "Appended vc4 KMS and HDMI settings to /boot/firmware/config.txt"
+else
+	echo "Warning: /boot/firmware/config.txt not found; skipping HDMI config append."
+fi
+
+echo "Adding current user to 'video' group so ffmpeg can write to /dev/fb0"
+sudo usermod -aG video "$USER" || true
+echo "(You will need to log out and back in or reboot for group changes to take effect.)"

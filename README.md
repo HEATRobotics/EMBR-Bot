@@ -293,6 +293,33 @@ Save and exit, then reboot.
 
 After rebooting, verify with `ls -l /dev/serial*` - you should see two devices.
 
+### HDMI / Framebuffer Configuration
+
+To enable HDMI framebuffer output (used by the thermal streaming node to write directly to the display), the Pi must load the vc4 KMS driver and the user running ffmpeg must be in the `video` group.
+
+If you used `Tools/Setup-Scripts/setup-all` or `Tools/Setup-Scripts/setup-thermal-camera`, these steps are applied automatically. They do the following:
+
+- Add the following lines to `/boot/firmware/config.txt` (backed up to `/boot/firmware/config.txt.embr_bak`):
+
+```
+# EMBR-Bot: enable vc4 KMS and force HDMI output for framebuffer streaming
+dtoverlay=vc4-kms-v3d
+hdmi_force_hotplug=1
+hdmi_group=2
+hdmi_mode=16
+max_framebuffers=2
+```
+
+- Add the current user to the `video` group so ffmpeg can write to `/dev/fb0`:
+
+```
+sudo usermod -aG video $USER
+
+# then log out / back in or reboot for the change to take effect
+```
+
+If you prefer to apply these manually, edit `/boot/firmware/config.txt` and append the block above, then run the `usermod` command and reboot.
+
 ## Hardware Setup & Wiring
 
 ### UART Pin Configuration

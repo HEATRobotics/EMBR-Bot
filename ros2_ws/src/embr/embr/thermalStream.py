@@ -24,11 +24,12 @@ class ThermalStreamNode(Node):
         super().__init__('thermal_stream_node')
         
         # Configuration - can be modified here directly
-        self.temp_threshold = 20.0  # Celsius - temperature threshold for hotspot detection
+        self.temp_threshold = 30.0  # Celsius - temperature threshold for hotspot detection
         self.video_fps = 9.0  # Lepton typical fps
-        self.display_width = 160
-        self.display_height = 120
-        self.colormap = cv2.COLORMAP_JET
+        self.display_width = 640
+        self.display_height = 480
+        # use a reddish/inferno colormap for thermal-style colors
+        self.colormap = cv2.COLORMAP_INFERNO
         self.min_temp = 10.0  # Celsius - minimum temperature for colormap scaling
         self.max_temp = 80.0  # Celsius - maximum temperature for colormap scaling
         
@@ -71,7 +72,10 @@ class ThermalStreamNode(Node):
         
         # FFmpeg process for HDMI streaming
         self.ffmpeg_process = None
-        self.frame_queue = queue.Queue(maxsize=2)
+        # queue used to buffer frames for ffmpeg writer thread; small size to keep latency low
+        self.frame_queue = queue.Queue(maxsize=4)
+        # control how often expensive overlays (contours/stats) are computed
+        self.overlay_every_n_frames = 1  # set >1 to do overlays less frequently
         
         # Start video streaming thread
         self.streaming_active = True
@@ -94,32 +98,141 @@ class ThermalStreamNode(Node):
     
     def _start_ffmpeg(self):
         """Start FFmpeg process for HDMI output"""
-        # FFmpeg command to output to HDMI (framebuffer)
-        # Adjust the output device based on your system configuration
-        ffmpeg_cmd = [
-            'ffmpeg',
-            '-f', 'rawvideo',
-            '-pix_fmt', 'bgr24',
-            '-s', f'{self.display_width}x{self.display_height}',
-            '-r', str(self.video_fps),
-            '-i', '-',  # Read from stdin
-            '-f', 'fbdev',
-            '-vf', 'scale=1920:1080',  # Scale to HDMI resolution
-            '/dev/fb0'  # HDMI framebuffer device
-        ]
-        
+        # Initialize direct framebuffer writer (faster and lower latency than ffmpeg)
         try:
-            self.ffmpeg_process = subprocess.Popen(
-                ffmpeg_cmd,
-                stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                bufsize=10**8
-            )
-            self.get_logger().info('FFmpeg HDMI streaming started')
+            self._init_fbdev()
+            self._fbdev_writer_thread = threading.Thread(target=self._fbdev_writer_loop, daemon=True)
+            self._fbdev_writer_thread.start()
+            self._fbdev_active = True
+            self.get_logger().info('FBDev writer thread started (direct framebuffer output)')
         except Exception as e:
-            self.get_logger().error(f'Failed to start FFmpeg: {e}')
-            # Fallback to OpenCV display if FFmpeg fails
-            self.ffmpeg_process = None
+            self.get_logger().error(f'Failed to initialize framebuffer writer: {e}')
+            self._fbdev_active = False
+
+    def _init_fbdev(self):
+        """Read fb0 properties (resolution, bpp) and compute layout for direct writes."""
+        try:
+            with open('/sys/class/graphics/fb0/virtual_size', 'r') as f:
+                vs = f.read().strip()
+            fb_w, fb_h = [int(x) for x in vs.split(',')]
+        except Exception:
+            fb_w, fb_h = 1920, 1080
+
+        try:
+            with open('/sys/class/graphics/fb0/bits_per_pixel', 'r') as f:
+                bpp = int(f.read().strip())
+        except Exception:
+            bpp = 16
+
+        self._fb_width = fb_w
+        self._fb_height = fb_h
+        self._fb_bpp = bpp
+        self._fb_bpp_bytes = max(1, bpp // 8)
+        self.get_logger().debug(f'FB dev init: {fb_w}x{fb_h} {bpp}bpp')
+
+    def _fbdev_writer_loop(self):
+        """Consume frames from the queue (BGR uint8 arrays) and write to /dev/fb0 in rgb565le."""
+        try:
+            fd = open('/dev/fb0', 'r+b', buffering=0)
+        except Exception as e:
+            self.get_logger().error(f'Could not open /dev/fb0 for writing: {e}')
+            return
+
+        while self.streaming_active:
+            try:
+                frame = self.frame_queue.get(timeout=0.5)
+            except queue.Empty:
+                continue
+
+            if frame is None:
+                continue
+
+            try:
+                img = frame
+                # Scale the image to fit within the framebuffer while preserving aspect
+                scale = min(self._fb_width / img.shape[1], self._fb_height / img.shape[0])
+                inner_w = max(1, int(img.shape[1] * scale))
+                inner_h = max(1, int(img.shape[0] * scale))
+                img_scaled = cv2.resize(img, (inner_w, inner_h), interpolation=cv2.INTER_LINEAR)
+
+                # Convert BGR -> RGB565 little endian
+                r = (img_scaled[:, :, 2] >> 3).astype(np.uint16)
+                g = (img_scaled[:, :, 1] >> 2).astype(np.uint16)
+                b = (img_scaled[:, :, 0] >> 3).astype(np.uint16)
+                rgb565 = (r << 11) | (g << 5) | b
+
+                # Create full framebuffer buffer and place rgb565 into center
+                fb_buf = np.zeros((self._fb_height, self._fb_width), dtype=np.uint16)
+                x0 = max(0, (self._fb_width - inner_w) // 2)
+                y0 = max(0, (self._fb_height - inner_h) // 2)
+                fb_buf[y0:y0+inner_h, x0:x0+inner_w] = rgb565
+
+                out_bytes = fb_buf.astype('<u2').tobytes()
+                try:
+                    fd.seek(0)
+                    fd.write(out_bytes)
+                except Exception as e:
+                    self.get_logger().error(f'Failed writing to /dev/fb0: {e}')
+            except Exception as e:
+                self.get_logger().error(f'Error in fbdev writer loop: {e}')
+                continue
+
+        try:
+            fd.close()
+        except Exception:
+            pass
+
+    def _read_ffmpeg_stderr(self):
+        """Read FFmpeg stderr and log lines for debugging."""
+        if self.ffmpeg_process is None or self.ffmpeg_process.stderr is None:
+            return
+        try:
+            for line in iter(self.ffmpeg_process.stderr.readline, b''):
+                try:
+                    text = line.decode('utf-8', errors='replace').strip()
+                except Exception:
+                    text = str(line)
+                if text:
+                    # Log ffmpeg output at debug level to avoid spamming
+                    self.get_logger().debug(f'FFmpeg: {text}')
+        except Exception as e:
+            self.get_logger().error(f'Error reading FFmpeg stderr: {e}')
+
+    def _ffmpeg_writer_loop(self):
+        """Consume frames from the queue and write to ffmpeg stdin."""
+        while self.streaming_active:
+            try:
+                data = self.frame_queue.get(timeout=0.5)
+            except queue.Empty:
+                continue
+
+            # ignore empty sentinel
+            if not data:
+                continue
+
+            if self.ffmpeg_process is None or self.ffmpeg_process.stdin is None:
+                continue
+
+            try:
+                self.ffmpeg_process.stdin.write(data)
+            except BrokenPipeError:
+                self.get_logger().error('FFmpeg pipe broken in writer')
+                self.ffmpeg_process = None
+                break
+            except Exception as e:
+                self.get_logger().error(f'Error writing to ffmpeg stdin: {e}')
+                # if writing fails, drop frame and continue
+                continue
+
+        # try to flush
+        try:
+            if self.ffmpeg_process and self.ffmpeg_process.stdin:
+                try:
+                    self.ffmpeg_process.stdin.flush()
+                except Exception:
+                    pass
+        except Exception:
+            pass
     
     def _streaming_loop(self):
         """Main loop for capturing and processing thermal frames"""
@@ -140,15 +253,41 @@ class ThermalStreamNode(Node):
                 # Create display frame with colormap and overlays
                 display_frame = self._create_display_frame(temp_celsius)
                 
-                # Send to FFmpeg or display with OpenCV
-                if self.ffmpeg_process is not None and self.ffmpeg_process.poll() is None:
+                # Optionally skip expensive overlays every N frames
+                if self.overlay_every_n_frames > 1:
+                    # use a modulo counter stored on the node
+                    if not hasattr(self, '_overlay_counter'):
+                        self._overlay_counter = 0
+                    self._overlay_counter = (self._overlay_counter + 1) % self.overlay_every_n_frames
+                    if self._overlay_counter != 0:
+                        # regenerate a lightweight display frame (just colormap + resize)
+                        # this avoids repeated contour/findContours work
+                        temp_normalized = np.clip(
+                            (temp_celsius - self.min_temp) / (self.max_temp - self.min_temp) * 255,
+                            0,
+                            255
+                        ).astype(np.uint8)
+                        display_frame = cv2.applyColorMap(temp_normalized, self.colormap)
+                        display_frame = cv2.resize(display_frame, (self.display_width, self.display_height), interpolation=cv2.INTER_LINEAR)
+
+                # Send to framebuffer writer via queue or display with OpenCV
+                if getattr(self, '_fbdev_active', False):
                     try:
-                        self.ffmpeg_process.stdin.write(display_frame.tobytes())
-                    except BrokenPipeError:
-                        self.get_logger().error('FFmpeg pipe broken')
-                        self.ffmpeg_process = None
+                        # Non-blocking enqueue; drop oldest frame if queue is full to preserve low latency
+                        try:
+                            self.frame_queue.put_nowait(display_frame)
+                        except queue.Full:
+                            try:
+                                # drop oldest
+                                _ = self.frame_queue.get_nowait()
+                                self.frame_queue.put_nowait(display_frame)
+                            except Exception:
+                                # if we still can't enqueue, just drop this frame
+                                pass
+                    except Exception:
+                        self.get_logger().error('Frame queue error for fbdev writer')
                 else:
-                    # Fallback: display with OpenCV
+                    # Fallback: display with OpenCV (useful for debugging)
                     cv2.imshow('Thermal Stream', display_frame)
                     cv2.waitKey(1)
                 
@@ -167,12 +306,21 @@ class ThermalStreamNode(Node):
         Returns:
             BGR color image ready for display/streaming
         """
-        # Normalize temperature to 0-255 range for colormap
-        temp_normalized = np.clip(
-            (temp_celsius - self.min_temp) / (self.max_temp - self.min_temp) * 255,
-            0, 
-            255
-        ).astype(np.uint8)
+        # Adaptive normalize temperature to 0-255 range for colormap using percentiles
+        try:
+            lo, hi = np.percentile(temp_celsius, (2, 98))
+            lo = max(lo, self.min_temp)
+            hi = min(hi, self.max_temp)
+            if hi - lo < 0.1:
+                lo = self.min_temp
+                hi = self.max_temp
+            temp_normalized = np.clip((temp_celsius - lo) / (hi - lo) * 255, 0, 255).astype(np.uint8)
+        except Exception:
+            temp_normalized = np.clip(
+                (temp_celsius - self.min_temp) / (self.max_temp - self.min_temp) * 255,
+                0,
+                255
+            ).astype(np.uint8)
         
         # Apply colormap
         colored_frame = cv2.applyColorMap(temp_normalized, self.colormap)
@@ -184,63 +332,61 @@ class ThermalStreamNode(Node):
             interpolation=cv2.INTER_LINEAR
         )
         
-        # Find and annotate hot spots above threshold
+        # Find and annotate hot spots above threshold (efficient, on radiometric data)
         hot_mask = temp_celsius > self.temp_threshold
-        
+
         if np.any(hot_mask):
-            # Find contours of hot regions
-            hot_mask_uint8 = hot_mask.astype(np.uint8) * 255
+            # Create uint8 mask for contours
+            hot_mask_uint8 = (hot_mask.astype(np.uint8) * 255)
             contours, _ = cv2.findContours(
                 hot_mask_uint8,
                 cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE
             )
-            
+
             # Scale factor for contours (from thermal resolution to display resolution)
             scale_x = self.display_width / temp_celsius.shape[1]
             scale_y = self.display_height / temp_celsius.shape[0]
-            
+
             for contour in contours:
+                # Skip tiny contours to avoid noise
+                if cv2.contourArea(contour) < 4:
+                    continue
+
                 # Calculate temperature statistics for this region
                 mask_region = np.zeros_like(temp_celsius, dtype=np.uint8)
                 cv2.drawContours(mask_region, [contour], -1, 1, -1)
                 region_temps = temp_celsius[mask_region == 1]
-                
-                if len(region_temps) > 0:
-                    max_temp = np.max(region_temps)
-                    mean_temp = np.mean(region_temps)
-                    
-                    # Scale contour to display size
-                    scaled_contour = contour.astype(np.float32)
-                    scaled_contour[:, 0, 0] *= scale_x
-                    scaled_contour[:, 0, 1] *= scale_y
-                    scaled_contour = scaled_contour.astype(np.int32)
-                    
-                    # Draw contour
-                    cv2.drawContours(display_frame, [scaled_contour], -1, (0, 255, 0), 2)
-                    
-                    # Get centroid for text placement
-                    M = cv2.moments(scaled_contour)
-                    if M["m00"] != 0:
-                        cx = int(M["m10"] / M["m00"])
-                        cy = int(M["m01"] / M["m00"])
-                    else:
-                        cx, cy = scaled_contour[0][0]
-                    
-                    # Draw temperature text
-                    temp_text = f"{max_temp:.1f}C"
-                    cv2.putText(
-                        display_frame,
-                        temp_text,
-                        (cx - 30, cy),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6,
-                        (0, 255, 0),
-                        2
-                    )
-        
-        # Add informational overlays
-        self._add_info_overlay(display_frame, temp_celsius)
+
+                if region_temps.size == 0:
+                    continue
+
+                max_temp = float(np.max(region_temps))
+
+                # Only annotate if above threshold (should be by mask, but double-check)
+                if max_temp <= self.temp_threshold:
+                    continue
+
+                # Scale contour to display size and draw a bounding box
+                scaled_contour = contour.astype(np.float32)
+                scaled_contour[:, 0, 0] *= scale_x
+                scaled_contour[:, 0, 1] *= scale_y
+                scaled_contour = scaled_contour.astype(np.int32)
+
+                x, y, w_box, h_box = cv2.boundingRect(scaled_contour)
+                # Draw a thin rectangle around the hot region
+                cv2.rectangle(display_frame, (x, y), (x + w_box, y + h_box), (0, 255, 255), 2)
+
+                # Prepare temperature label and draw above the box
+                temp_text = f"{max_temp:.1f}C"
+                text_size, _ = cv2.getTextSize(temp_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                text_w, text_h = text_size
+                text_x = x
+                text_y = max(10, y - 6)
+
+                # Draw black outline for readability then white text
+                cv2.putText(display_frame, temp_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
+                cv2.putText(display_frame, temp_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
         
         return display_frame
     
@@ -250,43 +396,20 @@ class ThermalStreamNode(Node):
         min_temp = np.min(temp_celsius)
         max_temp = np.max(temp_celsius)
         mean_temp = np.mean(temp_celsius)
-        
-        # Timestamp
-        timestamp = self.get_clock().now().to_msg()
-        time_str = f"{timestamp.sec}.{timestamp.nanosec // 1000000:03d}"
-        
-        # Velocity info
-        with self.velocity_lock:
-            vel = self.current_velocity
-        
-        vel_str = f"Vel: {vel:.2f} m/s" if vel is not None else "Vel: N/A"
-        
-        # Create overlay text
-        info_lines = [
-            f"Min: {min_temp:.1f}C  Max: {max_temp:.1f}C  Avg: {mean_temp:.1f}C",
-            f"Threshold: {self.temp_threshold:.1f}C",
-            vel_str,
-            f"Time: {time_str}"
-        ]
-        
-        # Draw semi-transparent background for text
-        overlay = frame.copy()
-        cv2.rectangle(overlay, (0, 0), (self.display_width, 100), (0, 0, 0), -1)
-        cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
-        
-        # Draw text
-        y_offset = 20
-        for line in info_lines:
-            cv2.putText(
-                frame,
-                line,
-                (10, y_offset),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (255, 255, 255),
-                1
-            )
-            y_offset += 22
+        # Minimal overlay: show Min / Max / Avg to reduce per-frame work
+        info_text = f"Min: {min_temp:.1f}C  Max: {max_temp:.1f}C  Avg: {mean_temp:.1f}C"
+
+        # Draw a solid background for readability (fast)
+        cv2.rectangle(frame, (0, 0), (self.display_width, 30), (0, 0, 0), -1)
+        cv2.putText(
+            frame,
+            info_text,
+            (8, 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (255, 255, 255),
+            2
+        )
     
     def _capture_and_publish(self):
         """Capture once and publish both radiometric image and temperature array"""

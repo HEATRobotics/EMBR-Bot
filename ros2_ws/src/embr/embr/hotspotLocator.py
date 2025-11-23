@@ -30,13 +30,13 @@ from geopy.distance import distance as geopy_distance
 from geopy.point import Point
 
 
-class ThermalHotspotLocator(Node):
+class hotspotLocator(Node):
     def __init__(self):
         super().__init__('thermal_hotspot_locator')
 
         # Configuration (can be adjusted here)
         # Camera geometry
-        self.lepton_model = '2.5'  # '2.5' or '3.1R'
+        self.lepton_model = '3.1R'  # '2.5' or '3.1R'
         self.altitude_m = 1.0      # Camera height above ground (meters)
         self.pitch_deg = 45.0      # Camera pitch (0=horizontal, 90=down)
         self.temp_threshold_c = 30.0  # Celsius threshold for hotspot detection
@@ -60,7 +60,7 @@ class ThermalHotspotLocator(Node):
         # Publisher
         self.hotspot_pub = self.create_publisher(PoseStamped, '/thermal/hotspot_gps', 10)
 
-        self.get_logger().info('ThermalHotspotLocator started')
+        self.get_logger().info('hotspotLocator started')
 
     def _set_camera_model(self, model: str) -> None:
         if model == '2.5':
@@ -219,7 +219,7 @@ class ThermalHotspotLocator(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = ThermalHotspotLocator()
+    node = hotspotLocator()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

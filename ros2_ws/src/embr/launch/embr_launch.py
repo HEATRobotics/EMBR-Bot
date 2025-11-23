@@ -25,4 +25,9 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True
         ),
+        Node(
+            package='embr',
+            executable='hotspotLocator',
+            name='hotspot_locator'
+        )
     ])
