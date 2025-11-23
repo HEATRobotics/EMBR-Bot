@@ -8,7 +8,7 @@ import numpy as np
 import rclpy
 import time
 from rclpy.node import Node
-from msg_interface.msg import Gps
+from msg_interface.msg import GPSAndIMU
 from sensor_msgs.msg import Temperature
 from std_msgs.msg import Float32
 from std_msgs.msg import String
@@ -56,7 +56,8 @@ class CommSubscriber(Node):
             raise
         
         # Create subscriptions
-        self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
+        # Subscribe to the new GPS+IMU message
+        self.subscription = self.create_subscription(GPSAndIMU, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(
             Temperature, 'temperature', self.temperature_callback, 10
         )
@@ -78,15 +79,20 @@ class CommSubscriber(Node):
             self.get_logger().error(f'Error sending temperature: {e}')
     
     def cube_callback(self, msg):
-        """Handle GPS messages."""
+        """Handle GPS+IMU messages."""
         try:
-            lat = msg.lat
-            lon = msg.lon
-            alt = msg.alt
-            vel = int(msg.vel * 100)
-            
-            self.get_logger().info(f"Sending GPS: Lat: {lat}, Lon: {lon}, Alt: {alt}, Vel: {vel}")
-            self.mavlink_connection.send_gps(lat, lon, alt, vel)
+            lat = float(msg.lat)
+            lon = float(msg.lon)
+            alt = float(msg.alt)
+            vel_i = int(msg.vel * 100)
+
+            # Convert to MAVLink integer formats: lat/lon in 1e-7 degrees, alt in mm
+            lat_i = int(lat * 1e7)
+            lon_i = int(lon * 1e7)
+            alt_i = int(alt * 1000)
+
+            self.get_logger().info(f"Sending GPS: Lat: {lat} Lon: {lon} Alt: {alt} Vel: {vel_i}")
+            self.mavlink_connection.send_gps(lat_i, lon_i, alt_i, vel_i)
         except Exception as e:
             self.get_logger().error(f'Error sending GPS: {e}')
     

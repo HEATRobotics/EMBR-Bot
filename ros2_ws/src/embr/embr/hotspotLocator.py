@@ -43,7 +43,7 @@ class hotspotLocator(Node):
 
         # Topics (override here if needed)
         self.array_topic = 'thermal/radiometric_array'
-        self.gps_imu_topic = 'gps_imu'
+        self.gps_imu_topic = 'gps'
 
         # Set Lepton model parameters
         self._set_camera_model(self.lepton_model)
@@ -52,6 +52,8 @@ class hotspotLocator(Node):
         self.current_gps: Optional[Tuple[float, float]] = None  # (lat, lon)
         self.current_heading_deg: float = 0.0  # compass heading 0-360, 0=N, 90=E
         self.have_gps: bool = False
+        # internal flag to avoid spamming the log while waiting for GPS
+        self._warned_waiting_gps: bool = False
 
         # Subscribers
         self.create_subscription(GPSAndIMU, self.gps_imu_topic, self._gps_imu_cb, 10)
@@ -71,7 +73,7 @@ class hotspotLocator(Node):
             self.hfov = math.radians(57)
             self.vfov = math.radians(44)
         else:
-            self.get_logger().warn("Unknown lepton_model, defaulting to 2.5 FOV")
+            self.get_logger().warning("Unknown lepton_model, defaulting to 2.5 FOV")
             self.hfov = math.radians(51)
             self.vfov = math.radians(38)
 
@@ -92,7 +94,10 @@ class hotspotLocator(Node):
 
     def _array_cb(self, msg: UInt16MultiArray) -> None:
         if not self.have_gps:
-            self.get_logger().warn_once('Waiting for GPS fix...')
+            # warn once to avoid log spam while waiting for GPS
+            if not getattr(self, '_warned_waiting_gps', False):
+                self.get_logger().warning('Waiting for GPS fix...')
+                self._warned_waiting_gps = True
             return
 
         # Determine image shape from layout
@@ -105,7 +110,7 @@ class hotspotLocator(Node):
 
         rad = np.array(msg.data, dtype=np.uint16)
         if rad.size != h * w:
-            self.get_logger().warn(f'Array size mismatch: {rad.size} vs {h}x{w}')
+            self.get_logger().warning(f'Array size mismatch: {rad.size} vs {h}x{w}')
             return
         rad = rad.reshape((h, w))
 
