@@ -2,7 +2,7 @@
 """
 Thermal Hotspot GPS Locator (ROS2)
 
-Production ROS2 node that subscribes to the radiometric 2D array
+ROS2 node that subscribes to the radiometric 2D array
 published by the thermal stream node and computes the nearest hotspot's
 GPS coordinates based on camera geometry, GPS, and IMU heading.
 
@@ -23,6 +23,7 @@ from rclpy.node import Node
 from std_msgs.msg import UInt16MultiArray
 from geometry_msgs.msg import PoseStamped
 from msg_interface.msg import GPSAndIMU
+from embr.sensors import SensorFactory, SensorConfig
 
 import numpy as np
 import cv2
@@ -34,18 +35,44 @@ class hotspotLocator(Node):
     def __init__(self):
         super().__init__('thermal_hotspot_locator')
 
-        # Configuration (can be adjusted here)
+        # Declare parameter for config file path
+        self.declare_parameter('config_file', '')
+        config_file = self.get_parameter('config_file').value
+        
+        # Use default config path if not provided
+        if not config_file:
+            config_file = 'src/embr/config/sensors.json'
+        
+        # Try to load thermal camera config to get model information
+        try:
+            configs = SensorFactory.load_config(config_file)
+            thermal_config = configs.get('thermal')
+            
+            if thermal_config is None:
+                self.get_logger().warning(f'Thermal sensor not found in config file: {config_file}. Using defaults.')
+                self.lepton_model = '3.1R'
+                params = {}
+            else:
+                params = thermal_config.params
+                self.lepton_model = params.get('model', '3.1R')
+                self.get_logger().info(f'Loaded thermal camera config from {config_file}: model={self.lepton_model}')
+        except Exception as e:
+            self.get_logger().warning(f'Failed to load config file: {e}. Using defaults.')
+            self.lepton_model = '3.1R'
+            params = {}
+
+        # Configuration - load from config params with defaults
         # Camera geometry
-        self.lepton_model = '3.1R'  # '2.5' or '3.1R'
-        self.altitude_m = 1.0      # Camera height above ground (meters)
-        self.pitch_deg = 45.0      # Camera pitch (0=horizontal, 90=down)
-        self.temp_threshold_c = 30.0  # Celsius threshold for hotspot detection
+        self.altitude_m = params.get('altitude_m', 1.0)      # Camera height above ground (meters)
+        self.pitch_deg = params.get('pitch_deg', 45.0)      # Camera pitch (0=horizontal, 90=down)
+        # Temp threshold will be set via radio commands, default here
+        self.temp_threshold_c = 30.0  # Celsius - will be updated via radio
 
         # Topics (override here if needed)
         self.array_topic = 'thermal/radiometric_array'
         self.gps_imu_topic = 'gps'
 
-        # Set Lepton model parameters
+        # Set Lepton model parameters based on config
         self._set_camera_model(self.lepton_model)
 
         # State
@@ -62,7 +89,7 @@ class hotspotLocator(Node):
         # Publisher
         self.hotspot_pub = self.create_publisher(PoseStamped, '/thermal/hotspot_gps', 10)
 
-        self.get_logger().info('hotspotLocator started')
+        self.get_logger().info(f'hotspotLocator started (camera model: {self.lepton_model})')
 
     def _set_camera_model(self, model: str) -> None:
         if model == '2.5':

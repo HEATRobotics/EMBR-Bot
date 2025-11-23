@@ -4,6 +4,48 @@ This guide covers using the FLIR Lepton 3.1R camera with a PureThermal 3 (PT3) b
 
 This document focuses on the software stack required to access this 14-bit raw temperature data, primarily on Linux.
 
+## **EMBR-Bot Sensor Abstraction**
+
+**Configuration Parameters:**
+- `model`: Lepton model - "2.5" (60×80) or "3.1R" (120×160)
+- `altitude_m`: Camera mounting height above ground (meters)
+- `pitch_deg`: Camera pitch angle (0° = horizontal, 90° = straight down)
+- `display_width/height`: HDMI output resolution (pixels)
+- `colormap`: OpenCV colormap for thermal visualization (e.g., "INFERNO", "JET", "HOT")
+- `min_temp_c/max_temp_c`: Temperature range for colormap scaling (Celsius)
+
+**Simulation-Only Parameters:**
+- `base_temp`: Base temperature in Celsius for simulated frames (default: 22.0)
+- `temp_variation`: Random temperature variation range (default: 5.0)
+- `hotspot_temp`: Temperature of simulated hotspots (default: 40.0)
+- `num_hotspots`: Number of simulated hotspots (default: 2)
+
+
+### ROS2 Nodes
+
+**thermalStream** - Main thermal camera streaming node
+- Streams color-mapped thermal video to HDMI/framebuffer
+- Publishes raw radiometric arrays to `/thermal/radiometric_array`
+- Annotates and highlights hotspots above threshold
+- All parameters loaded from config file
+
+**hotspotLocator** - GPS locator for thermal hotspots  
+- Subscribes to thermal arrays and GPS/IMU data
+- Computes GPS coordinates of hotspots using camera geometry
+- Publishes locations to `/thermal/hotspot_gps`
+
+Run with default config (real hardware):
+```bash
+ros2 launch embr embr_launch.py
+```
+
+Run in simulation mode:
+```bash
+ros2 launch embr embr_launch.py config_file:=src/embr/config/sensors_sim.json
+```
+
+---
+
 ## **The Core Challenge: Radiometry (14-bit) vs. Webcam Video (8-bit)**
 
 The PureThermal 3 board can expose the Lepton camera to your computer in two different modes over USB:

@@ -1,49 +1,66 @@
 #!/usr/bin/env python3
 """
-Thermal Camera Streaming Node with Temperature Overlay and Frame Publishing
-Uses flirpy to capture Lepton thermal data, streams via HDMI with ffmpeg,
-and publishes radiometric frames when vehicle velocity is 0.
+Thermal Camera Streaming Node with Temperature Overlay.
+Uses sensor abstraction to support both real and simulated thermal cameras.
+Streams via HDMI with direct framebuffer access and publishes the radiometric array (UInt16, Kelvin*100) when stationary.
 """
 
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
 from std_msgs.msg import UInt16MultiArray, MultiArrayDimension, MultiArrayLayout
 from msg_interface.msg import GPSAndIMU
-from cv_bridge import CvBridge
+from embr.sensors import create_sensor, SensorConfig, SensorFactory
 import cv2
 import numpy as np
 import subprocess
 import threading
 import queue
-from flirpy.camera.lepton import Lepton
 
 
 class ThermalStreamNode(Node):
     def __init__(self):
         super().__init__('thermal_stream_node')
         
-        # Configuration - can be modified here directly
-        self.temp_threshold = 30.0  # Celsius - temperature threshold for hotspot detection
+        # Declare parameter for config file path
+        self.declare_parameter('config_file', '')
+        config_file = self.get_parameter('config_file').value
+        
+        # Use default config path if not provided
+        if not config_file:
+            config_file = 'src/embr/config/sensors.json'
+        
+        # Try to load from config file
+        try:
+            configs = SensorFactory.load_config(config_file)
+            config = configs.get('thermal')
+            
+            if config is None:
+                self.get_logger().warning(f'Thermal sensor not found in config file: {config_file}. Using default real mode.')
+                config = SensorConfig(mode='real', params={'model': '3.1R'})
+            else:
+                self.get_logger().info(f'Loaded thermal camera config from {config_file}')
+        except Exception as e:
+            self.get_logger().warning(f'Failed to load config file: {e}. Using default real mode.')
+            config = SensorConfig(mode='real', params={'model': '3.1R'})
+        
+        # Configuration - load from config params with defaults
+        params = config.params if config else {}
+        # Temp threshold will be set via radio commands, default here
+        self.temp_threshold = 30.0  # Celsius - will be updated via radio
         self.video_fps = 9.0  # Lepton typical fps
-        self.display_width = 640
-        self.display_height = 480
+        self.display_width = params.get('display_width', 640)
+        self.display_height = params.get('display_height', 480)
         # use a reddish/inferno colormap for thermal-style colors
-        self.colormap = cv2.COLORMAP_INFERNO
-        self.min_temp = 10.0  # Celsius - minimum temperature for colormap scaling
-        self.max_temp = 80.0  # Celsius - maximum temperature for colormap scaling
+        colormap_name = params.get('colormap', 'INFERNO')
+        self.colormap = getattr(cv2, f'COLORMAP_{colormap_name}', cv2.COLORMAP_INFERNO)
+        self.min_temp = params.get('min_temp_c', 10.0)  # Celsius - minimum temperature for colormap scaling
+        self.max_temp = params.get('max_temp_c', 80.0)  # Celsius - maximum temperature for colormap scaling
         
         # State variables
         self.current_velocity = None
         self.velocity_lock = threading.Lock()
         
-        # Publishers
-        self.frame_publisher = self.create_publisher(
-            Image, 
-            'thermal/radiometric_frame', 
-            10
-        )
-        # Optional: publish radiometric array (uint16, Kelvin x 100) for direct analysis
+        # Publisher: radiometric array (uint16, Kelvin x 100) for direct analysis
         self.array_publisher = self.create_publisher(
             UInt16MultiArray,
             'thermal/radiometric_array',
@@ -58,14 +75,14 @@ class ThermalStreamNode(Node):
             10
         )
         
-        # CV Bridge for ROS image messages
-        self.bridge = CvBridge()
-        
-        # Initialize camera
-        self.get_logger().info('Initializing Lepton camera...')
+        # Initialize camera using sensor abstraction
+        self.get_logger().info('Initializing thermal camera...')
         try:
-            self.camera = Lepton()
-            self.get_logger().info('Lepton camera initialized successfully')
+            self.camera = create_sensor('thermal', config)
+            self.camera.start()
+            
+            sensor_type = 'simulated' if 'Sim' in self.camera.__class__.__name__ else 'real'
+            self.get_logger().info(f'Thermal camera initialized in {config.mode} mode (using {sensor_type} sensor)')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize camera: {e}')
             raise
@@ -240,8 +257,8 @@ class ThermalStreamNode(Node):
         
         while self.streaming_active and rclpy.ok():
             try:
-                # Capture radiometric frame from camera
-                radiometric_frame = self.camera.grab()
+                # Capture radiometric frame from camera using sensor abstraction
+                radiometric_frame = self.camera.read()
                 
                 if radiometric_frame is None:
                     self.get_logger().warn('Failed to grab frame from camera')
@@ -414,8 +431,8 @@ class ThermalStreamNode(Node):
     def _capture_and_publish(self):
         """Capture once and publish both radiometric image and temperature array"""
         try:
-            # Capture fresh radiometric frame
-            radiometric_frame = self.camera.grab()
+            # Capture fresh radiometric frame using sensor abstraction
+            radiometric_frame = self.camera.read()
             
             if radiometric_frame is None:
                 self.get_logger().warn('Failed to capture radiometric frame')
@@ -452,10 +469,10 @@ class ThermalStreamNode(Node):
         if self.stream_thread.is_alive():
             self.stream_thread.join(timeout=2.0)
         
-        # Close camera
+        # Close camera using sensor abstraction
         try:
             if hasattr(self, 'camera'):
-                self.camera.close()
+                self.camera.stop()
         except Exception as e:
             self.get_logger().error(f'Error closing camera: {e}')
         
