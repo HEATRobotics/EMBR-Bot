@@ -1,0 +1,24 @@
+{
+  "comment": "Example configuration for mixed mode - temperature real, others simulated",
+  
+  "temperature": {
+    "mode": "real",
+    "device": "/dev/ttyACM0",
+    "baud": 9600
+  },
+  
+  "cube": {
+    "mode": "sim",
+    "params": {
+      "start_lat": 37.7749,
+      "start_lon": -122.4194,
+      "start_alt": 100.0,
+      "velocity": 5.0,
+      "pattern": "hover"
+    }
+  },
+  
+  "mavlink": {
+    "mode": "sim"
+  }
+}
