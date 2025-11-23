@@ -62,7 +62,7 @@ class CommSubscriber(Node):
         # --- Publish lat/long points to new topic
 
         # --- Once initial message is received, create subscriptions and allow sending ---
-        self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
+        self.subscription = self.create_subscription(GPSAndIMU, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(
             Temperature, 'temperature', self.temperature_callback, 10
         )
