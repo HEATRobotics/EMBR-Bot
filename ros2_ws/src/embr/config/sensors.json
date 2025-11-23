@@ -21,16 +21,6 @@
       "pattern": "circle"
     }
   },
-  "thermal": {
-    "mode": "auto",
-    "params": {
-      "camera_id": 1,
-      "width": 640,
-      "height": 480,
-      "hotspot_count": 1,
-      "moving": true
-    }
-  },
   "mavlink": {
     "mode": "auto",
     "device": "/dev/ttyAMA1",

@@ -5,19 +5,19 @@
 ### Start & Stop
 ```bash
 # Start container
-docker-compose up -d
+docker compose up -d
 
 # Stop container
-docker-compose down
+docker compose down
 
 # Restart container
-docker-compose restart
+docker compose restart
 ```
 
 ### Access Container
 ```bash
 # Primary terminal
-docker-compose exec embr-sim /bin/bash
+docker compose exec embr-sim /bin/bash
 
 # Additional terminal
 docker exec -it embr-sim /bin/bash
@@ -29,15 +29,15 @@ docker exec embr-sim ros2 topic list
 ### Build & Update
 ```bash
 # Build image
-docker-compose build
+docker compose build
 
 # Rebuild from scratch
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Pull latest code and rebuild
 git pull
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 ```
 
 ## Inside Container
@@ -118,18 +118,18 @@ ros2 wtf  # "Where's the failure"
 ### Troubleshooting
 ```bash
 # Restart container
-docker-compose restart
+docker compose restart
 
 # Clean restart
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 
 # Check network
 docker network ls
 docker network inspect bridge
 
 # Clean everything
-docker-compose down
+docker compose down
 docker system prune -a
 ```
 
@@ -137,7 +137,7 @@ docker system prune -a
 
 ### Change Sensor Mode
 ```bash
-# Set in docker-compose.yml
+# Set in docker compose.yml
 environment:
   - EMBR_SENSOR_MODE=sim  # or real, auto
 
@@ -147,7 +147,7 @@ export EMBR_SENSOR_MODE=sim
 
 ### Custom Config File
 ```bash
-# Mount custom config in docker-compose.yml
+# Mount custom config in docker compose.yml
 volumes:
   - ./my_config.json:/workspace/ros2_ws/src/embr/config/sensors.json
 
@@ -159,7 +159,7 @@ docker cp my_config.json embr-sim:/workspace/ros2_ws/src/embr/config/
 
 ### Terminal 1: Run Nodes
 ```bash
-docker-compose exec embr-sim /bin/bash
+docker compose exec embr-sim /bin/bash
 ros2 launch embr embr_launch_v2.py
 ```
 
@@ -191,7 +191,7 @@ docker system df
 ```
 
 ### Adjust Resources
-Edit `docker-compose.yml`:
+Edit `docker compose.yml`:
 ```yaml
 deploy:
   resources:
@@ -203,7 +203,7 @@ deploy:
 ### Clean Up
 ```bash
 # Remove container
-docker-compose down
+docker compose down
 
 # Remove image
 docker rmi embr-bot:simulation
@@ -230,7 +230,7 @@ ros2 multicast receive
 ### Multiple Containers
 ```bash
 # Start both containers
-docker-compose --profile tools up -d
+docker compose --profile tools up -d
 
 # They can communicate via ROS topics automatically
 ```
@@ -290,15 +290,15 @@ docker pull myregistry/embr-bot:latest
 ### Aliases
 Add to your `~/.bashrc`:
 ```bash
-alias embr-start='docker-compose up -d'
-alias embr-stop='docker-compose down'
-alias embr-shell='docker-compose exec embr-sim /bin/bash'
+alias embr-start='docker compose up -d'
+alias embr-stop='docker compose down'
+alias embr-shell='docker compose exec embr-sim /bin/bash'
 alias embr-logs='docker logs -f embr-sim'
 ```
 
 ### One-Liner Launch
 ```bash
-docker-compose up -d && docker-compose exec embr-sim bash -c "
+docker compose up -d && docker compose exec embr-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
   ros2 launch embr embr_launch_v2.py
@@ -327,11 +327,11 @@ docker exec embr-sim bash -c "
 ### Issue: Container won't start
 ```bash
 # Check logs
-docker-compose logs embr-sim
+docker compose logs embr-sim
 
 # Try recreating
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 ```
 
 ### Issue: Can't connect to topics
@@ -346,9 +346,9 @@ docker inspect embr-sim | grep NetworkMode
 ### Issue: Build fails
 ```bash
 # Clean and rebuild
-docker-compose down
+docker compose down
 docker system prune -a
-docker-compose build --no-cache
+docker compose build --no-cache
 ```
 
 ### Issue: Out of disk space
@@ -363,4 +363,4 @@ docker system df
 
 ---
 
-**Quick Start**: `docker-compose up -d && docker-compose exec embr-sim /bin/bash`
+**Quick Start**: `docker compose up -d && docker compose exec embr-sim /bin/bash`

@@ -7,7 +7,6 @@ from .base import Sensor, SensorConfig
 from .factory import SensorFactory, create_sensor
 from .temperature import TemperatureSensor, RealTemperatureSensor, SimTemperatureSensor
 from .cube import CubeSensor, RealCubeSensor, SimCubeSensor
-from .thermal import ThermalSensor, RealThermalSensor, SimThermalSensor
 from .mavlink import MavlinkConnection, RealMavlinkConnection, SimMavlinkConnection
 
 __all__ = [
@@ -21,9 +20,6 @@ __all__ = [
     'CubeSensor',
     'RealCubeSensor',
     'SimCubeSensor',
-    'ThermalSensor',
-    'RealThermalSensor',
-    'SimThermalSensor',
     'MavlinkConnection',
     'RealMavlinkConnection',
     'SimMavlinkConnection',

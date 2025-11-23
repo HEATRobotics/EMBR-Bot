@@ -24,17 +24,8 @@ RUN locale-gen en_US en_US.UTF-8 && \
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-# Install ROS 2 Humble and development tools
-RUN apt-get update && apt-get install -y \
-    ros-humble-ros-base \
-    ros-dev-tools \
-    python3-pip \
-    python3-colcon-common-extensions \
-    python3-rosdep \
-    git \
-    vim \
-    nano \
-    && rm -rf /var/lib/apt/lists/*
+# Install ROS 2 Humble and development tools (includes msg generation support)
+RUN apt-get update && apt-get install -y ros-humble-ros-base ros-dev-tools python3-pip python3-colcon-common-extensions python3-rosdep python3-ament-package ros-humble-rosidl-default-generators ros-humble-rosidl-generator-py git vim nano && rm -rf /var/lib/apt/lists/*
 
 # Initialize rosdep
 RUN rosdep init && rosdep update

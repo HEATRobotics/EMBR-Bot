@@ -17,13 +17,41 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
 
 ## Table of Contents
 - [Quick Start](#quick-start)
+  - [Raspberry Pi Setup](#quick-start)
+  - [Docker Quick Start](#docker-setup-for-development-off-raspberry-pi)
+- [Simulation](#simulation)
+  - [Sensor Simulation Modes](#sensor-simulation-modes)
+  - [Running in Simulation](#running-in-simulation)
+  - [Configuration Options](#configuration-options)
+  - [Simulation Features](#simulation-features)
 - [Docker Simulation](#docker-simulation)
+  - [Quick Start](#docker-setup-for-development-off-raspberry-pi)
+  - [Docker Commands](#docker-documentation)
 - [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Automated Installation](#automated-installation)
+  - [Manual Installation](#manual-installation)
+  - [Serial Port Configuration](#serial-port-configuration)
 - [Hardware Setup & Wiring](#hardware-setup--wiring)
+  - [UART Configuration](#uart-pin-configuration)
+  - [RFD 900x Wiring](#raspberry-pi-to-rfd-900x-wiring)
+  - [Cube Orange Wiring](#raspberry-pi-to-cube-orange-wiring)
 - [Running the System](#running-the-system)
+  - [Startup Script](#starting-all-components)
+  - [Manual ROS2 Workflow](#manual-ros2-workflow)
 - [System Architecture](#system-architecture)
+  - [ROS2 Nodes](#system-architecture)
+  - [Data Flow](#data-flow)
+- [Testing](#testing)
+  - [Running Tests](#running-tests)
+  - [Test Types](#test-types)
 - [Documentation](#documentation)
 - [Development](#development)
+  - [Project Structure](#project-structure)
+  - [Adding New Nodes](#adding-new-nodes)
+  - [DroneKit Modification](#cube-orange-dronekit-modification)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
 
 ## Quick Start
 
@@ -45,14 +73,121 @@ cd Tools
 ./start-embr.sh
 ```
 
+## Simulation
+
+EMBR-Bot includes a comprehensive sensor abstraction layer that allows you to run the system with **simulated sensors**, enabling development and testing without any physical hardware.
+
+### Sensor Simulation Modes
+
+The system supports three modes for each sensor:
+
+1. **`real`** - Use actual hardware sensors
+2. **`sim`** - Use simulated sensors (no hardware required)
+3. **`auto`** - Automatically detect hardware; fall back to simulation if unavailable
+
+### Running in Simulation
+
+**Option 1: Full Simulation (All Sensors)**
+```bash
+export EMBR_SENSOR_MODE=sim
+ros2 launch embr embr_launch_v2.py
+```
+
+**Option 2: Individual Sensor Control**
+```bash
+export EMBR_TEMPERATURE_MODE=sim
+export EMBR_CUBE_MODE=sim
+export EMBR_MAVLINK_MODE=sim
+ros2 launch embr embr_launch_v2.py
+```
+
+**Option 3: Configuration File**
+```bash
+ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
+```
+
+**Option 4: Mixed Mode (Some Real, Some Simulated)**
+```bash
+# Edit config/sensors_mixed.json
+export EMBR_TEMPERATURE_MODE=real  # Real Arduino sensor
+export EMBR_CUBE_MODE=sim           # Simulated GPS
+ros2 launch embr embr_launch_v2.py
+```
+
+### Configuration Options
+
+Create custom sensor configurations in JSON format:
+
+**All Simulated (`config/sensors_sim.json`)**
+```json
+{
+  "temperature": {
+    "mode": "sim",
+    "params": {
+      "base_temp": 22.0,
+      "variation": 2.0,
+      "noise": 0.1
+    }
+  },
+  "cube": {
+    "mode": "sim",
+    "params": {
+      "pattern": "circle",
+      "velocity": 5.0,
+      "start_lat": 37.7749,
+      "start_lon": -122.4194
+    }
+  },
+  "thermal": {"mode": "sim"},
+  "mavlink": {"mode": "sim"}
+}
+```
+
+**Mixed Mode (`config/sensors_mixed.json`)**
+```json
+{
+  "temperature": {
+    "mode": "real",
+    "device": "/dev/ttyACM0",
+    "baud": 9600
+  },
+  "cube": {"mode": "sim"},
+  "thermal": {"mode": "sim"},
+  "mavlink": {"mode": "sim"}
+}
+```
+
+### Simulation Features
+
+**Temperature Sensor**
+- Realistic sine wave pattern with noise
+- Configurable base temperature, variation, and noise levels
+- Default: 22°C ± 2°C with ±0.1°C random noise
+
+**GPS (Cube Orange)**
+- Three movement patterns:
+  - `circle` - Circular flight pattern (~11m radius)
+  - `line` - Linear northward movement
+  - `hover` - Stationary with small random variations
+- Configurable starting position, velocity, and altitude
+- Realistic GPS coordinate updates (latitude/longitude in degrees × 10^7)
+
+**MAVLink Radio**
+- Records all transmitted messages for verification
+- Supports message injection for testing
+- Compatible with real MAVLink message types
+
 ## Docker Setup for development off raspberry pi
 To start docker and run embr inside container:
 ```bash
 # Build and start
-docker-compose up -d
+docker compose up -d
 
 # Access container
-docker-compose exec embr-sim /bin/bash
+docker compose exec embr-sim /bin/bash
+
+# Source ROS
+source install/setup.bash
 
 # Inside container: Launch all nodes
 ros2 launch embr embr_launch_v2.py
@@ -331,6 +466,43 @@ class Parameters(MutableMapping, HasObservers)
 
 Location: `~/.local/lib/python3.10/site-packages/dronekit/__init__.py`
 
+## Testing
+
+### Running Tests
+
+The EMBR-Bot project includes comprehensive tests for the sensor abstraction layer and ROS2 nodes.
+
+**Run all tests:**
+```bash
+cd ros2_ws
+source install/setup.bash
+colcon test
+```
+
+**View test results:**
+```bash
+colcon test-result --verbose
+```
+
+**Run specific test file:**
+```bash
+pytest src/embr/test/test_sensors.py -v
+```
+
+### Test Types
+
+**1. Unit Tests (`test/test_sensors.py`)**
+- Tests sensor implementations (Temperature, GPS, Thermal, MAVLink)
+- Tests simulated sensor behavior
+- Tests sensor factory and configuration loading
+- Run with: `colcon test` or `pytest`
+
+**2. Example Code (`examples/sensor_testing_examples.py`)**
+- Demonstrates sensor usage patterns
+- Shows configuration options
+- Not a test - educational examples
+- Run with: `python3 src/embr/examples/sensor_testing_examples.py`
+
 ## Contributing
 
 When contributing to this repository:
@@ -338,6 +510,7 @@ When contributing to this repository:
 2. Update relevant documentation in `Documentation/2025/`
 3. Ensure ROS2 nodes follow the established patterns
 4. Verify serial communications don't conflict
+5. Run tests before submitting: `colcon test`
 
 ## License
 

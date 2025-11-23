@@ -8,7 +8,6 @@ from pathlib import Path
 from .base import Sensor, SensorConfig
 from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
-from .thermal import RealThermalSensor, SimThermalSensor
 from .mavlink import RealMavlinkConnection, SimMavlinkConnection
 
 
@@ -25,10 +24,6 @@ class SensorFactory:
             'real': RealCubeSensor,
             'sim': SimCubeSensor,
         },
-        'thermal': {
-            'real': RealThermalSensor,
-            'sim': SimThermalSensor,
-        },
         'mavlink': {
             'real': RealMavlinkConnection,
             'sim': SimMavlinkConnection,
@@ -41,7 +36,7 @@ class SensorFactory:
         Create a sensor instance.
         
         Args:
-            sensor_type: Type of sensor ('temperature', 'cube', 'thermal', 'mavlink')
+            sensor_type: Type of sensor ('temperature', 'cube', 'mavlink')
             config: Sensor configuration
         
         Returns:
@@ -101,15 +96,6 @@ class SensorFactory:
             elif sensor_type == 'cube':
                 device = config.device or '/dev/ttyAMA0'
                 return 'real' if os.path.exists(device) else 'sim'
-            
-            elif sensor_type == 'thermal':
-                # Try to import cv2 and check camera
-                import cv2
-                camera_id = config.params.get('camera_id', 1) if config.params else 1
-                cap = cv2.VideoCapture(camera_id)
-                available = cap.isOpened()
-                cap.release()
-                return 'real' if available else 'sim'
             
             elif sensor_type == 'mavlink':
                 device = config.device or '/dev/ttyAMA1'

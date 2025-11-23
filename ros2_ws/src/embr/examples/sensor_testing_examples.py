@@ -51,23 +51,6 @@ def example_cube_patterns():
                 print(f"  Position: ({gps.lat/1e7:.6f}, {gps.lon/1e7:.6f}), "
                       f"Alt: {gps.alt/1000:.1f}m, Vel: {gps.vel:.1f}m/s")
 
-
-def example_thermal_detection():
-    """Simulated thermal camera hotspot detection."""
-    config = SensorConfig(
-        mode='sim',
-        params={'hotspot_count': 2, 'moving': True}
-    )
-    sensor = create_sensor('thermal', config)
-    
-    with sensor:
-        frame, all_boxes, largest = sensor.read()
-        print(f"Detected {len(all_boxes)} hotspots")
-        if largest:
-            print(f"Largest at: ({largest['x_center']}, {largest['y_center']})")
-            print(f"Angle: {largest['angle_degrees']:.1f}°")
-
-
 def example_mavlink_testing():
     """Testing MAVLink communication."""
     config = SensorConfig(mode='sim')
@@ -112,7 +95,7 @@ def example_auto_mode():
     # Will automatically use real hardware if available, sim otherwise
     config = SensorConfig(mode='auto')
     
-    sensors_to_test = ['temperature', 'cube', 'thermal', 'mavlink']
+    sensors_to_test = ['temperature', 'cube', 'mavlink']
     
     for sensor_type in sensors_to_test:
         try:
@@ -137,9 +120,6 @@ if __name__ == '__main__':
     
     print("\n2. Cube GPS Movement Patterns:")
     example_cube_patterns()
-    
-    print("\n3. Thermal Camera Detection:")
-    example_thermal_detection()
     
     print("\n4. MAVLink Communication Testing:")
     example_mavlink_testing()

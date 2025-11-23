@@ -7,7 +7,6 @@ from embr.sensors import (
     create_sensor,
     SimTemperatureSensor,
     SimCubeSensor,
-    SimThermalSensor,
     SimMavlinkConnection,
 )
 
@@ -87,7 +86,10 @@ class TestCubeSensor:
         sensor = create_sensor('cube', config)
         
         with sensor:
-            positions = [sensor.read() for _ in range(5)]
+            positions = []
+            for _ in range(5):
+                positions.append(sensor.read())
+                time.sleep(0.1)  # Small delay to allow position to change
             
             # Positions should change over time
             lats = [p.lat for p in positions]
@@ -95,40 +97,6 @@ class TestCubeSensor:
             
             # Velocity should match config
             assert all(abs(p.vel - 10.0) < 0.1 for p in positions)
-
-
-class TestThermalSensor:
-    """Tests for thermal camera sensor."""
-    
-    def test_simulated_sensor_basic(self):
-        """Test basic simulated thermal camera."""
-        config = SensorConfig(mode='sim', params={'width': 320, 'height': 240})
-        sensor = create_sensor('thermal', config)
-        
-        with sensor:
-            frame, all_boxes, largest_box = sensor.read()
-            
-            assert frame.shape == (240, 320, 3)
-            assert isinstance(all_boxes, list)
-            assert isinstance(largest_box, dict)
-    
-    def test_simulated_sensor_hotspot_detection(self):
-        """Test hotspot detection in simulated thermal camera."""
-        config = SensorConfig(
-            mode='sim',
-            params={'hotspot_count': 2, 'moving': False}
-        )
-        sensor = create_sensor('thermal', config)
-        
-        with sensor:
-            frame, all_boxes, largest_box = sensor.read()
-            
-            # Should detect hotspots
-            assert len(all_boxes) > 0
-            assert 'x_center' in largest_box
-            assert 'y_center' in largest_box
-            assert 'angle_degrees' in largest_box
-
 
 class TestMavlinkConnection:
     """Tests for MAVLink connection."""
