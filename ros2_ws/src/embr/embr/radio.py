@@ -22,6 +22,8 @@ class CommSubscriber(Node):
     def __init__(self):
         super().__init__('radio_subscriber')
         
+        # --- Add a flag to track if initial message with 4 lat/long points is received ---
+
         # Declare parameter for config file path
         self.declare_parameter('config_file', '')
         config_file = self.get_parameter('config_file').value
@@ -54,13 +56,17 @@ class CommSubscriber(Node):
         except Exception as e:
             self.get_logger().error(f'Failed to initialize Radio: {e}')
             raise
-        
-        # Create subscriptions
+
+        # --- Wait for initial message with 4 lat/long points before subscribing or sending ---
+
+        # --- Publish lat/long points to new topic
+
+        # --- Once initial message is received, create subscriptions and allow sending ---
         self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(
             Temperature, 'temperature', self.temperature_callback, 10
         )
-        
+
         self.get_logger().info('Radio Subscriber node initialized')
     
     def temperature_callback(self, msg):
