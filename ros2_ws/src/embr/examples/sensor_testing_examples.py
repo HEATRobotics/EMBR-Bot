@@ -51,24 +51,24 @@ def example_cube_patterns():
                 print(f"  Position: ({gps.lat/1e7:.6f}, {gps.lon/1e7:.6f}), "
                       f"Alt: {gps.alt/1000:.1f}m, Vel: {gps.vel:.1f}m/s")
 
-def example_mavlink_testing():
-    """Testing MAVLink communication."""
+def example_radio_testing():
+    """Testing Radio communication."""
     config = SensorConfig(mode='sim')
-    mavlink = create_sensor('mavlink', config)
+    radio = create_sensor('radio', config)
     
-    with mavlink:
+    with radio:
         # Send some data
-        mavlink.send_temperature(23.5)
-        mavlink.send_gps(377490000, -1224194000, 100000, 500)
+        radio.send_temperature(23.5)
+        radio.send_gps(377490000, -1224194000, 100000, 500)
         
         # Check what was sent
-        print(f"Sent {len(mavlink.sent_messages)} messages:")
-        for msg in mavlink.sent_messages:
+        print(f"Sent {len(radio.sent_messages)} messages:")
+        for msg in radio.sent_messages:
             print(f"  {msg}")
         
         # Inject a received message
-        mavlink.inject_message({'type': 'HEARTBEAT', 'data': 'test'})
-        received = mavlink.read()
+        radio.inject_message({'type': 'HEARTBEAT', 'data': 'test'})
+        received = radio.read()
         print(f"Received: {received}")
 
 
@@ -96,7 +96,7 @@ def example_mixed_mode():
     configs = {
         'temperature': SensorConfig(mode='sim', params={'base_temp': 25.0}),
         'cube': SensorConfig(mode='sim', params={'pattern': 'hover'}),
-        'mavlink': SensorConfig(mode='sim')
+        'radio': SensorConfig(mode='sim')
     }
     
     for sensor_type, config in configs.items():
@@ -123,8 +123,8 @@ if __name__ == '__main__':
     print("\n2. Cube GPS Movement Patterns:")
     example_cube_patterns()
     
-    print("\n4. MAVLink Communication Testing:")
-    example_mavlink_testing()
+    print("\n4. Radio Communication Testing:")
+    example_radio_testing()
     
     print("\n5. Configuration File Loading:")
     example_config_loading()

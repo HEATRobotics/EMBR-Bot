@@ -341,7 +341,7 @@ ros2 launch embr embr_launch.py
 ```bash
 ros2 run embr getCube      # Cube Orange telemetry
 ros2 run embr getTemp      # Temperature sensor
-ros2 run embr sendRf       # Radio transmission
+ros2 run embr radio        # Radio transmission
 ```
 
 ### Important Notes
@@ -365,7 +365,7 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 - **Published Topic**: `temperature` (Temperature readings)
 - **Update Rate**: 1 Hz
 
-### 3. sendRf Node
+### 3. radio Node
 - **Purpose**: Transmits data via RFD 900x radio using MAVLink protocol
 - **Device**: `/dev/ttyAMA1` (UART2)
 - **Subscribed Topics**: `gps_imu`, `temperature`, `/pointcloud` (LIDAR)
@@ -377,9 +377,9 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 
 ### Data Flow
 ```
-Cube Orange → getCube → gps topic → sendRf → RFD 900x → Ground Station
-Arduino → getTemp → temperature topic → sendRf → RFD 900x → Ground Station
-LIDAR → /pointcloud topic → sendRf → RFD 900x → Ground Station
+Cube Orange → getCube → gps topic → radio → RFD 900x → Ground Station
+Arduino → getTemp → temperature topic → radio → RFD 900x → Ground Station
+LIDAR → /pointcloud topic → radio → RFD 900x → Ground Station
 ```
 
 ## Documentation
@@ -406,7 +406,7 @@ EMBR-Bot/
 │   │   │   ├── embr/          # Python nodes
 │   │   │   │   ├── getCube.py
 │   │   │   │   ├── getTemp.py
-│   │   │   │   └── sendRf.py
+│   │   │   │   └── radio.py
 │   │   │   ├── launch/        # Launch files
 │   │   │   └── setup.py       # Package configuration
 │   │   └── msg_interface/     # Custom message definitions
@@ -489,7 +489,7 @@ pytest src/embr/test/test_sensors.py -v
 ### Test Types
 
 **1. Unit Tests (`test/test_sensors.py`)**
-- Tests sensor implementations (Temperature, GPS, Thermal, MAVLink)
+- Tests sensor implementations (Temperature, GPS, Thermal, Radio)
 - Tests simulated sensor behavior
 - Tests sensor factory and configuration loading
 - Run with: `colcon test` or `pytest`

@@ -1,17 +1,17 @@
-"""MAVLink connection implementations."""
+"""Radio connection implementations."""
 
 import time
 from typing import Optional, Dict, Any
 from .base import Sensor, SensorConfig
 
 
-class MavlinkConnection(Sensor):
-    """Abstract MAVLink connection interface."""
+class RadioConnection(Sensor):
+    """Abstract Radio connection interface."""
     pass
 
 
-class RealMavlinkConnection(MavlinkConnection):
-    """Real MAVLink serial connection."""
+class RealRadioConnection(RadioConnection):
+    """Real Radio serial connection."""
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
@@ -21,7 +21,7 @@ class RealMavlinkConnection(MavlinkConnection):
         self.mav = None
     
     def start(self) -> None:
-        """Open MAVLink connection."""
+        """Open Radio connection."""
         if self._running:
             return
         
@@ -33,17 +33,17 @@ class RealMavlinkConnection(MavlinkConnection):
             self.mav = mavlink2.MAVLink(self.connection)
             self._running = True
         except Exception as e:
-            raise RuntimeError(f"Failed to open MAVLink connection on {self.device}: {e}")
+            raise RuntimeError(f"Failed to open Radio connection on {self.device}: {e}")
     
     def read(self) -> Optional[Any]:
-        """Read MAVLink message (non-blocking)."""
+        """Read Radio message (non-blocking)."""
         if not self._running:
             raise RuntimeError("Connection not started")
         
         return self.connection.recv_match(blocking=False)
     
     def send_temperature(self, temperature: float) -> None:
-        """Send temperature via MAVLink."""
+        """Send temperature via Radio."""
         if not self._running:
             raise RuntimeError("Connection not started")
         
@@ -55,7 +55,7 @@ class RealMavlinkConnection(MavlinkConnection):
         )
     
     def send_gps(self, lat: int, lon: int, alt: int, vel: int) -> None:
-        """Send GPS data via MAVLink."""
+        """Send GPS data via Radio."""
         if not self._running:
             raise RuntimeError("Connection not started")
         
@@ -63,14 +63,14 @@ class RealMavlinkConnection(MavlinkConnection):
         self.mav.global_position_int_send(timems, lat, lon, alt, 0, vel, 0, 0, 0)
     
     def stop(self) -> None:
-        """Close MAVLink connection."""
+        """Close Radio connection."""
         if self.connection:
             self.connection.close()
         self._running = False
 
 
-class SimMavlinkConnection(MavlinkConnection):
-    """Simulated MAVLink connection for testing."""
+class SimRadioConnection(RadioConnection):
+    """Simulated Radio connection for testing."""
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)

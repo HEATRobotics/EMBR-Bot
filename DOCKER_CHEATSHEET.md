@@ -50,7 +50,7 @@ ros2 launch embr embr_launch.py
 # Individual nodes
 ros2 run embr getTemp
 ros2 run embr getCube
-ros2 run embr sendRf
+ros2 run embr radio
 ```
 
 ### Monitor Topics

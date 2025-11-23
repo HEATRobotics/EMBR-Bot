@@ -79,7 +79,7 @@ If a specific sensor is missing from your config file, you'll see an error like:
 Temperature sensor not found in config file: config/my_config.json
 ```
 
-Make sure your config file includes all required sensors: `temperature`, `cube`, and `mavlink`.
+Make sure your config file includes all required sensors: `temperature`, `cube`, and `radio`.
 
 ### Permission Denied on Serial Ports
 

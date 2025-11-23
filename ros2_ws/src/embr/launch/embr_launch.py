@@ -42,8 +42,8 @@ def generate_launch_description():
         ),
         Node(
             package='embr',
-            executable='sendRf',
-            name='sendRf',
+            executable='radio',
+            name='radio',
             parameters=[{
                 'config_file': config_file,
             }]

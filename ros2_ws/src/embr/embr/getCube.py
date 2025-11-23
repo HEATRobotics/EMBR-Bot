@@ -41,6 +41,7 @@ class AttitudePublisher(Node):
             self.sensor = create_sensor('cube', config)
             self.sensor.start()
 
+            
             sensor_type = 'simulated' if 'Sim' in self.sensor.__class__.__name__ else 'real'
             self.get_logger().info(f'Cube sensor initialized in {config.mode} mode (using {sensor_type} sensor)')
         except Exception as e:

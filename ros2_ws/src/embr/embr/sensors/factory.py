@@ -8,7 +8,7 @@ from pathlib import Path
 from .base import Sensor, SensorConfig
 from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
-from .mavlink import RealMavlinkConnection, SimMavlinkConnection
+from .radio import RealRadioConnection, SimRadioConnection
 
 
 class SensorFactory:
@@ -24,9 +24,9 @@ class SensorFactory:
             'real': RealCubeSensor,
             'sim': SimCubeSensor,
         },
-        'mavlink': {
-            'real': RealMavlinkConnection,
-            'sim': SimMavlinkConnection,
+        'radio': {
+            'real': RealRadioConnection,
+            'sim': SimRadioConnection,
         },
     }
     
@@ -36,7 +36,7 @@ class SensorFactory:
         Create a sensor instance.
         
         Args:
-            sensor_type: Type of sensor ('temperature', 'cube', 'mavlink')
+            sensor_type: Type of sensor ('temperature', 'cube', 'radio')
             config: Sensor configuration
         
         Returns:

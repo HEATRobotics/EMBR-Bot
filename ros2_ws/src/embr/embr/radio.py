@@ -1,5 +1,5 @@
 """
-MAVLink communication node with sensor abstraction.
+Radio communication node with sensor abstraction.
 Supports both real and simulated connections.
 """
 
@@ -20,61 +20,60 @@ from embr.sensors import create_sensor, SensorConfig, SensorFactory
 
 class CommSubscriber(Node):
     def __init__(self):
-        super().__init__('mavlink_subscriber')
+        super().__init__('radio_subscriber')
         
+        # --- Add a flag to track if initial message with 4 lat/long points is received ---
+
         # Declare parameter for config file path
         self.declare_parameter('config_file', '')
         config_file = self.get_parameter('config_file').value
         
         # Use default config path if not provided
         if not config_file:
-            config_file = 'config/sensors.json'
+            config_file = 'src/embr/config/sensors.json'
         
         # Try to load from config file
         try:
             configs = SensorFactory.load_config(config_file)
-            config = configs.get('mavlink')
+            config = configs.get('radio')
             
             if config is None:
-                self.get_logger().error(f'MAVLink config not found in config file: {config_file}')
-                raise ValueError(f'MAVLink configuration not found in {config_file}')
+                self.get_logger().error(f'Radio config not found in config file: {config_file}')
+                raise ValueError(f'Radio configuration not found in {config_file}')
             
-            self.get_logger().info(f'Loaded MAVLink config from {config_file}')
+            self.get_logger().info(f'Loaded Radio config from {config_file}')
         except Exception as e:
             self.get_logger().error(f'Failed to load config file: {e}')
             raise
         
-        # Create MAVLink connection
+        # Create Radio connection
         try:
-            self.mavlink_connection = create_sensor('mavlink', config)
-            self.mavlink_connection.start()
+            self.radio_connection = create_sensor('radio', config)
+            self.radio_connection.start()
             
-            conn_type = 'simulated' if 'Sim' in self.mavlink_connection.__class__.__name__ else 'real'
-            self.get_logger().info(f'MAVLink connection initialized in {config.mode} mode (using {conn_type} connection)')
+            conn_type = 'simulated' if 'Sim' in self.radio_connection.__class__.__name__ else 'real'
+            self.get_logger().info(f'Radio connection initialized in {config.mode} mode (using {conn_type} connection)')
         except Exception as e:
-            self.get_logger().error(f'Failed to initialize MAVLink: {e}')
+            self.get_logger().error(f'Failed to initialize Radio: {e}')
             raise
-        
-        # Create subscriptions
-        # Subscribe to the new GPS+IMU message
-        self.subscription = self.create_subscription(GPSAndIMU, 'gps', self.cube_callback, 10)
+
+        # --- Wait for initial message with 4 lat/long points before subscribing or sending ---
+
+        # --- Publish lat/long points to new topic
+
+        # --- Once initial message is received, create subscriptions and allow sending ---
+        self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(
             Temperature, 'temperature', self.temperature_callback, 10
         )
-        
-        # Create publisher for received data (optional)
-        self.received_data_publisher = self.create_publisher(String, 'mavlink_received', 10)
-        
-        # Timer to read MAVLink messages
-        self.timer = self.create_timer(0.1, self.read_mavlink_messages)
-        
-        self.get_logger().info('Mavlink Subscriber node initialized')
+
+        self.get_logger().info('Radio Subscriber node initialized')
     
     def temperature_callback(self, msg):
         """Handle temperature messages."""
         try:
             self.get_logger().info(f"Sending temperature: {msg.temperature}")
-            self.mavlink_connection.send_temperature(msg.temperature)
+            self.radio_connection.send_temperature(msg.temperature)
         except Exception as e:
             self.get_logger().error(f'Error sending temperature: {e}')
     
@@ -92,58 +91,14 @@ class CommSubscriber(Node):
             alt_i = int(alt * 1000)
 
             self.get_logger().info(f"Sending GPS: Lat: {lat} Lon: {lon} Alt: {alt} Vel: {vel_i}")
-            self.mavlink_connection.send_gps(lat_i, lon_i, alt_i, vel_i)
+            self.radio_connection.send_gps(lat_i, lon_i, alt_i, vel_i)
         except Exception as e:
             self.get_logger().error(f'Error sending GPS: {e}')
-    
-    def read_mavlink_messages(self):
-        """Read incoming MAVLink messages."""
-        try:
-            msg = self.mavlink_connection.read()
-            if msg:
-                self.get_logger().info(f"Received MAVLink message: {msg}")
-                
-                # Handle different message types
-                if isinstance(msg, dict):
-                    msg_type = msg.get('type', 'UNKNOWN')
-                    
-                    if msg_type == "STATUSTEXT":
-                        text = msg.get('text', '')
-                        received_msg = String()
-                        received_msg.data = f"Received STATUSTEXT: {text}"
-                        self.received_data_publisher.publish(received_msg)
-                    
-                    elif msg_type == "NAMED_VALUE_FLOAT":
-                        name = msg.get('name', '')
-                        value = msg.get('value', 0.0)
-                        received_msg = String()
-                        received_msg.data = f"Received {name}: {value}"
-                        self.received_data_publisher.publish(received_msg)
-                
-                # Handle real MAVLink messages (from pymavlink)
-                elif hasattr(msg, 'get_type'):
-                    msg_type = msg.get_type()
-                    
-                    if msg_type == "STATUSTEXT":
-                        text = msg.text.decode().strip('\x00')
-                        received_msg = String()
-                        received_msg.data = f"Received STATUSTEXT: {text}"
-                        self.received_data_publisher.publish(received_msg)
-                    
-                    elif msg_type == "NAMED_VALUE_FLOAT":
-                        name = msg.name.decode().strip('\x00')
-                        value = msg.value
-                        received_msg = String()
-                        received_msg.data = f"Received {name}: {value}"
-                        self.received_data_publisher.publish(received_msg)
-        
-        except Exception as e:
-            self.get_logger().error(f'Error reading MAVLink: {e}')
     
     def destroy_node(self):
         """Cleanup connection on shutdown."""
         if hasattr(self, 'mavlink_connection'):
-            self.mavlink_connection.stop()
+            self.radio_connection.stop()
         super().destroy_node()
 
 

@@ -42,7 +42,7 @@ Run a specific node:
 ```
 ros2 run embr getTemp
 ros2 run embr getCube
-ros2 run embr sendRf
+ros2 run embr radio
 ```
 
 ### Using Custom Configuration
@@ -81,7 +81,7 @@ The original nodes are still available:
 
 ```bash
 ros2 launch embr embr_launch.py
-ros2 run embr sendRf
+ros2 run embr radio
 ```
 
 If you run with `sudo`, manually source ROS 2 in that shell:
@@ -95,7 +95,7 @@ source /opt/ros/humble/setup.bash
 ```
 src/
 ├── embr/
-│   ├── embr/            # nodes: getCube.py, getTemp.py, sendRf.py
+│   ├── embr/            # nodes: getCube.py, getTemp.py, radio.py
 │   ├── launch/          # embr_launch.py
 │   └── setup.py         # entry points
 └── msg_interface/
