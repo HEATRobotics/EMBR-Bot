@@ -89,24 +89,24 @@ All sensor modes are configured through JSON configuration files in `ros2_ws/src
 
 **Option 1: Full Simulation (All Sensors)**
 ```bash
-ros2 launch embr embr_launch_v2.py config_file:=src/embr/config/sensors_sim.json
+ros2 launch embr embr_launch.py config_file:=src/embr/config/sensors_sim.json
 ```
 
 **Option 2: Mixed Mode (Some Real, Some Simulated)**
 ```bash
-ros2 launch embr embr_launch_v2.py config_file:=src/embr/config/sensors_mixed.json
+ros2 launch embr embr_launch.py config_file:=src/embr/config/sensors_mixed.json
 ```
 
 **Option 3: Real Hardware (Default)**
 ```bash
-ros2 launch embr embr_launch_v2.py
+ros2 launch embr embr_launch.py
 # Uses config/sensors.json by default
 ```
 
 **Option 4: Custom Configuration**
 ```bash
 # Create your own config file based on examples
-ros2 launch embr embr_launch_v2.py config_file:=/path/to/custom_config.json
+ros2 launch embr embr_launch.py config_file:=/path/to/custom_config.json
 ```
 
 For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/config/CONFIG.md).
@@ -144,7 +144,7 @@ docker compose exec embr-sim /bin/bash
 source install/setup.bash
 
 # Launch with simulation config
-ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
+ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
 ```
 
 ### Docker Documentation

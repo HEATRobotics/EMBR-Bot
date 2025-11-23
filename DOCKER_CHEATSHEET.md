@@ -45,12 +45,12 @@ docker compose up -d
 ### Launch Nodes
 ```bash
 # All nodes
-ros2 launch embr embr_launch_v2.py
+ros2 launch embr embr_launch.py
 
 # Individual nodes
-ros2 run embr getTemp_v2
-ros2 run embr getCube_v2
-ros2 run embr sendRf_v2
+ros2 run embr getTemp
+ros2 run embr getCube
+ros2 run embr sendRf
 ```
 
 ### Monitor Topics
@@ -101,7 +101,7 @@ docker logs embr-sim
 docker logs -f embr-sim  # Follow
 
 # ROS logs (inside container)
-ros2 run embr getTemp_v2 --ros-args --log-level debug
+ros2 run embr getTemp --ros-args --log-level debug
 ```
 
 ### Check Status
@@ -160,7 +160,7 @@ docker cp my_config.json embr-sim:/workspace/ros2_ws/src/embr/config/
 ### Terminal 1: Run Nodes
 ```bash
 docker compose exec embr-sim /bin/bash
-ros2 launch embr embr_launch_v2.py
+ros2 launch embr embr_launch.py
 ```
 
 ### Terminal 2: Monitor Topics
@@ -301,7 +301,7 @@ alias embr-logs='docker logs -f embr-sim'
 docker compose up -d && docker compose exec embr-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
-  ros2 launch embr embr_launch_v2.py
+  ros2 launch embr embr_launch.py
 "
 ```
 
@@ -311,7 +311,7 @@ docker compose up -d && docker compose exec embr-sim bash -c "
 docker exec -d embr-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
-  ros2 launch embr embr_launch_v2.py
+  ros2 launch embr embr_launch.py
 "
 
 # Then monitor from outside
