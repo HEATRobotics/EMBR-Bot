@@ -1,5 +1,7 @@
 ros2_ws/build
 ros2_ws/install
 ros2_ws/logs
-
+ros2_ws/log
+ros2_ws/src/embr/embr/__pycache__
+ros2_ws/src/embr/embr/sensors/__pycache__
 .vscode

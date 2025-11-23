@@ -1,0 +1,61 @@
+services:
+  embr-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: embr-bot:simulation
+    container_name: embr-simulation
+    hostname: embr-raspberrypi
+    
+    # Interactive terminal
+    stdin_open: true
+    tty: true
+    
+    # Environment variables
+    environment:
+      - EMBR_SENSOR_MODE=sim
+      - ROS_DOMAIN_ID=0
+    
+    # Mount workspace for live development (optional)
+    volumes:
+      - ./ros2_ws:/workspace/ros2_ws:rw
+    
+    # Network configuration
+    network_mode: host
+    
+    # Resource limits (simulating Raspberry Pi 4)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+        reservations:
+          cpus: '2.0'
+          memory: 2G
+    
+    # Keep container running
+    command: /bin/bash
+
+  # Optional: ROS2 tools container for monitoring
+  embr-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: embr-bot:simulation
+    container_name: embr-tools
+    
+    stdin_open: true
+    tty: true
+    
+    environment:
+      - EMBR_SENSOR_MODE=sim
+      - ROS_DOMAIN_ID=0
+    
+    network_mode: host
+    
+    depends_on:
+      - embr-sim
+    
+    command: /bin/bash
+    profiles:
+      - tools  # Optional profile, start with: docker-compose --profile tools up

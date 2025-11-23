@@ -17,6 +17,7 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
 
 ## Table of Contents
 - [Quick Start](#quick-start)
+- [Docker Simulation](#docker-simulation)
 - [Installation](#installation)
 - [Hardware Setup & Wiring](#hardware-setup--wiring)
 - [Running the System](#running-the-system)
@@ -43,6 +44,22 @@ To start all system components:
 cd Tools
 ./start-embr.sh
 ```
+
+## Docker Setup for development off raspberry pi
+To start docker and run embr inside container:
+```bash
+# Build and start
+docker-compose up -d
+
+# Access container
+docker-compose exec embr-sim /bin/bash
+
+# Inside container: Launch all nodes
+ros2 launch embr embr_launch_v2.py
+```
+
+### Docker Documentation
+- **[DOCKER_CHEATSHEET.md](DOCKER_CHEATSHEET.md)** - Quick command reference
 
 ## Installation
 
