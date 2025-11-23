@@ -120,6 +120,10 @@ class SensorFactory:
             
             configs = {}
             for sensor_name, sensor_data in data.items():
+                # Skip non-sensor entries (like comments or metadata)
+                if not isinstance(sensor_data, dict):
+                    continue
+                
                 # Get mode from config, default to 'real'
                 mode = sensor_data.get('mode', 'real')
                 

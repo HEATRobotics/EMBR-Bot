@@ -55,7 +55,7 @@ Pass a custom config file to override the default:
 
 ```bash
 # Single node with simulation config
-ros2 run embr getTemp_v2 --ros-args -p config_file:=config/sensors_sim.json
+ros2 run embr getTemp_v2 --ros-args -p config_file:=src/embr/config/sensors_sim.json
 
 # All nodes with simulation config via launch file
 ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json

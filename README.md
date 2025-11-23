@@ -22,7 +22,6 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
 - [Simulation](#simulation)
   - [Sensor Simulation Modes](#sensor-simulation-modes)
   - [Running in Simulation](#running-in-simulation)
-  - [Configuration Options](#configuration-options)
   - [Simulation Features](#simulation-features)
 - [Docker Simulation](#docker-simulation)
   - [Quick Start](#docker-setup-for-development-off-raspberry-pi)
@@ -90,12 +89,12 @@ All sensor modes are configured through JSON configuration files in `ros2_ws/src
 
 **Option 1: Full Simulation (All Sensors)**
 ```bash
-ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
+ros2 launch embr embr_launch_v2.py config_file:=src/embr/config/sensors_sim.json
 ```
 
 **Option 2: Mixed Mode (Some Real, Some Simulated)**
 ```bash
-ros2 launch embr embr_launch_v2.py config_file:=config/sensors_mixed.json
+ros2 launch embr embr_launch_v2.py config_file:=src/embr/config/sensors_mixed.json
 ```
 
 **Option 3: Real Hardware (Default)**
@@ -108,68 +107,6 @@ ros2 launch embr embr_launch_v2.py
 ```bash
 # Create your own config file based on examples
 ros2 launch embr embr_launch_v2.py config_file:=/path/to/custom_config.json
-```
-
-### Configuration Options
-
-Create custom sensor configurations in JSON format:
-
-**All Simulated (`config/sensors_sim.json`)**
-```json
-{
-  "temperature": {
-    "mode": "sim",
-    "params": {
-      "base_temp": 22.0,
-      "variation": 2.0,
-      "noise": 0.1
-    }
-  },
-  "cube": {
-    "mode": "sim",
-    "params": {
-      "pattern": "circle",
-      "velocity": 5.0,
-      "start_lat": 37.7749,
-      "start_lon": -122.4194
-    }
-  },
-  "mavlink": {"mode": "sim"}
-}
-```
-
-**Real Hardware (`config/sensors.json` - default)**
-```json
-{
-  "temperature": {
-    "mode": "real",
-    "device": "/dev/ttyACM0",
-    "baud": 9600
-  },
-  "cube": {
-    "mode": "real",
-    "device": "/dev/ttyAMA0",
-    "baud": 57600
-  },
-  "mavlink": {
-    "mode": "real",
-    "device": "/dev/ttyAMA1",
-    "baud": 57600
-  }
-}
-```
-
-**Mixed Mode (`config/sensors_mixed.json`)**
-```json
-{
-  "temperature": {
-    "mode": "real",
-    "device": "/dev/ttyACM0",
-    "baud": 9600
-  },
-  "cube": {"mode": "sim"},
-  "mavlink": {"mode": "sim"}
-}
 ```
 
 For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/config/CONFIG.md).
