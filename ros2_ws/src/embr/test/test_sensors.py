@@ -7,7 +7,7 @@ from embr.sensors import (
     create_sensor,
     SimTemperatureSensor,
     SimCubeSensor,
-    SimMavlinkConnection,
+    SimRadioConnection,
 )
 
 
@@ -98,13 +98,13 @@ class TestCubeSensor:
             # Velocity should match config
             assert all(abs(p.vel - 10.0) < 0.1 for p in positions)
 
-class TestMavlinkConnection:
-    """Tests for MAVLink connection."""
+class TestRadioConnection:
+    """Tests for Radio connection."""
     
     def test_simulated_connection_basic(self):
-        """Test basic simulated MAVLink connection."""
+        """Test basic simulated Radio connection."""
         config = SensorConfig(mode='sim')
-        conn = create_sensor('mavlink', config)
+        conn = create_sensor('radio', config)
         
         with conn:
             # Send some data
@@ -120,7 +120,7 @@ class TestMavlinkConnection:
     def test_simulated_connection_receive(self):
         """Test receiving messages from simulated connection."""
         config = SensorConfig(mode='sim')
-        conn = create_sensor('mavlink', config)
+        conn = create_sensor('radio', config)
         
         with conn:
             # Inject a message
@@ -155,30 +155,30 @@ def sim_cube_sensor():
 
 
 @pytest.fixture
-def sim_mavlink_connection():
-    """Fixture providing a simulated MAVLink connection."""
+def sim_radio_connection():
+    """Fixture providing a simulated Radio connection."""
     config = SensorConfig(mode='sim')
-    conn = create_sensor('mavlink', config)
+    conn = create_sensor('radio', config)
     conn.start()
     yield conn
     conn.stop()
 
 
-def test_integration_temperature_to_mavlink(sim_temperature_sensor, sim_mavlink_connection):
-    """Test integration between temperature sensor and MAVLink."""
+def test_integration_temperature_to_radio(sim_temperature_sensor, sim_radio_connection):
+    """Test integration between temperature sensor and Radio."""
     temp = sim_temperature_sensor.read()
-    sim_mavlink_connection.send_temperature(temp)
+    sim_radio_connection.send_temperature(temp)
     
-    assert len(sim_mavlink_connection.sent_messages) == 1
-    assert sim_mavlink_connection.sent_messages[0]['value'] == temp
+    assert len(sim_radio_connection.sent_messages) == 1
+    assert sim_radio_connection.sent_messages[0]['value'] == temp
 
 
-def test_integration_cube_to_mavlink(sim_cube_sensor, sim_mavlink_connection):
-    """Test integration between Cube sensor and MAVLink."""
+def test_integration_cube_to_radio(sim_cube_sensor, sim_radio_connection):
+    """Test integration between Cube sensor and Radio."""
     gps = sim_cube_sensor.read()
-    sim_mavlink_connection.send_gps(gps.lat, gps.lon, gps.alt, int(gps.vel * 100))
+    sim_radio_connection.send_gps(gps.lat, gps.lon, gps.alt, int(gps.vel * 100))
     
-    assert len(sim_mavlink_connection.sent_messages) == 1
-    msg = sim_mavlink_connection.sent_messages[0]
+    assert len(sim_radio_connection.sent_messages) == 1
+    msg = sim_radio_connection.sent_messages[0]
     assert msg['lat'] == gps.lat
     assert msg['lon'] == gps.lon

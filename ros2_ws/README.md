@@ -34,15 +34,15 @@ ROS 2 workspace containing:
 Launch all EMBR nodes with the default config (real hardware sensors):
 
 ```
-ros2 launch embr embr_launch_v2.py
+ros2 launch embr embr_launch.py
 ```
 
 Run a specific node:
 
 ```
-ros2 run embr getTemp_v2
-ros2 run embr getCube_v2
-ros2 run embr sendRf_v2
+ros2 run embr getTemp
+ros2 run embr getCube
+ros2 run embr radio
 ```
 
 ### Using Custom Configuration
@@ -51,19 +51,19 @@ For simulation or custom sensor configurations, pass a different config file:
 
 ```bash
 # Full simulation mode
-ros2 launch embr embr_launch_v2.py config_file:=config/sensors_sim.json
+ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
 
 # Mixed mode (some real, some sim)
-ros2 launch embr embr_launch_v2.py config_file:=config/sensors_mixed.json
+ros2 launch embr embr_launch.py config_file:=config/sensors_mixed.json
 
 # Your own custom config
-ros2 launch embr embr_launch_v2.py config_file:=/path/to/custom_config.json
+ros2 launch embr embr_launch.py config_file:=/path/to/custom_config.json
 ```
 
 Run individual nodes with custom configs:
 
 ```bash
-ros2 run embr getTemp_v2 --ros-args -p config_file:=config/sensors_sim.json
+ros2 run embr getTemp --ros-args -p config_file:=config/sensors_sim.json
 ```
 
 ### Sensor Configuration
@@ -81,7 +81,7 @@ The original nodes are still available:
 
 ```bash
 ros2 launch embr embr_launch.py
-ros2 run embr sendRf
+ros2 run embr radio
 ```
 
 If you run with `sudo`, manually source ROS 2 in that shell:
@@ -95,7 +95,7 @@ source /opt/ros/humble/setup.bash
 ```
 src/
 ├── embr/
-│   ├── embr/            # nodes: getCube.py, getTemp.py, sendRf.py
+│   ├── embr/            # nodes: getCube.py, getTemp.py, radio.py
 │   ├── launch/          # embr_launch.py
 │   └── setup.py         # entry points
 └── msg_interface/
