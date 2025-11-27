@@ -1,39 +1,88 @@
+"""
+Temperature publisher node with sensor abstraction.
+Supports both real and simulated sensors.
+"""
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Temperature
-import time
-import re
-import serial
+from embr.sensors import create_sensor, SensorConfig, SensorFactory
+
 
 class TemperaturePublisher(Node):
     def __init__(self):
         super().__init__('temperature_publisher')
+        
+        # Declare parameter for config file path
+        self.declare_parameter('config_file', '')
+        config_file = self.get_parameter('config_file').value
+        
+        # Use default config path if not provided
+        if not config_file:
+            config_file = 'src/embr/config/sensors.json'
+        
+        # Try to load from config file
+        try:
+            configs = SensorFactory.load_config(config_file)
+            config = configs.get('temperature')
+            
+            if config is None:
+                self.get_logger().error(f'Temperature sensor not found in config file: {config_file}')
+                raise ValueError(f'Temperature sensor configuration not found in {config_file}')
+            
+            self.get_logger().info(f'Loaded temperature config from {config_file}')
+        except Exception as e:
+            self.get_logger().error(f'Failed to load config file: {e}')
+            raise
+        
+        # Create sensor
+        try:
+            self.sensor = create_sensor('temperature', config)
+            self.sensor.start()
+            
+            sensor_type = 'simulated' if isinstance(self.sensor.__class__.__name__, str) and 'Sim' in self.sensor.__class__.__name__ else 'real'
+            self.get_logger().info(f'Temperature sensor initialized in {config.mode} mode (using {sensor_type} sensor)')
+        except Exception as e:
+            self.get_logger().error(f'Failed to initialize sensor: {e}')
+            raise
+        
+        # Create publisher and timer
         self.publisher_ = self.create_publisher(Temperature, 'temperature', 10)
-        self.timer = self.create_timer(1.0, self.read_serial_data)
-        self.ser = serial.Serial('/dev/ttyACM0', 9600)
-        time.sleep(2)
-
-    def read_serial_data(self):
-        raw = self.ser.readline().decode('utf-8', errors='ignore').strip()
-
-        match = re.search(r"[-+]?\d*\.\d+|\d+", raw)  # Match a float or int
-        if match:
-            temperature = float(match.group())
-            self.get_logger().info(f"Received: {temperature:.2f}")
+        self.timer = self.create_timer(1.0, self.read_and_publish)
+    
+    def read_and_publish(self):
+        """Read temperature and publish."""
+        try:
+            temperature = self.sensor.read()
+            self.get_logger().info(f"Temperature: {temperature:.2f}°C")
+            
             temperature_msg = Temperature()
             temperature_msg.header.stamp = self.get_clock().now().to_msg()
             temperature_msg.temperature = temperature
             temperature_msg.variance = 0.0
             
             self.publisher_.publish(temperature_msg)
-  
+        except Exception as e:
+            self.get_logger().error(f'Error reading temperature: {e}')
+    
+    def destroy_node(self):
+        """Cleanup sensor on shutdown."""
+        if hasattr(self, 'sensor'):
+            self.sensor.stop()
+        super().destroy_node()
+
 
 def main(args=None):
     rclpy.init(args=args)
     temperature_publisher = TemperaturePublisher()
-    rclpy.spin(temperature_publisher)
-    temperature_publisher.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(temperature_publisher)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        temperature_publisher.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

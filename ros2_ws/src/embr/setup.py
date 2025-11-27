@@ -25,7 +25,7 @@ setup(
         'console_scripts': [
             'getCube = embr.getCube:main',
             'getTemp = embr.getTemp:main',
-            'sendRf = embr.sendRf:main',
+            'radio = embr.radio:main'
         ],
     },
 )

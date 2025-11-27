@@ -17,12 +17,40 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
 
 ## Table of Contents
 - [Quick Start](#quick-start)
+  - [Raspberry Pi Setup](#quick-start)
+  - [Docker Quick Start](#docker-setup-for-development-off-raspberry-pi)
+- [Simulation](#simulation)
+  - [Sensor Simulation Modes](#sensor-simulation-modes)
+  - [Running in Simulation](#running-in-simulation)
+  - [Simulation Features](#simulation-features)
+- [Docker Simulation](#docker-simulation)
+  - [Quick Start](#docker-setup-for-development-off-raspberry-pi)
+  - [Docker Commands](#docker-documentation)
 - [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Automated Installation](#automated-installation)
+  - [Manual Installation](#manual-installation)
+  - [Serial Port Configuration](#serial-port-configuration)
 - [Hardware Setup & Wiring](#hardware-setup--wiring)
+  - [UART Configuration](#uart-pin-configuration)
+  - [RFD 900x Wiring](#raspberry-pi-to-rfd-900x-wiring)
+  - [Cube Orange Wiring](#raspberry-pi-to-cube-orange-wiring)
 - [Running the System](#running-the-system)
+  - [Startup Script](#starting-all-components)
+  - [Manual ROS2 Workflow](#manual-ros2-workflow)
 - [System Architecture](#system-architecture)
+  - [ROS2 Nodes](#system-architecture)
+  - [Data Flow](#data-flow)
+- [Testing](#testing)
+  - [Running Tests](#running-tests)
+  - [Test Types](#test-types)
 - [Documentation](#documentation)
 - [Development](#development)
+  - [Project Structure](#project-structure)
+  - [Adding New Nodes](#adding-new-nodes)
+  - [DroneKit Modification](#cube-orange-dronekit-modification)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
 
 ## Quick Start
 
@@ -43,6 +71,85 @@ To start all system components:
 cd Tools
 ./start-embr.sh
 ```
+
+## Simulation
+
+EMBR-Bot includes a comprehensive sensor abstraction layer that allows you to run the system with **simulated sensors**, enabling development and testing without any physical hardware.
+
+### Sensor Simulation Modes
+
+The system supports two modes for each sensor:
+
+1. **`real`** (default) - Use actual hardware sensors
+2. **`sim`** - Use simulated sensors (no hardware required)
+
+### Running in Simulation
+
+All sensor modes are configured through JSON configuration files in `ros2_ws/src/embr/config/`.
+
+**Option 1: Full Simulation (All Sensors)**
+```bash
+ros2 launch embr embr_launch.py config_file:=src/embr/config/sensors_sim.json
+```
+
+**Option 2: Mixed Mode (Some Real, Some Simulated)**
+```bash
+ros2 launch embr embr_launch.py config_file:=src/embr/config/sensors_mixed.json
+```
+
+**Option 3: Real Hardware (Default)**
+```bash
+ros2 launch embr embr_launch.py
+# Uses config/sensors.json by default
+```
+
+**Option 4: Custom Configuration**
+```bash
+# Create your own config file based on examples
+ros2 launch embr embr_launch.py config_file:=/path/to/custom_config.json
+```
+
+For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/config/CONFIG.md).
+
+### Simulation Features
+
+**Temperature Sensor**
+- Realistic sine wave pattern with noise
+- Configurable base temperature, variation, and noise levels
+- Default: 22°C ± 2°C with ±0.1°C random noise
+
+**GPS (Cube Orange)**
+- Three movement patterns:
+  - `circle` - Circular flight pattern (~11m radius)
+  - `line` - Linear northward movement
+  - `hover` - Stationary with small random variations
+- Configurable starting position, velocity, and altitude
+- Realistic GPS coordinate updates (latitude/longitude in degrees × 10^7)
+
+**MAVLink Radio**
+- Records all transmitted messages for verification
+- Supports message injection for testing
+- Compatible with real MAVLink message types
+
+## Docker Setup for development off raspberry pi
+To start Docker and run EMBR in simulation mode:
+```bash
+# Build and start container
+docker compose up -d
+
+# Access container
+docker compose exec embr-sim /bin/bash
+
+# Inside container: Source ROS
+source install/setup.bash
+
+# Launch with simulation config
+ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
+```
+
+### Docker Documentation
+- **[DOCKER_CHEATSHEET.md](DOCKER_CHEATSHEET.md)** - Quick command reference
+- **[Configuration Guide](ros2_ws/src/embr/config/CONFIG.md)** - Sensor config documentation
 
 ## Installation
 
@@ -207,7 +314,7 @@ ros2 launch embr embr_launch.py
 ```bash
 ros2 run embr getCube      # Cube Orange telemetry
 ros2 run embr getTemp      # Temperature sensor
-ros2 run embr sendRf       # Radio transmission
+ros2 run embr radio        # Radio transmission
 ```
 
 ### Important Notes
@@ -231,7 +338,7 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 - **Published Topic**: `temperature` (Temperature readings)
 - **Update Rate**: 1 Hz
 
-### 3. sendRf Node
+### 3. radio Node
 - **Purpose**: Transmits data via RFD 900x radio using MAVLink protocol
 - **Device**: `/dev/ttyAMA1` (UART2)
 - **Subscribed Topics**: `gps`, `temperature`, `/pointcloud` (LIDAR)
@@ -243,9 +350,9 @@ The EMBR-Bot system consists of three main ROS2 nodes:
 
 ### Data Flow
 ```
-Cube Orange → getCube → gps topic → sendRf → RFD 900x → Ground Station
-Arduino → getTemp → temperature topic → sendRf → RFD 900x → Ground Station
-LIDAR → /pointcloud topic → sendRf → RFD 900x → Ground Station
+Cube Orange → getCube → gps topic → radio → RFD 900x → Ground Station
+Arduino → getTemp → temperature topic → radio → RFD 900x → Ground Station
+LIDAR → /pointcloud topic → radio → RFD 900x → Ground Station
 ```
 
 ## Documentation
@@ -272,7 +379,7 @@ EMBR-Bot/
 │   │   │   ├── embr/          # Python nodes
 │   │   │   │   ├── getCube.py
 │   │   │   │   ├── getTemp.py
-│   │   │   │   └── sendRf.py
+│   │   │   │   └── radio.py
 │   │   │   ├── launch/        # Launch files
 │   │   │   └── setup.py       # Package configuration
 │   │   └── msg_interface/     # Custom message definitions
@@ -314,6 +421,58 @@ class Parameters(MutableMapping, HasObservers)
 
 Location: `~/.local/lib/python3.10/site-packages/dronekit/__init__.py`
 
+## Testing
+
+### Running Tests
+
+The EMBR-Bot project includes comprehensive tests for the sensor abstraction layer and ROS2 nodes.
+
+**Run all tests:**
+```bash
+cd ros2_ws
+source install/setup.bash
+colcon test
+```
+
+**View test results summary:**
+```bash
+colcon test-result
+```
+
+**View detailed failures only:**
+```bash
+colcon test-result --verbose
+```
+
+**View all test details (including passed tests):**
+```bash
+colcon test-result --all
+```
+
+**Run tests with live output:**
+```bash
+colcon test --event-handlers console_direct+
+```
+
+**Run specific test file:**
+```bash
+pytest src/embr/test/test_sensors.py -v
+```
+
+### Test Types
+
+**1. Unit Tests (`test/test_sensors.py`)**
+- Tests sensor implementations (Temperature, GPS, Thermal, Radio)
+- Tests simulated sensor behavior
+- Tests sensor factory and configuration loading
+- Run with: `colcon test` or `pytest`
+
+**2. Example Code (`examples/sensor_testing_examples.py`)**
+- Demonstrates sensor usage patterns
+- Shows configuration options
+- Not a test - educational examples
+- Run with: `python3 src/embr/examples/sensor_testing_examples.py`
+
 ## Contributing
 
 When contributing to this repository:
@@ -321,6 +480,7 @@ When contributing to this repository:
 2. Update relevant documentation in `Documentation/2025/`
 3. Ensure ROS2 nodes follow the established patterns
 4. Verify serial communications don't conflict
+5. Run tests before submitting: `colcon test`
 
 ## License
 

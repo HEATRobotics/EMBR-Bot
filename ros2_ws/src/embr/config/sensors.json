@@ -1,0 +1,17 @@
+{
+  "temperature": {
+    "mode": "real",
+    "device": "/dev/ttyACM0",
+    "baud": 9600
+  },
+  "cube": {
+    "mode": "real",
+    "device": "/dev/ttyAMA0",
+    "baud": 57600
+  },
+  "radio": {
+    "mode": "real",
+    "device": "/dev/ttyAMA1",
+    "baud": 57600
+  }
+}
