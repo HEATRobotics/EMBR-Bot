@@ -1,0 +1,54 @@
+# Docker ignore file for EMBR-Bot
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (will be in container via workspace copy)
+Documentation/2023-24/
+
+# Build artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.so
+*.egg-info/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test and temp files
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Hardware-specific (not needed in simulation)
+arduino/
+temp_sensor/
+Tools/Linear-Actuator/
+
+# Setup scripts (already in Docker image)
+Tools/Setup-Scripts/
+
+# Large files and assets
+*.bag
+*.db3
+*.mp4
+*.avi
+
+# Docker files (don't copy into container)
+Dockerfile
+docker-compose.yml
+.dockerignore

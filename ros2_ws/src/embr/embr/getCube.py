@@ -1,35 +1,94 @@
+"""
+Cube Orange GPS publisher node with sensor abstraction.
+Supports both real and simulated sensors.
+"""
+
 import rclpy
 from rclpy.node import Node
 import time
-from dronekit import connect
 from msg_interface.msg import Gps
+from embr.sensors import create_sensor, SensorConfig, SensorFactory
+
 
 class AttitudePublisher(Node):
     def __init__(self):
         super().__init__('attitude_publisher')
+        
+        # Declare parameter for config file path
+        self.declare_parameter('config_file', '')
+        config_file = self.get_parameter('config_file').value
+        
+        # Use default config path if not provided
+        if not config_file:
+            config_file = 'src/embr/config/sensors.json'
+        
+        # Try to load from config file
+        try:
+            configs = SensorFactory.load_config(config_file)
+            config = configs.get('cube')
+            
+            if config is None:
+                self.get_logger().error(f'Cube sensor not found in config file: {config_file}')
+                raise ValueError(f'Cube sensor configuration not found in {config_file}')
+            
+            self.get_logger().info(f'Loaded cube config from {config_file}')
+        except Exception as e:
+            self.get_logger().error(f'Failed to load config file: {e}')
+            raise
+        
+        # Create sensor
+        try:
+            self.sensor = create_sensor('cube', config)
+            self.sensor.start()
+            
+            sensor_type = 'simulated' if 'Sim' in self.sensor.__class__.__name__ else 'real'
+            self.get_logger().info(f'Cube sensor initialized in {config.mode} mode (using {sensor_type} sensor)')
+        except Exception as e:
+            self.get_logger().error(f'Failed to initialize sensor: {e}')
+            raise
+        
+        # Create publisher and timer
         self.publisher_ = self.create_publisher(Gps, 'gps', 10)
-        self.vehicle = connect("/dev/ttyAMA0", wait_ready=False, baud=57600)
-        self.get_logger().info('Attitude Publisher node initialized')
-
+        self.timer = self.create_timer(1.0, self.publish_attitude)
+    
     def publish_attitude(self):
-        while True:
-            location = self.vehicle.location.global_frame
+        """Read GPS data and publish."""
+        try:
+            gps_data = self.sensor.read()
+            
             gps_msg = Gps()
-            gps_msg.lat = int(location.lat * 1e7)
-            gps_msg.lon = int(location.lon * 1e7)
-            gps_msg.alt = int(location.alt * 1000)
-            gps_msg.vel = self.vehicle.groundspeed
-            self.get_logger().info(f'Published Telem Data: Lat: {gps_msg.lat} Lon: {gps_msg.lon} Alt: {gps_msg.alt} Velocity: {gps_msg.vel}')
+            gps_msg.lat = gps_data.lat
+            gps_msg.lon = gps_data.lon
+            gps_msg.alt = gps_data.alt
+            gps_msg.vel = gps_data.vel
+            
+            self.get_logger().info(
+                f'GPS: Lat: {gps_msg.lat} Lon: {gps_msg.lon} '
+                f'Alt: {gps_msg.alt} Vel: {gps_msg.vel:.2f}'
+            )
+            
             self.publisher_.publish(gps_msg)
-            time.sleep(1)
+        except Exception as e:
+            self.get_logger().error(f'Error reading GPS: {e}')
+    
+    def destroy_node(self):
+        """Cleanup sensor on shutdown."""
+        if hasattr(self, 'sensor'):
+            self.sensor.stop()
+        super().destroy_node()
+
 
 def main(args=None):
     rclpy.init(args=args)
     attitude_publisher = AttitudePublisher()
-    attitude_publisher.publish_attitude()
-    rclpy.spin(attitude_publisher)
-    attitude_publisher.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(attitude_publisher)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        attitude_publisher.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

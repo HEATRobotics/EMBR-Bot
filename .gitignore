@@ -1,14 +1,18 @@
+# ROS2 colcon build artifacts for Lidar_Simulation
+Lidar_Simulation/heatsim_ws/build/
+Lidar_Simulation/heatsim_ws/install/
+Lidar_Simulation/heatsim_ws/log/
+
+# Colcon metadataf for Lidar_Simulation
+Lidar_Simulation/heatsim_ws/.colcon/
+Lidar_Simulation/heatsim_ws/.colcon_meta/
+
+# ros2_ws
 ros2_ws/build
 ros2_ws/install
 ros2_ws/logs
 
-# ROS2 colcon build artifacts
-build/
-install/
-log/
-
-# Colcon metadata
-.colcon/
-.colcon_meta/
-
+ros2_ws/log
+ros2_ws/src/embr/embr/__pycache__
+ros2_ws/src/embr/embr/sensors/__pycache__
 .vscode
