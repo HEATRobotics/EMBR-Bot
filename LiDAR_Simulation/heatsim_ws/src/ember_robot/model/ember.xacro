@@ -7,6 +7,8 @@
 <!-- This URDF will be four a quadropod Robot with a LiDAR 
     attatched to the front, this LiDAR can be used in both
     2D and 3D modes.
+
+    *Note xacros are always in SI*
 -->
 <!-- ################################################    -->
 <!-- Robot Part Names: 
@@ -41,12 +43,38 @@ Cylindar
 <!--            MARK: G & C                              -->
 <!-- ################################################    -->
 
+<!-- Track Dimensions -->
+<xacro:property name="tw" value="0.1"/>   <!-- Track width -->
+<xacro:property name="th" value="0.05"/>  <!-- Track height -->
+<xacro:property name="tl" value="0.3"/>   <!-- Track length -->
+
+<!-- Body Dimensions -->
+<xacro:property name="bw" value="0.3"/>  <!-- Body width -->
+<xacro:property name="bh" value="0.1"/>  <!-- Body height -->
+<xacro:property name="bl" value="0.3"/>  <!-- Body length -->
+
+<!-- LiDAR Dimensions -->
+<xacro:property name="lr" value="0.15"/> <!-- LiDAR Radius -->
+<xacro:property name="ll" value="0.1"/>  <!-- LiDAR Length -->
+
+<!-- TODO: Set Distances -->
+<!-- Distances Between Certain Centres -->
+<xacro:property name="s1" value="${b/2 + r}"/>
+<xacro:property name="s2" value="${r*2}"/>
+<xacro:property name="s3" value="${r*2}"/>
+<xacro:property name="s4" value="${c/2 + d/2}"/>
+
 <!-- ################################################    -->
 <!--                  Mass & Inertia                     -->
 <!--                  MARK: M & I                        -->
 <!-- ################################################    -->
 
 <!-- Densities -->
+<xacro:property name="body_desnity" value="2710.0"/>  <!-- body -->
+<xacro:property name="track_desnity" value="2710.0"/>  <!-- track -->
+ <!-- LiDAR density is not set as it would affect the spin of
+ the LiDAR if we were to set it. That being said the spin is
+ not simulated so we do not need to worry about it.-->
 
 <!-- Masses -->
 
