@@ -71,7 +71,8 @@ Cylindar
 
 <!-- Densities -->
 <xacro:property name="body_desnity" value="2710.0"/>  <!-- body -->
-<xacro:property name="track_desnity" value="2710.0"/>  <!-- track -->
+<xacro:property name="track_desnity" value="2710.0"/>  <!-- track -->\
+
  <!-- LiDAR density is not set as it would affect the spin of
  the LiDAR if we were to set it. That being said the spin is
  not simulated so we do not need to worry about it.-->
