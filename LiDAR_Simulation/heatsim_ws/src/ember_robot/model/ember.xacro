@@ -35,8 +35,8 @@ Cylindar
  -->
 
 <!-- ################################################    -->
-<!-- TODO: When completed -->
-<!-- <robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro"> -->
+
+<robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
 <!-- ################################################    -->
 <!--            Geometry & Constants                     -->
@@ -44,25 +44,41 @@ Cylindar
 <!-- ################################################    -->
 
 <!-- Track Dimensions -->
-<xacro:property name="tw" value="0.1"/>   <!-- Track width -->
-<xacro:property name="th" value="0.05"/>  <!-- Track height -->
-<xacro:property name="tl" value="0.3"/>   <!-- Track length -->
+<xacro:property name="tl" value="0.30"/>   <!-- track length (X) -->
+<xacro:property name="tw" value="0.10"/>   <!-- track width  (Y) -->
+<xacro:property name="th" value="0.05"/>   <!-- track height (Z) -->
 
 <!-- Body Dimensions -->
-<xacro:property name="bw" value="0.3"/>  <!-- Body width -->
-<xacro:property name="bh" value="0.1"/>  <!-- Body height -->
-<xacro:property name="bl" value="0.3"/>  <!-- Body length -->
+<xacro:property name="bl" value="0.60"/>   <!-- body length (X) -->
+<xacro:property name="bw" value="0.30"/>   <!-- body width  (Y) -->
+<xacro:property name="bh" value="0.20"/>   <!-- body height (Z) -->
 
 <!-- LiDAR Dimensions -->
 <xacro:property name="lr" value="0.15"/> <!-- LiDAR Radius -->
 <xacro:property name="ll" value="0.1"/>  <!-- LiDAR Length -->
 
-<!-- TODO: Set Distances -->
-<!-- Distances Between Certain Centres -->
-<xacro:property name="s1" value="${b/2 + r}"/>
-<xacro:property name="s2" value="${r*2}"/>
-<xacro:property name="s3" value="${r*2}"/>
-<xacro:property name="s4" value="${c/2 + d/2}"/>
+<!-- ################################################    -->
+<!--            Location Setup                           -->
+<!--            MARK: LOCO                               -->
+<!-- ################################################    -->
+
+<!-- Arm / pivot geometry -->
+<xacro:property name="pivot_margin" value="0.02"/>  <!-- keep pivot inside body end -->
+<xacro:property name="xp" value="0.10"/>            <!-- track COM -> pivot along +X -->
+
+<!-- Pivot locations on the body (X axis) -->
+<xacro:property name="pivot_x_front" value="${ bl/2 - pivot_margin }"/>
+<xacro:property name="pivot_x_rear"  value="${-(bl/2 - pivot_margin)}"/>
+
+<!-- Track COM X positions (because track link origin is COM) -->
+<xacro:property name="track_com_x_front" value="${ pivot_x_front - xp }"/>
+<xacro:property name="track_com_x_rear"  value="${ pivot_x_rear  - xp }"/>
+
+<!-- Left/right track COM Y placement -->
+<xacro:property name="track_com_y" value="${ bw/2 + tw/2 }"/>
+
+<!-- Body Z placement above ground (simple + stable version) -->
+<xacro:property name="body_z_from_ground" value="${ th/2 + bh/2 }"/>
 
 <!-- ################################################    -->
 <!--                  Mass & Inertia                     -->
@@ -70,16 +86,16 @@ Cylindar
 <!-- ################################################    -->
 
 <!-- Densities -->
-<xacro:property name="body_desnity" value="2710.0"/>  <!-- body -->
-<xacro:property name="track_desnity" value="2710.0"/>  <!-- track -->\
+<xacro:property name="body_density" value="2710.0"/>  <!-- body -->
+<xacro:property name="track_density" value="2710.0"/>  <!-- track -->\
 
  <!-- LiDAR density is not set as it would affect the spin of
  the LiDAR if we were to set it. That being said the spin is
  not simulated so we do not need to worry about it.-->
 
 <!-- Masses -->
-<xacro:property name="body_mass" value="${body_desnity*bl*bh*bw}"/>
-<xacro:property name="track_mass" value="${track_desnity*tl*th*tw}"/>
+<xacro:property name="body_mass" value="${body_density*bl*bh*bw}"/>
+<xacro:property name="track_mass" value="${track_density*tl*th*tw}"/>
 
 <!-- Body inertia -->
 <xacro:property name="Ix_body" value="${(1.0/12.0)*body_mass*(bh*bh + bw*bw)}"/>
@@ -92,13 +108,26 @@ Cylindar
 <xacro:property name="Iz_track" value="${(1.0/12.0)*mT*(tl*tl + tw*tw)}"/>
 
 <!-- Inertia macros -->
+<xacro:macro name="inertia_body">
+    <inertial>
+        <mass value="${body_mass}"/>
+        <inertia ixx="${Ix_body}" ixy="0" ixz="0" iyy="${Iy_body}" iyz="0" izz="${Iz_body}"/>
+    </inertial>
+</xacro:macro>
+
+<xacro:macro name="inertia_track">
+    <inertial>
+        <mass value="${track_mass}"/>
+        <inertia ixx="${Ix_track}" ixy="0" ixz="0" iyy="${Iy_track}" iyz="0" izz="${Iz_track}"/>
+    </inertial>
+</xacro:macro>
 
 <!-- ################################################ -->
 <!--            Include Additional Files              -->
 <!--            MARK: File Incl.                      -->
 <!-- ################################################ -->
 
-<!-- <xacro:include filename="$(find ember_robot)/model/robot.gazebo"/> -->
+<xacro:include filename="$(find ember_robot)/model/ember.gazebo"/>
 
 <!-- ################################################ -->
 <!-- MARK: LINKS, JOINTS HERE                        -->
@@ -109,6 +138,13 @@ Cylindar
 <!-- START: Fictitious Link of the Robot              -->
 <!-- ################################################ -->
 
+<link name="base_footprint"/>
+
+<joint name="body_link_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="body_link"/>
+</joint>
+
 <!-- ################################################ -->
 <!-- END: Fictitious Link of the Robot                -->
 <!-- ################################################ -->
@@ -116,6 +152,24 @@ Cylindar
 <!-- ################################################ -->
 <!-- START: Body Link of the Robot                    -->
 <!-- ################################################ -->
+
+<link name="body_link">
+    <visual>
+        <geometry>
+            <box size="${bl} ${bh} ${bw}"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 ${s1}"/>
+    </visual>
+
+    <collision>
+        <geometry>
+            <box size="${bl} ${bh} ${bw}"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 ${body_z_from_ground}"/>
+    </collision>
+
+    <xacro:inertia_body/>
+</link>
 
 <!-- ################################################ -->
 <!-- END: Body Link of the Robot                      -->
@@ -169,5 +223,4 @@ Cylindar
 <!-- END: LiDAR                                         -->
 <!-- ################################################  -->
 
-<!-- TODO: When completed  -->
-<!-- </robot> -->
+</robot>
