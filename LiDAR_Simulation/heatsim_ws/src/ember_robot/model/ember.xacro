@@ -11,6 +11,12 @@
     *Note xacros are always in SI*
 -->
 <!-- ################################################    -->
+<!-- 
+Orientation:
+    x -> Forward
+    y -> Left
+    z -> Up
+-->
 <!-- Robot Part Names: 
 Tracks:
     * trackL1 (Left front track)    <Rectangular>
@@ -103,9 +109,9 @@ Cylindar
 <xacro:property name="Iz_body" value="${(1.0/12.0)*body_mass*(bl*bl + bw*bw)}"/>
 
 <!-- Track inertia -->
-<xacro:property name="Ix_track" value="${(1.0/12.0)*mT*(tw*tw + th*th)}"/>
-<xacro:property name="Iy_track" value="${(1.0/12.0)*mT*(tl*tl + th*th)}"/>
-<xacro:property name="Iz_track" value="${(1.0/12.0)*mT*(tl*tl + tw*tw)}"/>
+<xacro:property name="Ix_track" value="${(1.0/12.0)*track_mass*(tw*tw + th*th)}"/>
+<xacro:property name="Iy_track" value="${(1.0/12.0)*track_mass*(tl*tl + th*th)}"/>
+<xacro:property name="Iz_track" value="${(1.0/12.0)*track_mass*(tl*tl + tw*tw)}"/>
 
 <!-- Inertia macros -->
 <xacro:macro name="inertia_body">
@@ -158,7 +164,7 @@ Cylindar
         <geometry>
             <box size="${bl} ${bh} ${bw}"/>
         </geometry>
-        <origin rpy="0 0 0" xyz="0 0 ${s1}"/>
+        <origin rpy="0 0 0" xyz="0 0 ${body_z_from_ground}"/>
     </visual>
 
     <collision>
@@ -179,6 +185,27 @@ Cylindar
 <!-- START: Front Left Track of the Robot + Joint      -->
 <!-- ################################################  -->
 
+<joint name="front_left_track_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="flt_link"/>
+    <origin xyz="${pivot_x_front} ${track_com_y} ${tw}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="flt_link">
+    <visual>
+        <origin xyz="${-xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="${-xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </collision>
+
+    <xacro:inertia_track/>
+</link>
+
 <!-- ################################################  -->
 <!-- END: Front Left Track                             -->
 <!-- ################################################  -->
@@ -186,6 +213,27 @@ Cylindar
 <!-- ################################################  -->
 <!-- START: Front Right Track of the Robot + Joint     -->
 <!-- ################################################  -->
+
+<joint name="front_right_track_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="frt_link"/>
+    <origin xyz="${pivot_x_front} ${-track_com_y} ${tw}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="frt_link">
+    <visual>
+        <origin xyz="${-xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="${-xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </collision>
+
+    <xacro:inertia_track/>
+</link>
 
 <!-- ################################################  -->
 <!-- END: Front Right Track                            -->
@@ -195,6 +243,27 @@ Cylindar
 <!-- START: Back Left Track of the Robot + Joint       -->
 <!-- ################################################  -->
 
+<joint name="back_left_track_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="blt_link"/>
+    <origin xyz="${-pivot_x_front} ${track_com_y} ${tw}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="blt_link">
+    <visual>
+        <origin xyz="${xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="${xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </collision>
+
+    <xacro:inertia_track/>
+</link>
+
 <!-- ################################################  -->
 <!-- END: Back Left Track                              -->
 <!-- ################################################  -->
@@ -203,21 +272,58 @@ Cylindar
 <!-- START: Back Right Track of the Robot + Joint       -->
 <!-- ################################################  -->
 
+<joint name="back_right_track_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="brt_link"/>
+    <origin xyz="${-pivot_x_front} ${-track_com_y} ${tw}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="brt_link">
+    <visual>
+        <origin xyz="${xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="${xp} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${tl} ${tw} ${th}"/></geometry>
+    </collision>
+
+    <xacro:inertia_track/>
+</link>
+
 <!-- ################################################  -->
 <!-- END: Back Right Track                              -->
 <!-- ################################################  -->
 
 <!-- ################################################  -->
-<!-- START:Tank Track                                -->
-<!-- ################################################  -->
-
-<!-- ################################################  -->
-<!-- END:Tank Track                                  -->
-<!-- ################################################  -->
-
-<!-- ################################################  -->
 <!-- START: LiDAR                                       -->
 <!-- ################################################  -->
+
+<joint name="lidar_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.0 0 0.5" rpy="0 0 0"/>
+</joint>
+
+<link name="lidar_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.1" length="0.1"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.1" length="0.1"/></geometry>
+    </collision>
+
+    <!-- Minimal but valid inertia -->
+    <inertial>
+        <mass value="1e-6"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+</link>
 
 <!-- ################################################  -->
 <!-- END: LiDAR                                         -->
