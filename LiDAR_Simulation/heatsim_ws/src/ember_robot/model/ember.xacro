@@ -78,10 +78,18 @@ Cylindar
  not simulated so we do not need to worry about it.-->
 
 <!-- Masses -->
+<xacro:property name="body_mass" value="${body_desnity*bl*bh*bw}"/>
+<xacro:property name="track_mass" value="${track_desnity*tl*th*tw}"/>
 
 <!-- Body inertia -->
+<xacro:property name="Ix_body" value="${(1.0/12.0)*body_mass*(bh*bh + bw*bw)}"/>
+<xacro:property name="Iy_body" value="${(1.0/12.0)*body_mass*(bl*bl + bh*bh)}"/>
+<xacro:property name="Iz_body" value="${(1.0/12.0)*body_mass*(bl*bl + bw*bw)}"/>
 
 <!-- Track inertia -->
+<xacro:property name="Ix_track" value="${(1.0/12.0)*mT*(tw*tw + th*th)}"/>
+<xacro:property name="Iy_track" value="${(1.0/12.0)*mT*(tl*tl + th*th)}"/>
+<xacro:property name="Iz_track" value="${(1.0/12.0)*mT*(tl*tl + tw*tw)}"/>
 
 <!-- Inertia macros -->
 

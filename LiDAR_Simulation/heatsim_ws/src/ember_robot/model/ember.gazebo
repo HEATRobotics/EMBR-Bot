@@ -1,0 +1,10 @@
+<!-- Gazebo Specifics -->
+<!-- ############################################## -->
+<!-- GAZEBO ADDITIONAL DESCRIPTION OF EMBER-Bot     -->
+<!-- Inspiration and initial beginnings
+     reference: Aleksandar Haber       
+     ############################################## 
+     Note: This handles Gazebo-specific extras. 
+        meaning friction, materials, plugins,
+        sensors. In other words robot behavior.     -->
+<!-- ############################################## -->
