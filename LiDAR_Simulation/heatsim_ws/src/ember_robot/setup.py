@@ -15,6 +15,7 @@ setup(
         # MARK: Adding Files
         (os.path.join('share', package_name, 'launch'), glob('launch/*')),
         (os.path.join('share', package_name, 'model'), glob('model/*')),
+        (os.path.join('share', package_name, '3D_LiDAR'), glob('3D_LiDAR/*')),
         (os.path.join('share', package_name, 'parameters'), glob('parameters/*'))
     ],
     install_requires=['setuptools'],
