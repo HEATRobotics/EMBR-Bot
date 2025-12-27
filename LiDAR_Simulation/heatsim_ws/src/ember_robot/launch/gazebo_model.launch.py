@@ -22,13 +22,23 @@ def generate_launch_description():
     package_name = 'ember_robot'
 
     # relative path to the xacro file
-    model_file_relative_path = os.path.join('3D_LiDAR', 'SF45B_LiDAR.xacro')
+    model_file_relative_path = os.path.join('model', 'ember.xacro')
 
     # absolute path to the model
     path_model_file = os.path.join(
         get_package_share_directory(package_name),
         model_file_relative_path
     )
+
+    # relative path world
+    world_file_relative_path = os.path.join('3D_LiDAR', 'trial_sim.world')
+
+    # absolute path to world
+    world_path = os.path.join(
+        get_package_share_directory(package_name),
+        world_file_relative_path
+    )
+
 
     # get the robot description from the xacro model file 
     robot_description = xacro.process_file(path_model_file).toxml()
@@ -46,7 +56,7 @@ def generate_launch_description():
     gazebo_launch = IncludeLaunchDescription(
         gazebo_ros_launch,
         launch_arguments={
-            'gz_args': '-r -v 4 empty.sdf',
+            'gz_args': f'-r -v 4 "{world_path}"',
             'on_exit_shutdown': 'true',
         }.items(),
     )

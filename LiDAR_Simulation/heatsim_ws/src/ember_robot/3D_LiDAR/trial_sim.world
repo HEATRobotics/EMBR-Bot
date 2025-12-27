@@ -43,11 +43,11 @@
       </link>
     </model>
 
-    <!-- === YOUR LIDAR MODEL INCLUDE (as requested) === -->
-    <include>
+    <!-- === LIDAR MODEL INCLUDE === -->
+    <!-- <include>
       <uri>model://SF45B_lidar</uri>
       <pose>0 0 0 0 0 0</pose>
-    </include>
+    </include> -->
 
     <!-- ===================== -->
     <!-- Simple maze (static)  -->
