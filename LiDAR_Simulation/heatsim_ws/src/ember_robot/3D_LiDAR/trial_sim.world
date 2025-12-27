@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-    <world name="lidar_test_world">
+  <world name="maze_lidar_world">
 
     <!-- Core sim systems -->
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
@@ -9,156 +9,190 @@
 
     <!-- Light -->
     <light name="sun" type="directional">
-        <cast_shadows>true</cast_shadows>
-        <pose>0 0 10 0 0 0</pose>
-        <diffuse>1 1 1 1</diffuse>
-        <specular>0.1 0.1 0.1 1</specular>
-        <direction>-0.5 0.1 -1</direction>
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>-0.5 0.1 -1</direction>
     </light>
 
-    <!-- Ground -->
+    <!-- Ground plane -->
     <model name="ground_plane">
-        <static>true</static>
-        <link name="link">
-            <collision name="collision">
-                <geometry>
-                    <plane>
-                        <normal>0 0 1</normal>
-                        <size>100 100</size>
-                    </plane>
-                </geometry>
-            </collision>
-            <visual name="visual">
-                <geometry>
-                    <plane>
-                        <normal>0 0 1</normal>
-                        <size>100 100</size>
-                    </plane>
-                </geometry>
-                <material>
-                    <ambient>1 1 1 1</ambient>
-                    <diffuse>1 1 1 1</diffuse>
-                    <specular>0.1 0.1 0.1 1</specular>
-                </material>
-            </visual>
-        </link>
-    </model>
-
-    <!-- North wall (y = +50)  -->
-    <model name="wall_north">
       <static>true</static>
-      <pose>0 50 1 0 0 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>
-            <box>
-              <size>100 0.2 2</size>
-            </box>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <box>
-              <size>100 0.2 2</size>
-            </box>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
           </geometry>
           <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
+            <diffuse>0.75 0.75 0.75 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
           </material>
         </visual>
       </link>
     </model>
 
-    <!-- South wall (y = -50) -->
-    <model name="wall_south">
-      <static>true</static>
-      <pose>0 -50 1 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>100 0.2 2</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>100 0.2 2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
+    <!-- === YOUR LIDAR MODEL INCLUDE (as requested) === -->
+    <include>
+      <uri>model://SF45B_lidar</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
 
-    <!-- East wall (x = +50) -->
-    <model name="wall_east">
-      <static>true</static>
-      <pose>50 0 1 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>0.2 100 2</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.2 100 2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
+    <!-- ===================== -->
+    <!-- Simple maze (static)  -->
+    <!-- ===================== -->
+    <!-- Maze tuning:
+         wall_thickness = 0.10
+         wall_height    = 1.00
+         wall_z         = wall_height/2 = 0.50
+         Maze roughly spans x,y in [-5, +5]
+    -->
 
-    <!-- West wall (x = -50) -->
-    <model name="wall_west">
+    <model name="maze_walls">
       <static>true</static>
-      <pose>-50 0 1 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>0.2 100 2</size>
-            </box>
-          </geometry>
+      <pose>0 0 0 0 0 0</pose>
+
+      <link name="walls">
+
+        <!-- Outer boundary (rectangle with an opening at the bottom) -->
+        <!-- Top -->
+        <collision name="c_top">
+          <pose>0 5 0.50 0 0 0</pose>
+          <geometry><box><size>10 0.10 1.00</size></box></geometry>
         </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.2 100 2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.7 0.7 0.7 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
-          </material>
+        <visual name="v_top">
+          <pose>0 5 0.50 0 0 0</pose>
+          <geometry><box><size>10 0.10 1.00</size></box></geometry>
         </visual>
+
+        <!-- Left -->
+        <collision name="c_left">
+          <pose>-5 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_left">
+          <pose>-5 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 10 1.00</size></box></geometry>
+        </visual>
+
+        <!-- Right -->
+        <collision name="c_right">
+          <pose>5 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_right">
+          <pose>5 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 10 1.00</size></box></geometry>
+        </visual>
+
+        <!-- Bottom split into two pieces (opening centered at y=-5) -->
+        <collision name="c_bot_left">
+          <pose>-2.5 -5 0.50 0 0 0</pose>
+          <geometry><box><size>5 0.10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_bot_left">
+          <pose>-2.5 -5 0.50 0 0 0</pose>
+          <geometry><box><size>5 0.10 1.00</size></box></geometry>
+        </visual>
+
+        <collision name="c_bot_right">
+          <pose>2.5 -5 0.50 0 0 0</pose>
+          <geometry><box><size>5 0.10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_bot_right">
+          <pose>2.5 -5 0.50 0 0 0</pose>
+          <geometry><box><size>5 0.10 1.00</size></box></geometry>
+        </visual>
+
+        <!-- Inner maze walls (a simple “corridor + turns” layout) -->
+        <!-- Vertical spine -->
+        <collision name="c_v1">
+          <pose>-2 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 8 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_v1">
+          <pose>-2 0 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 8 1.00</size></box></geometry>
+        </visual>
+
+        <!-- Horizontal bars -->
+        <collision name="c_h1">
+          <pose>1 3 0.50 0 0 0</pose>
+          <geometry><box><size>6 0.10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_h1">
+          <pose>1 3 0.50 0 0 0</pose>
+          <geometry><box><size>6 0.10 1.00</size></box></geometry>
+        </visual>
+
+        <collision name="c_h2">
+          <pose>0 -1 0.50 0 0 0</pose>
+          <geometry><box><size>8 0.10 1.00</size></box></geometry>
+        </collision>
+
+        <!-- More verticals -->
+        <collision name="c_v2">
+          <pose>2 1 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 6 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_v2">
+          <pose>2 1 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 6 1.00</size></box></geometry>
+        </visual>
+
+        <collision name="c_v3">
+          <pose>0 -3 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 4 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_v3">
+          <pose>0 -3 0.50 0 0 0</pose>
+          <geometry><box><size>0.10 4 1.00</size></box></geometry>
+        </visual>
+
+        <!-- Short blocker to force a turn -->
+        <collision name="c_block">
+          <pose>-1 -3 0.50 0 0 0</pose>
+          <geometry><box><size>2 0.10 1.00</size></box></geometry>
+        </collision>
+        <visual name="v_block">
+          <pose>-1 -3 0.50 0 0 0</pose>
+          <geometry><box><size>2 0.10 1.00</size></box></geometry>
+        </visual>
+
       </link>
+
+      <!-- Make walls a bit darker -->
+      <material name="maze_mat">
+        <diffuse>0.2 0.2 0.2 1</diffuse>
+        <specular>0.05 0.05 0.05 1</specular>
+      </material>
     </model>
 
     <!-- Target Hot Box -->
     <model name="hot_box">
         <static>true</static>
 
+
         <!-- Position: x y z roll pitch yaw -->
-        <pose>-40 0 0.5 0 0 0</pose>
+        <pose>-1.08 -4.00 0.5 0 0 0</pose>
+
 
         <!-- Custom semantic data -->
         <user_data>
             <temperature units="celsius">75</temperature>
         </user_data>
+
 
         <link name="link">
             <!-- Collision -->
@@ -169,6 +203,7 @@
                 </box>
             </geometry>
             </collision>
+
 
             <!-- Visual (RED BOX) -->
             <visual name="visual">
@@ -186,14 +221,5 @@
         </link>
     </model>
 
-
-    <!-- Your LiDAR model -->
-    <!-- Replace model://SF45B_lidar with your actual model URI -->
-    <include>
-        <uri>model://SF45B_lidar</uri>
-        <pose>0 0 0 0 0 0</pose>
-    </include>
-
-
-    </world>
+  </world>
 </sdf>
