@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ################################################    -->
+<!--            Geometry & Constants                     -->
+<!-- ################################################    -->
+
+<xacro:property name="lr" value="0.1"/>   <!-- LiDAR Radius -->
+<xacro:property name="ll" value="0.1"/>   <!-- LiDAR Length -->
+<xacro:property name="body_length" value="0.6"/>
+<xacro:property name="body_width" value="0.4"/>
+<xacro:property name="body_height" value="0.2"/>
+
+<!-- ################################################ -->
+<!--            Include Additional Files              -->
+<!-- ################################################ -->
+
+<xacro:include filename="$(find ember_robot)/3D_LiDAR/SF45B_LiDAR.gazebo"/>
+
+<!-- ################################################ -->
+<!-- Fictitious Base Link                             -->
+<!-- ################################################ -->
+
+<link name="base_footprint"/>
+
+<!-- ################################################ -->
+<!-- Body Link                                        -->
+<!-- ################################################ -->
+
+<link name="body_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <box size="${body_length} ${body_width} ${body_height}"/>
+        </geometry>
+        <material name="gray">
+            <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <box size="${body_length} ${body_width} ${body_height}"/>
+        </geometry>
+    </collision>
+
+    <inertial>
+        <mass value="5.0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia 
+            ixx="0.1" ixy="0.0" ixz="0.0"
+            iyy="0.1" iyz="0.0"
+            izz="0.1"/>
+    </inertial>
+</link>
+
+<joint name="body_link_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="body_link"/>
+    <origin xyz="0 0 ${body_height/2}" rpy="0 0 0"/>
+</joint>
+
+<!-- ################################################ -->
+<!-- LiDAR Base Link                                  -->
+<!-- ################################################ -->
+
+<link name="lidar_base_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${lr}" length="${ll}"/>
+        </geometry>
+        <material name="dark_gray">
+            <color rgba="0.3 0.3 0.3 1.0"/>
+        </material>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${lr}" length="${ll}"/>
+        </geometry>
+    </collision>
+
+    <inertial>
+        <mass value="0.5"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia 
+            ixx="0.001" ixy="0" ixz="0"
+            iyy="0.001" iyz="0"
+            izz="0.001"/>
+    </inertial>
+</link>
+
+<!-- Connect LiDAR base to body -->
+<joint name="lidar_base_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="lidar_base__link"/>
+    <origin xyz="${body_length/2 - 0.05} 0 ${body_height/2 + ll/2}" rpy="0 0 0"/>
+</joint>
+
+<!-- ################################################ -->
+<!-- LiDAR Sensor Link                                -->
+<!-- ################################################ -->
+
+<link name="lidar_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${lr}" length="${ll}"/>
+        </geometry>
+        <material name="blue">
+            <color rgba="0.0 0.0 1.0 1.0"/>
+        </material>
+    </visual>
+
+    <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <cylinder radius="${lr}" length="${ll}"/>
+        </geometry>
+    </collision>
+
+    <inertial>
+        <mass value="0.3"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia 
+            ixx="0.001" ixy="0" ixz="0"
+            iyy="0.001" iyz="0"
+            izz="0.001"/>
+    </inertial>
+</link>
+
+<!-- LiDAR rotating joint -->
+<joint name="lidar_joint" type="revolute">
+    <parent link="lidar_base__link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.0 0 ${ll/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14159" upper="3.14159" effort="10" velocity="1.0"/>
+    <dynamics damping="0.1" friction="0.1"/>
+</joint>
+
+</robot>

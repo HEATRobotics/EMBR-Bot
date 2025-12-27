@@ -1,0 +1,264 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+    <world name="default">
+        <!-- Gazebo Sim systems (needed for sensors to publish) -->
+        <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+        <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+        <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+        <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+
+        <light name="sun" type="directional">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 0 10 0 0 0</pose>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <direction>-0.5 0.1 -1</direction>
+        </light>
+
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>100 100</size>
+                        </plane>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>100 100</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                        <diffuse>1 1 1 1</diffuse>
+                        <specular>0.1 0.1 0.1 1</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <!-- Add some obstacles for the lidar to detect -->
+        <model name="box1">
+            <pose>2 0 0.5 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>1 0 0 1</ambient>
+                        <diffuse>1 0 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="box2">
+            <pose>-2 2 0.5 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 1 0 1</ambient>
+                        <diffuse>0 1 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="cylinder1">
+            <pose>0 3 0.5 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.5</radius>
+                            <length>1</length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.5</radius>
+                            <length>1</length>
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0 0 1 1</ambient>
+                        <diffuse>0 0 1 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="velodyne_hdl-32">
+            <link name="base">
+                <pose>0 0 0.029335 0 0 0</pose>
+                <inertial>
+                    <mass>1.2</mass>
+                    <inertia>
+                        <ixx>0.001087473</ixx>
+                        <iyy>0.001087473</iyy>
+                        <izz>0.001092437</izz>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyz>0</iyz>
+                    </inertia>
+                </inertial>
+                <collision name="base_collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.04267</radius>
+                            <length>0.05867</length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="base_visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.04267</radius>
+                            <length>0.05867</length>
+                        </cylinder>
+                    </geometry>
+                </visual>
+            </link>
+
+            <link name="top">
+                <pose>0 0 0.095455 0 0 0</pose>
+                <inertial>
+                    <mass>0.1</mass>
+                    <inertia>
+                        <ixx>0.000090623</ixx>
+                        <iyy>0.000090623</iyy>
+                        <izz>0.000091036</izz>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyz>0</iyz>
+                    </inertia>
+                </inertial>
+                <collision name="top_collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.04267</radius>
+                            <length>0.07357</length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+                <visual name="top_visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>0.04267</radius>
+                            <length>0.07357</length>
+                        </cylinder>
+                    </geometry>
+                </visual>
+                <!-- GPU LiDAR sensor - more modern, outputs point cloud -->
+                <sensor type="gpu_lidar" name="gpu_lidar_sensor">
+                    <!-- Position the lidar sensor based on the specification. Also rotate
+                    it by 90 degrees around the X-axis so that the <horizontal> rays
+                    become vertical. Note this is done in radians (1.5707) -->
+                    <pose>0 0 -0.004645 1.5707 0 0</pose>
+
+                    <!-- Enable visualization (won't show rays but may show points) -->
+                    <visualize>true</visualize>
+
+                    <!-- Set the update rate of the sensor -->
+                    <update_rate>30</update_rate>
+
+                    <topic>lidar_pointcloud</topic>
+
+                    <lidar>
+                        <!-- The scan element contains the horizontal and vertical beams. -->
+                        <scan>
+                            <!-- The horizontal beams -->
+                            <horizontal>
+                                <!-- The velodyne has 32 beams(samples) -->
+                                <samples>32</samples>
+
+                                <!-- Resolution is multiplied by samples to determine number of
+                                simulated beams vs interpolated beams. -->
+                                <resolution>1</resolution>
+
+                                <!-- Minimum angle in radians -->
+                                <min_angle>-0.53529248</min_angle>
+
+                                <!-- Maximum angle in radians -->
+                                <max_angle>0.18622663</max_angle>
+                            </horizontal>
+
+                            <!-- For a 3D lidar, we can add vertical scanning -->
+                            <vertical>
+                                <samples>1</samples>
+                                <resolution>1</resolution>
+                                <min_angle>0</min_angle>
+                                <max_angle>0</max_angle>
+                            </vertical>
+                        </scan>
+
+                        <!-- Range defines characteristics of an individual beam -->
+                        <range>
+                            <!-- Minimum distance of the beam -->
+                            <min>0.05</min>
+
+                            <!-- Maximum distance of the beam -->
+                            <max>70</max>
+
+                            <!-- Linear resolution of the beam -->
+                            <resolution>0.02</resolution>
+                        </range>
+
+                        <noise>
+                            <type>gaussian</type>
+                            <mean>0.0</mean>
+                            <stddev>0.01</stddev>
+                        </noise>
+                    </lidar>
+                </sensor>
+            </link>
+
+            <joint type="revolute" name="joint">
+                <pose>0 0 -0.036785 0 0 0</pose>
+                <parent>base</parent>
+                <child>top</child>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                    <limit>
+                        <lower>-10000000000000000</lower>
+                        <upper>10000000000000000</upper>
+                    </limit>
+                </axis>
+            </joint>
+        </model>
+    </world>
+</sdf>

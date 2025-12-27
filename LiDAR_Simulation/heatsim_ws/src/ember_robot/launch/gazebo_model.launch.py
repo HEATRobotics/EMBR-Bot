@@ -22,7 +22,7 @@ def generate_launch_description():
     package_name = 'ember_robot'
 
     # relative path to the xacro file
-    model_file_relative_path = os.path.join('model', 'ember.xacro')
+    model_file_relative_path = os.path.join('3D_LiDAR', 'SF45B_LiDAR.xacro')
 
     # absolute path to the model
     path_model_file = os.path.join(
