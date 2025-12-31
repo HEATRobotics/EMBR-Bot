@@ -44,8 +44,9 @@
     </model>
 
     <!-- === LIDAR MODEL INCLUDE === -->
+    <!-- *For direct LiDAR unit only -->
     <!-- <include>
-      <uri>model://SF45B_lidar</uri>
+      <uri>file:///home/ros/heatsim_ws/src/ember_robot/models/SF45B_lidar/model.sdf</uri>
       <pose>0 0 0 0 0 0</pose>
     </include> -->
 
