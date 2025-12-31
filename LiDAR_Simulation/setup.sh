@@ -182,7 +182,6 @@ if docker ps | grep -q heat_jazzy; then
     echo "===================================="
     echo ""
     echo "Platform: $PLATFORM"
-    echo ""
     
     # Verify display settings in container
     echo "🔍 Verifying container display settings..."

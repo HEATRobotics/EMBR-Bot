@@ -136,7 +136,7 @@ Cylindar
 <xacro:include filename="$(find ember_robot)/model/ember.gazebo"/>
 
 <!-- ################################################ -->
-<!-- MARK: LINKS, JOINTS HERE                        -->
+<!-- MARK: LINKS, JOINTS HERE                         -->
 <!-- ################################################ -->
 
 

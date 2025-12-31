@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!-- Ember_Robot_Sim 1.0                                 -->
+<!-- ################################################    -->
+<!-- URDF DESCRIPTION OF THE EMBER BOT                   -->
+<!-- Author: Maison Gulyas | (250) 258 - 1736            -->
+<!-- ################################################    -->
+<!-- This URDF will be four a quadropod Robot with a LiDAR 
+    attatched to the front, this LiDAR can be used in both
+    2D and 3D modes.
+
+    *Note xacros are always in SI*
+-->
+<!-- ################################################    -->
+<!-- 
+Orientation:
+    x -> Forward
+    y -> Left
+    z -> Up
+-->
+<!-- Robot Part Names: 
+Tracks:
+    * trackL1 (Left front track)    <Rectangular>
+    * trackL2 (Left back track)     <Rectangular>
+    * trackR1 (Right front track)   <Rectangular>
+    * trackR2 (Right back track)    <Rectangular>
+Body:
+    * body <Rectangular>
+LiDAR:
+    * LiDAR <Cylindar>
+-->
+<!-- Shape Geometry  
+Rectangle: (for track add "track_" to fron, so for body add "body_" etc)
+    * rect_length
+    * rect_width
+    * rect_height
+    * rect_mass
+Cylindar
+    * LiDAR_radius 
+    * LiDAR_length
+    * LiDAR_mass
+ -->
+
+<!-- ################################################    -->
+
+<robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ################################################    -->
+<!--            Geometry & Constants                     -->
+<!--            MARK: G & C                              -->
+<!-- ################################################    -->
+
+<!-- Body Dimensions -->
+<xacro:property name="bl" value="0.60"/>   <!-- body length (X) -->
+<xacro:property name="bw" value="0.60"/>   <!-- body width  (Y) -->
+<xacro:property name="bh" value="0.20"/>   <!-- body height (Z) -->
+
+<!-- ################################################    -->
+<!--            Location Setup                           -->
+<!--            MARK: LOCO                               -->
+<!-- ################################################    -->
+
+<!-- ################################################    -->
+<!--            Wheel Axle Placement (X axis)            -->
+<!-- ################################################    -->
+
+<!-- Body Z placement above ground (simple + stable version) -->
+<!-- 0.15 is from the wheel radius -->
+<xacro:property name="body_z_from_ground" value="${ 0.15/2 + bh/2 }"/>
+
+<!-- ################################################ -->
+<!--            Include Additional Files              -->
+<!--            MARK: File Incl.                      -->
+<!-- ################################################ -->
+
+<xacro:include filename="main_parts/body.xacro"/>
+<xacro:include filename="main_parts/wheels.xacro"/>
+
+<!-- ################################################ -->
+<!-- MARK: LINKS, JOINTS HERE                         -->
+<!-- ################################################ -->
+</robot>

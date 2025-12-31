@@ -11,6 +11,11 @@ bash start.sh
 ```bash
 bash diagnose-display.sh
 ```
+## 🚨 If Having Build Issues on "bash sim.sh"
+*Must be in the container*
+```bash
+rm -rf build install log
+```
 ## 🚨 If Having LF/CRLF Issues
 : invalid optionline 2: set: -
 set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]

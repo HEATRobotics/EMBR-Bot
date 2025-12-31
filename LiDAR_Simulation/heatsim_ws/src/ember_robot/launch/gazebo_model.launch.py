@@ -22,7 +22,12 @@ def generate_launch_description():
     package_name = 'ember_robot'
 
     # relative path to the xacro file
-    model_file_relative_path = os.path.join('model', 'ember.xacro')
+    model_file_relative_path = os.path.join(
+        'ember_model',
+        "urdf",
+        'ember_full.xacro'
+    )
+
 
     # absolute path to the model
     path_model_file = os.path.join(
@@ -31,7 +36,7 @@ def generate_launch_description():
     )
 
     # relative path world
-    world_file_relative_path = os.path.join('3D_LiDAR', 'trial_sim.world')
+    world_file_relative_path = os.path.join('worlds', 'maze1.world')
 
     # absolute path to world
     world_path = os.path.join(
@@ -52,7 +57,6 @@ def generate_launch_description():
         )
     )
 
-    # if you are using an empty world model 
     gazebo_launch = IncludeLaunchDescription(
         gazebo_ros_launch,
         launch_arguments={
