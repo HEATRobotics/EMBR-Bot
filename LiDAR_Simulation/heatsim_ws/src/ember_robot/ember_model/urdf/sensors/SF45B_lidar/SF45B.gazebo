@@ -1,22 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Gazebo extensions for SF45B -->
-  <xacro:macro name="SF45B_lidar_gazebo" params="robotNamespace:=sf45b">
+  <xacro:macro name="SF45B_lidar_gazebo" params="topic:=scan update_rate:=10 visualize:=true">
 
-    <!-- Sensor mounted on the top link -->
     <gazebo reference="sf45b_top">
-      <sensor name="gpu_lidar_sensor" type="gpu_lidar">
+      <sensor name="sf45b_gpu_lidar" type="gpu_lidar">
         <pose>0 0 0 0 0 0</pose>
 
-        <visualize>true</visualize>
         <always_on>true</always_on>
-        <update_rate>10</update_rate>
-
-        <!-- In SDF you had topic "scan".
-             In Gazebo Sim, the actual published topic naming can be namespaced;
-             leaving it as scan keeps your intention. -->
-        <topic>scan</topic>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>${visualize}</visualize>
+        <topic>${topic}</topic>
 
         <lidar>
           <scan>
@@ -24,13 +18,13 @@
               <samples>720</samples>
               <resolution>1</resolution>
               <min_angle>-3.14159265359</min_angle>
-              <max_angle> 3.14159265359</max_angle>
+              <max_angle>3.14159265359</max_angle>
             </horizontal>
             <vertical>
               <samples>32</samples>
               <resolution>1</resolution>
               <min_angle>-0.53529248</min_angle>
-              <max_angle> 0.18622663</max_angle>
+              <max_angle>0.18622663</max_angle>
             </vertical>
           </scan>
 
@@ -47,15 +41,6 @@
           </noise>
         </lidar>
       </sensor>
-    </gazebo>
-
-    <!-- World/plugin note:
-         In SDF you added gz-sim-sensors-system *inside the model*.
-         It’s usually better in the WORLD file, but this keeps parity. -->
-    <gazebo>
-      <plugin name="gz::sim::systems::Sensors" filename="gz-sim-sensors-system">
-        <render_engine>ogre2</render_engine>
-      </plugin>
     </gazebo>
 
   </xacro:macro>
