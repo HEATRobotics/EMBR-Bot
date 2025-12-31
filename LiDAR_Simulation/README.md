@@ -74,12 +74,6 @@ This will:
 ```bash
 gz sim
 ```
-### LiDAR
-**For Direct LiDAR Unit**
-*Can replace maze1 with other world names from world folder, not this doesn't effect bash sim.sh*
-```bash
-gz sim -v 4 /home/ros/heatsim_ws/src/ember_robot/worlds/maze1.world
-```
 
 ### Daily Usage
 
