@@ -178,7 +178,7 @@ class ProbeStepperNode(Node):
         # do: drive_feedback topic
 
         #drive_action_server
-        self.drive_operation = ActionServer(self, Probe_Stepper_Operation, 'probe_stepper_operation', self.drive_operation_callback)
+        self.drive_operation = ActionServer(self, ProbeStepperOperation, 'Probe_stepper_operation', self.drive_operation_callback)
 
         self.switchCaseOperation = SwitchCaseOperation(self.get_logger()) #instantiate switchCaseOperation once for drive_operation_callback to use multiple times
 
