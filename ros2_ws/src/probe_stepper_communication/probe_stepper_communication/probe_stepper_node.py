@@ -18,7 +18,7 @@ ERROR_VARIABLE_REGISTER = 0x0021
 DRIVE_ENABLE_REGISTER = 0x001C
 
 
-MOTOR_IP = '192.168.33.1'  # default drive IP
+DRIVE_IP = '192.168.33.1'  # default drive IP
 DRIVE_PORT = 502  # Standard MODBUS TCP port
 
 class SwitchCaseOperation:
