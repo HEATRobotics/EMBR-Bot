@@ -11,7 +11,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Gps.msg"
-  "action/Probe_Stepper_Operation.action"
+  "action/ProbeStepperOperation.action"
 )
 
 if(BUILD_TESTING)
