@@ -11,9 +11,6 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Gps.msg"
-)
-
-rosidl_generate_interfaces(${PROJECT_NAME}
   "action/Probe_Stepper_Operation.action"
 )
 

@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
 
-from msg_interface.action import Probe_Stepper_Operation
+from msg_interface.action import ProbeStepperOperation
 
 from pymodbus.client import ModbusTcpClient
 
