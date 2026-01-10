@@ -187,7 +187,7 @@ class ProbeStepperNode(Node):
         operation_ID = goal_handle.request.operation
 
         # call operations based on received operation ID
-        result = Probe_Stepper_Operation.Result()
+        result = ProbeStepperOperation.Result()
         result.success = self.switchCaseOperation.do_operation(operation_ID)
         goal_handle.succeed()
         return result
