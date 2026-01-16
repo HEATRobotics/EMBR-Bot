@@ -60,6 +60,9 @@ cd LiDAR_Simulation
 
 2. **Run setup (first time only):**
 ```bash
+# Enter into wsl terminal
+wsl -d ubuntu
+# Build and open simulation docker container
 bash setup.sh
 ```
 
