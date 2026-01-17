@@ -87,6 +87,17 @@ def generate_launch_description():
         }],
     )
 
+    lidar_static_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '0','0','0','0','0','0',
+            'sf45b_top',
+            'ember_bot/sf45b_top/sf45b_gpu_lidar'
+        ],
+        output='screen'
+    )
+
     # Bridge parameters yaml
     bridge_params = os.path.join(
         get_package_share_directory(package_name),
@@ -110,6 +121,7 @@ def generate_launch_description():
     ld.add_action(gazebo_launch)
     ld.add_action(spawn_model_node_gazebo)
     ld.add_action(node_robot_state_publisher)
+    ld.add_action(lidar_static_tf)
     ld.add_action(start_gazebo_ros_bridge_cmd)
 
     return ld

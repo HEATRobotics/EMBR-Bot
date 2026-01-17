@@ -24,10 +24,10 @@
   direction: GZ_TO_ROS
 
 # gz topic published by DiffDrive plugin
-- ros_topic_name: "tf"
-  gz_topic_name: "tf"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
+- ros_topic_name: /tf
+  gz_topic_name: /model/ember_bot/tf
+  ros_type_name: tf2_msgs/msg/TFMessage
+  gz_type_name: gz.msgs.Pose_V
   direction: GZ_TO_ROS
 
 # gz topic published by DiffDrive plugin
@@ -37,16 +37,22 @@
   gz_type_name: "gz.msgs.Twist"
   direction: GZ_TO_ROS
 
-# LiDAR
-- ros_topic_name: "scan"
-  gz_topic_name: "scan"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: GZ_TO_ROS
-  lazy: false
-
+# Teleop Controls plugin
 - ros_topic_name: /cmd_vel
   gz_topic_name: /cmd_vel
   ros_type_name: geometry_msgs/msg/Twist
   gz_type_name: gz.msgs.Twist
   direction: ROS_TO_GZ
+
+# LiDAR
+- ros_topic_name: /scan
+  gz_topic_name: /scan
+  ros_type_name: sensor_msgs/msg/LaserScan
+  gz_type_name: gz.msgs.LaserScan
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /scan/points
+  gz_topic_name: /scan/points
+  ros_type_name: sensor_msgs/msg/PointCloud2
+  gz_type_name: gz.msgs.PointCloudPacked
+  direction: GZ_TO_ROS
