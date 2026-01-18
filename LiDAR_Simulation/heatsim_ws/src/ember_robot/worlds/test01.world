@@ -1,0 +1,276 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="test01_lidar_world">
+    <!-- ==================- -->
+    <!-- SPAWN SPECIFICATION -->
+    <!-- ==================- -->
+    <!-- 
+        x: -18 or 0 for middle
+        y: 0
+        z: 0.5 
+    -->
+    
+    <!-- Core sim systems -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <!-- coordinate system real world mapping {-->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>47.397743</latitude_deg>
+      <longitude_deg>8.545594</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <!--}-->
+
+    <!-- ===================== -->
+    <!-- Cool LiDAR Playground -->
+    <!-- ===================== -->
+
+    <!-- Light -->
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>-0.5 0.1 -1</direction>
+    </light>
+
+    <!-- Ground plane -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+          <material>
+            <diffuse>0.75 0.75 0.75 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== -->
+    <!-- Canyon corridor walls -->
+    <!-- ===================== -->
+    <model name="canyon_walls">
+      <static>true</static>
+
+      <!-- Left wall -->
+      <link name="left_wall">
+        <pose>0 2.5 0.75 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>40 0.25 1.5</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>40 0.25 1.5</size></box></geometry>
+          <material>
+            <ambient>0.25 0.23 0.22 1</ambient>
+            <diffuse>0.35 0.32 0.30 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Right wall -->
+      <link name="right_wall">
+        <pose>0 -2.5 0.75 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>40 0.25 1.5</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>40 0.25 1.5</size></box></geometry>
+          <material>
+            <ambient>0.25 0.23 0.22 1</ambient>
+            <diffuse>0.35 0.32 0.30 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Back wall -->
+      <link name="back_wall">
+        <pose>-20 0 0.75 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>0.25 6 1.5</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.25 6 1.5</size></box></geometry>
+          <material>
+            <ambient>0.22 0.22 0.25 1</ambient>
+            <diffuse>0.30 0.30 0.38 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== -->
+    <!-- Pillars (slalom)      -->
+    <!-- ===================== -->
+    <model name="pillar_field">
+      <static>true</static>
+
+      <!-- Pillar 1 -->
+      <link name="p1">
+        <pose>-12 0.8 0.6 0 0 0</pose>
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+          <material>
+            <ambient>0.10 0.10 0.12 1</ambient>
+            <diffuse>0.18 0.18 0.22 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Pillar 2 -->
+      <link name="p2">
+        <pose>-8 -0.9 0.6 0 0 0</pose>
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+          <material>
+            <ambient>0.10 0.10 0.12 1</ambient>
+            <diffuse>0.18 0.18 0.22 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Pillar 3 -->
+      <link name="p3">
+        <pose>-4 0.7 0.6 0 0 0</pose>
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+          <material>
+            <ambient>0.10 0.10 0.12 1</ambient>
+            <diffuse>0.18 0.18 0.22 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Pillar 4 -->
+      <link name="p4">
+        <pose>0 -0.8 0.6 0 0 0</pose>
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>1.2</length></cylinder></geometry>
+          <material>
+            <ambient>0.10 0.10 0.12 1</ambient>
+            <diffuse>0.18 0.18 0.22 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== -->
+    <!-- Ramp (fun elevation)  -->
+    <!-- ===================== -->
+    <model name="ramp">
+      <static>true</static>
+      <link name="ramp_link">
+        <!-- Slight pitch for ramp -->
+        <pose>6 0 0.15 0 0.25 0</pose>
+        <collision name="col">
+          <geometry><box><size>6 2 0.3</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>6 2 0.3</size></box></geometry>
+          <material>
+            <ambient>0.25 0.20 0.10 1</ambient>
+            <diffuse>0.40 0.32 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== -->
+    <!-- "Rocks" (spheres)     -->
+    <!-- ===================== -->
+    <model name="rocks">
+      <static>true</static>
+
+      <link name="r1">
+        <pose>10 1.2 0.35 0 0 0</pose>
+        <collision name="col"><geometry><sphere><radius>0.35</radius></sphere></geometry></collision>
+        <visual name="vis">
+          <geometry><sphere><radius>0.35</radius></sphere></geometry>
+          <material>
+            <ambient>0.20 0.20 0.22 1</ambient>
+            <diffuse>0.28 0.28 0.30 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="r2">
+        <pose>13 -1.1 0.25 0 0 0</pose>
+        <collision name="col"><geometry><sphere><radius>0.25</radius></sphere></geometry></collision>
+        <visual name="vis">
+          <geometry><sphere><radius>0.25</radius></sphere></geometry>
+          <material>
+            <ambient>0.20 0.18 0.18 1</ambient>
+            <diffuse>0.30 0.26 0.26 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== -->
+    <!-- Target "Hot Box"      -->
+    <!-- ===================== -->
+    <model name="hot_box">
+      <static>true</static>
+
+      <!-- Position: x y z roll pitch yaw -->
+      <pose>16 0 0.5 0 0 0</pose>
+
+      <!-- Custom semantic data -->
+      <user_data>
+        <temperature units="celsius">75</temperature>
+      </user_data>
+
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+
+        <!-- Orange box -->
+        <visual name="visual">
+          <geometry><box><size>1 1 1</size></box></geometry>
+          <material>
+            <ambient>0.9 0.35 0.05 1</ambient>
+            <diffuse>1.0 0.4 0.1 1</diffuse>
+            <specular>0.15 0.15 0.15 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

@@ -1,6 +1,14 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
   <world name="maze_lidar_world">
+    <!-- ==================- -->
+    <!-- SPAWN SPECIFICATION -->
+    <!-- ==================- -->
+    <!-- 
+        x: 0
+        y: 0
+        z: 0.5 
+    -->
 
     <!-- Core sim systems -->
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
@@ -10,6 +18,15 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
+    <!-- coordinate system {-->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>47.397743</latitude_deg>
+      <longitude_deg>8.545594</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <!--}-->
 
     <!-- Light -->
     <light name="sun" type="directional">

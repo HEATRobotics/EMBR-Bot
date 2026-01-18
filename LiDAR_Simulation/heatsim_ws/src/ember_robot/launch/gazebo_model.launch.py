@@ -36,7 +36,7 @@ def generate_launch_description():
     )
 
     # relative path world
-    world_file_relative_path = os.path.join('worlds', 'maze1.world')
+    world_file_relative_path = os.path.join('worlds', 'test01.world')
 
     # absolute path to world
     world_path = os.path.join(
@@ -72,6 +72,8 @@ def generate_launch_description():
         arguments=[
             '-name', robot_xacro_name,
             '-topic', 'robot_description',
+            # Check Worlds SPAWN Specification
+            '-x', '0', '-y', '0', '-z', '0.5',
         ],
         output='screen',
     )
