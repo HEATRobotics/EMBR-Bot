@@ -23,5 +23,14 @@
   
   "radio": {
     "mode": "sim"
+  },
+  "probeStepper": {
+    "mode": "sim",
+    "params": {
+      "max_velocity":  768000, 
+      "acceleration":  1000000,
+      "steps_per_distance": 51200,
+      "motion_range": 10
+    }
   }
 }

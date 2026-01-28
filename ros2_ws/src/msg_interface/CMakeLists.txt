@@ -12,6 +12,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Gps.msg"
   "action/ProbeStepperOperation.action"
+  "msg/MoveProbeMotor.msg"
+  "msg/ProbeMotorFeedback.msg"
 )
 
 if(BUILD_TESTING)

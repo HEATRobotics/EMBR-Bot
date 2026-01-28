@@ -12,8 +12,7 @@ class SensorConfig:
     device: Optional[str] = None
     baud: int = 9600
     params: Dict[str, Any] = field(default_factory=dict)
-
-
+    
 class Sensor(ABC):
     """Abstract base class for all sensors."""
     

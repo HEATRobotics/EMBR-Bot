@@ -6,6 +6,9 @@
   <description>TODO: Package description</description>
   <maintainer email="ubuntu@todo.todo">ubuntu</maintainer>
   <license>Apache-2.0</license>
+
+  <depend>pymodbus</depend>
+
   <exec_depend>rclpy</exec_depend>
   <exec_depend>msg_interface</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
