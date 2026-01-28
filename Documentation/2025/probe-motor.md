@@ -7,7 +7,7 @@ This is a hardware-abstracted ROS2 interface for controlling a linear probe moto
 
 
 ## 1. System Architecture
-![Text](2025/Images/Probe%20Motor%20Implementation%20Overview.png)
+![Text](Images/Probe%20Motor%20Implementation%20Overview.png)
 
 The system is divided into three layers:
 
@@ -27,7 +27,7 @@ The system is divided into three layers:
 ### Software
 
 * **OS**: Ubuntu 22.04 LTS with ROS2 Humble.
-* **Ethernet:** [static IP](2025/rpi-ip-setup-for-motor.md)
+* **Ethernet:** [static IP](rpi-ip-setup-for-motor.md)
 * **Python Dependencies**:
 * [`pymodbus`](https://pymodbus.readthedocs.io/en/latest/index.html): For Modbus TCP communication.
 
@@ -108,4 +108,4 @@ The `nav` node executes an autonomous survey mission:
 
 ## 7. Troubleshooting
 
-* **Connection Errors**: Ensure the LMDCE421 IP (`192.168.33.1`) is reachable from your host machine (`ping 192.168.33.1`) [see](2025/rpi-ip-setup-for-motor.md).
+* **Connection Errors**: Ensure the LMDCE421 IP (`192.168.33.1`) is reachable from your host machine (`ping 192.168.33.1`) [see](rpi-ip-setup-for-motor.md).
