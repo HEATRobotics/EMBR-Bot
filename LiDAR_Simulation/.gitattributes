@@ -1,0 +1,19 @@
+# Auto detect text files and normalize line endings to LF
+* text=auto
+
+# Force LF for shell scripts (critical for Linux/WSL/Mac)
+*.sh text eol=lf
+
+# Force LF for Docker and config files
+Dockerfile text eol=lf
+entrypoint.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Force LF for common text files
+*.md text eol=lf
+*.txt text eol=lf
+
+# Windows files should keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
