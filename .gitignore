@@ -17,10 +17,5 @@ ros2_ws/src/embr/embr/__pycache__
 ros2_ws/src/embr/embr/sensors/__pycache__
 .vscode
 
-# ROS Bag Recordings
-*.mcap
-*.bag
-*.db3
-# Only ignore YAML inside rosbags
-rosbags/*.yaml
-rosbags/*.yml
+# All recorded sensor / simulation data
+heatsim_ws/src/ember_robot/datarecordings/
