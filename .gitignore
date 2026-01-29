@@ -19,3 +19,8 @@ ros2_ws/src/embr/embr/sensors/__pycache__
 
 # All recorded sensor / simulation data
 heatsim_ws/src/ember_robot/datarecordings/
+
+# Ignore ROS bag recordings anywhere
+*.mcap
+*.bag
+*.db3
