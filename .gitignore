@@ -16,3 +16,11 @@ ros2_ws/log
 ros2_ws/src/embr/embr/__pycache__
 ros2_ws/src/embr/embr/sensors/__pycache__
 .vscode
+
+# ROS Bag Recordings
+*.mcap
+*.bag
+*.db3
+# Only ignore YAML inside rosbags
+rosbags/*.yaml
+rosbags/*.yml
