@@ -36,7 +36,7 @@ def generate_launch_description():
     )
 
     # relative path world
-    world_file_relative_path = os.path.join('worlds', 'test01.world')
+    world_file_relative_path = os.path.join('worlds', 'thermalTestArea.world')
 
     # absolute path to world
     world_path = os.path.join(

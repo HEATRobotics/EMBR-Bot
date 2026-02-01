@@ -190,7 +190,7 @@
     </model>
 
     <!-- ===================== -->
-    <!-- Ramp (fun elevation)  -->
+    <!-- Ramp                  -->
     <!-- ===================== -->
     <model name="ramp">
       <static>true</static>
