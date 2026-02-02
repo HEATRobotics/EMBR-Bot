@@ -1,23 +1,23 @@
-### to do : handle case where physical connection to stepper is lost during operation
+### to do : handle case where physical connection to motor is lost during operation
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 from dataclasses import dataclass, field
 
-import time # for time.sleep() in SimProbeStepper::move()
+import time # for time.sleep() in SimProbeMotor::move()
 import random
 
 from pymodbus.client import ModbusTcpClient
 
 @dataclass
-class ProbeStepperConfig:
+class ProbeMotorConfig:
     mode: str = "real"
     device: Optional[str] = None
     baud: Optional[str] = None
     params: Dict[str, Any] = field(default_factory=dict)
 
 
-class ProbeStepperBase(ABC):
+class ProbeMotorBase(ABC):
 
     CONFIG = { # settings : value
         "steps_per_distance" : -1,   # unit in step/centi meter, translation of rotation(steps) to vertical displacement # to do: needs to be calliberated
@@ -26,7 +26,7 @@ class ProbeStepperBase(ABC):
         "acceleration" : -1          # unit in step/second^2
     }
 
-    def __init__(self, config: Optional[ProbeStepperConfig] = None):
+    def __init__(self, config: Optional[ProbeMotorConfig] = None):
         # initialize CONFIG settings' value
         params = config["params"]
         if params:
@@ -70,8 +70,8 @@ class ProbeStepperBase(ABC):
     
     @property
     def is_running(self) -> bool:
-        """Check if probe stepper is running."""
-        # to do: override this RealProbeStepper to also check self.client.connected
+        """Check if probe motor is running."""
+        # to do: override this RealProbeMotor to also check self.client.connected
         return self._running
     
     def set_running(self) -> None:
@@ -84,7 +84,7 @@ class ProbeStepperBase(ABC):
         return 
 
 
-class RealProbeStepper(ProbeStepperBase):
+class RealProbeMotor(ProbeMotorBase):
 
     DRIVE_IP = '192.168.33.1'  # default drive IP
     DRIVE_PORT = 502  # Standard MODBUS TCP port
@@ -96,7 +96,7 @@ class RealProbeStepper(ProbeStepperBase):
         "acceleration" : {"address" : 0x0000, "length" : 1}
     }
 
-    def __init__(self, config: Optional[ProbeStepperConfig] = None):
+    def __init__(self, config: Optional[ProbeMotorConfig] = None):
         super().__init__(config)
         self.client = None
 
@@ -132,7 +132,7 @@ class RealProbeStepper(ProbeStepperBase):
         if self.is_running:
             return True
 
-        #Establish connection to the probe stepper
+        #Establish connection to the probe motor
         self.client = ModbusTcpClient(DRIVE_IP, port=DRIVE_PORT)
         self.client.connect()
 
@@ -149,7 +149,7 @@ class RealProbeStepper(ProbeStepperBase):
 
         positionInSteps = position * self.CONFIG["steps_per_distance"]
 
-        # spin the stepper by number of steps
+        # spin the motor by number of steps
         response = self._write_registers(REGISTERS["move_absolute"], positionInSteps)
         if response.isError():
             # log error
@@ -194,12 +194,12 @@ class RealProbeStepper(ProbeStepperBase):
         return True
 
 
-class SimProbeStepper(ProbeStepperBase):
+class SimProbeMotor(ProbeMotorBase):
 
     TIME_PER_DISTANCE = 0.5 # in second/distance
     POSITION = 0            # in steps
     
-    def __init__(self, config: Optional[ProbeStepperConfig] = None):
+    def __init__(self, config: Optional[ProbeMotorConfig] = None):
         super().__init__(config)
 
     def start(self) -> bool:

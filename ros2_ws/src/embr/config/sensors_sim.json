@@ -24,7 +24,7 @@
   "radio": {
     "mode": "sim"
   },
-  "probeStepper": {
+  "probeMotor": {
     "mode": "sim",
     "params": {
       "max_velocity":  768000, 

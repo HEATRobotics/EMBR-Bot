@@ -4,20 +4,20 @@ Provides real and simulated sensor implementations for testing.
 """
 
 from .base import Sensor, SensorConfig
-from .factory import SensorFactory, StepperFactory, create_sensor, create_probeStepper
+from .factory import SensorFactory, ProbeMotorFactory, create_sensor, create_probeMotor
 from .temperature import TemperatureSensor, RealTemperatureSensor, SimTemperatureSensor
 from .cube import CubeSensor, RealCubeSensor, SimCubeSensor
 from .radio import RadioConnection, RealRadioConnection, SimRadioConnection
-from .probeStepperBase import ProbeStepperConfig, RealProbeStepper, SimProbeStepper
+from .probeMotorBase import ProbeMotorConfig, RealProbeMotor, SimProbeMotor
 
 __all__ = [
     'Sensor',
     'SensorConfig',
-    'ProbeStepperConfig',
+    'ProbeMotorConfig',
     'SensorFactory',
-    'StepperFactory',
+    'MotorFactory',
     'create_sensor',
-    'create_probeStepper',
+    'create_probeMotor',
     'TemperatureSensor',
     'RealTemperatureSensor',
     'SimTemperatureSensor',
@@ -27,6 +27,6 @@ __all__ = [
     'RadioConnection',
     'RealRadioConnection',
     'SimRadioConnection',
-    'RealProbeStepper', 
-    'SimProbeStepper'
+    'RealProbeMotor', 
+    'SimProbeMotorr'
 ]

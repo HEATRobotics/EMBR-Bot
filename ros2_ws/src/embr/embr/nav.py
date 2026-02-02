@@ -5,13 +5,14 @@ import random
 import rclpy
 from rclpy.node import Node
 
-from msg_interface.msg import MoveProbeMotor, ProbeMotorFeedback
+from std_msgs.msg import Int32
+from msg_interface.msg import ProbeMotorFeedback
 
 class Nav(Node):
 
     def __init__(self):
         super().__init__('nav')
-        self.moveProbeMotorTopic = self.create_publisher(MoveProbeMotor, 'move_probe_motor', 10)
+        self.moveProbeMotorTopic = self.create_publisher(Int32, 'move_probe_motor', 10)
         self.probeMotorFeedbackTopic = self.create_subscription(ProbeMotorFeedback, 'probe_motor_feedback', self.probeMotorFeedback_callback, 10)
         self.probe_motor_feedback_event = threading.Event()
 
@@ -52,8 +53,8 @@ class Nav(Node):
                 self.get_logger().info("retracted probe")
                 
     def moveProbe(self, toPosition) -> bool:
-        msg = MoveProbeMotor()
-        msg.move_position = toPosition
+        msg = Int32()
+        msg.data = toPosition
         self.moveProbeMotorTopic.publish(msg)
         self.probe_motor_feedback_event.wait()
         self.probe_motor_feedback_event.clear()

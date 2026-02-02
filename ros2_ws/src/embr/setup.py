@@ -26,7 +26,7 @@ setup(
             'getCube = embr.getCube:main',
             'getTemp = embr.getTemp:main',
             'radio = embr.radio:main',
-            'probeStepper = embr.ProbeStepper:main',
+            'probeMotor = embr.ProbeMotor:main',
             'nav = embr.nav:main'
         ],
     },

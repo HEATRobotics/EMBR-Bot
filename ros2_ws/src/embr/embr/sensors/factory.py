@@ -10,7 +10,7 @@ from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
 from .radio import RealRadioConnection, SimRadioConnection
 
-from .probeStepperBase import ProbeStepperConfig, ProbeStepperBase, RealProbeStepper, SimProbeStepper
+from .probeMotorBase import ProbeMotorConfig, ProbeMotorBase, RealProbeMotor, SimProbeMotor
 
 class SensorFactory:
     """Factory for creating sensor instances."""
@@ -155,43 +155,44 @@ def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None) -> Se
     return SensorFactory.create(sensor_type, config)
 
 
-class StepperFactory:
+class ProbeMotorFactory:
 
     # Mapping of sensor types to their real/sim implementations
     SENSOR_MAP = {
-        'probeStepper': {
-            'real': RealProbeStepper,
-            'sim': SimProbeStepper,
+        'probeMotor': {
+            'real': RealProbeMotor,
+            'sim': SimProbeMotor,
         }
     }
 
     @classmethod
-    def create(cls, probe_type: str, config_path: Optional[str] = None) -> ProbeStepperBase:
+    def create(cls, probe_type: str, config_path: Optional[str] = None) -> ProbeMotorBase:
         if probe_type not in cls.SENSOR_MAP:
             raise ValueError(f"Unknown probe type: {probe_type}")
-        
+
         config = cls.load_config(config_path)
 
         # Determine mode - default to 'real' unless specified otherwise
         mode = cls._determine_mode(probe_type, config)
-        
-        # Get the appropriate class
-        probeStepper_classes = cls.SENSOR_MAP[probe_type]
-        probeStepper_class = probeStepper_classes[mode]
 
-        if not probeStepper_class:
-            raise ValueError(f"Unknown mode '{mode}' for probe stepper '{probe_type}'")
+        # Get the appropriate class
+        probeMotor_classes = cls.SENSOR_MAP[probe_type]
+
+        probeMotor_class = probeMotor_classes[mode]
+
+        if not probeMotor_class:
+            raise ValueError(f"Unknown mode '{mode}' for probe motor '{probe_type}'")
 
         # Create and return instance
         try:
-            return probeStepper_class(config)
+            return probeMotor_class(config)
         except Exception as e:
-            raise RuntimeError(f"Failed to create {probe_type} probe stepper in {mode} mode: {e}")
+            raise RuntimeError(f"Failed to create {probe_type} probe motor in {mode} mode: {e}")
     
     @classmethod
-    def _determine_mode(cls, probeStepper_type: str, config: ProbeStepperConfig) -> str:
+    def _determine_mode(cls, probeMotor_type: str, config: ProbeMotorConfig) -> str:
         """
-        Determine the probe stepper mode based on configuration.
+        Determine the probe motor mode based on configuration.
         
         Priority order:
         1. Explicit mode in config (if 'real' or 'sim')
@@ -200,6 +201,7 @@ class StepperFactory:
         Returns:
             'real' or 'sim'
         """
+
         # If mode is explicitly set to 'real' or 'sim', use it
         if config["mode"] in ('real', 'sim'):
             return config["mode"]
@@ -208,9 +210,9 @@ class StepperFactory:
         return 'real'
 
     @classmethod
-    def load_config(cls, config_path: Optional[str] = None) -> Dict[str, ProbeStepperConfig]:
+    def load_config(cls, config_path: Optional[str] = None) -> Dict[str, ProbeMotorConfig]:
         """
-        Load probe stepper configuration from JSON file.
+        Load probe motor configuration from JSON file.
         
         Args:
             config_path: Path to config file (default: config/sensors.json in workspace)
@@ -218,7 +220,7 @@ class StepperFactory:
         Returns:
             Dictionary mapping sensor names to SensorConfig objects
         """
-        
+ 
         if config_path is None:
             # Look for config in common locations within workspace
             search_paths = [
@@ -232,24 +234,26 @@ class StepperFactory:
                 if os.path.exists(path):
                     config_path = path
                     break
-        
+
         if config_path is None or not os.path.exists(config_path):
             return {}
+        
+
         
         try:
             with open(config_path, 'r') as f:
                 data = json.load(f)
 
-            if data["probeStepper"]:         
-                return data["probeStepper"]
+            if data["probeMotor"]:         
+                return data["probeMotor"]
             else:
-                raise ValueError(f"probeStepper config is undefined in {config_path}")
+                raise ValueError(f"probeMotor config is undefined in {config_path}")
         
         except Exception as e:
             raise RuntimeError(f"Failed to load config from {config_path}: {e}")
 
     
-def create_probeStepper(probeStepper_type: str, config_path: Optional[str] = None) -> ProbeStepperBase:
+def create_probeMotor(probeMotor_type: str, config_path: Optional[str] = None) -> ProbeMotorBase:
     """
     Convenience function to create a sensor.
     
@@ -260,7 +264,7 @@ def create_probeStepper(probeStepper_type: str, config_path: Optional[str] = Non
     Returns:
         Sensor instance
     """
-    return StepperFactory.create(probeStepper_type, config_path)
+    return ProbeMotorFactory.create(probeMotor_type, config_path)
 
 
 

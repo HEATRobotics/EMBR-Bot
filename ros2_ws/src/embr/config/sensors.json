@@ -14,7 +14,7 @@
     "device": "/dev/ttyAMA1",
     "baud": 57600
   },
-  "probeStepper": {
+  "probeMotor": {
     "mode": "real",
     "device": "",
     "baud": "",
