@@ -6,7 +6,10 @@ This guide explains how to configure your Raspberry Pi to talk directly to an in
 
 ## Prerequisite:
 - [ ] rpi is connected to the LMD Drive via ethernet
-- [ ] LMD Drive is powered with sufficient power
+
+LMD Drive is powered with sufficient power:
+- [ ] Voltage: 12VDC - 48VDC
+- [ ] Current: 0.0Amp - 2.0 Amp
 
 ## Step 1: Identify your Ethernet Interface
 Before editing configurations, you need the system name for your Ethernet port.
