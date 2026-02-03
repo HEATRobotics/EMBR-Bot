@@ -19,18 +19,14 @@
 
       <collision name="base_collision">
         <geometry>
-          <box>
-            <size>${panel_t} ${panel_w} ${panel_h}</size>
-          </box>
+          <box size="${panel_t} ${panel_w} ${panel_h}"/>
         </geometry>
       </collision>
 
       <!-- URDF visual (RViz only, mostly ignored by Ignition (Gazebo Version == Harmonic+)) -->
       <visual name="thermal_visual">
         <geometry>
-          <box>
-            <size>${panel_t} ${panel_w} ${panel_h}</size>
-          </box>
+          <box size="${panel_t} ${panel_w} ${panel_h}"/>
         </geometry>
         <material name="Thermal_Orange">
           <color rgba="1 0.35 0 1"/>
@@ -68,7 +64,7 @@
 
   </xacro:macro>
   <!-- Panel dimensions -->
-  <xacro:property name="panel_t" value="0.10"/>   <!-- thickness (x) -->
+  <xacro:property name="panel_t" value="0.02"/>   <!-- thickness (x) -->
   <xacro:property name="panel_w" value="0.18"/>   <!-- width (y) -->
   <xacro:property name="panel_h" value="0.12"/>   <!-- height (z) -->
 
