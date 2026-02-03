@@ -15,7 +15,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2
 import sensor_msgs_py.point_cloud2 as pc2
 
-from embr.sensors import create_sensor, SensorConfig, SensorFactory
+from embr.sensors import create_sensor, SensorConfig
 
 
 class CommSubscriber(Node):
@@ -28,31 +28,13 @@ class CommSubscriber(Node):
         self.declare_parameter('config_file', '')
         config_file = self.get_parameter('config_file').value
         
-        # Use default config path if not provided
-        if not config_file:
-            config_file = 'src/embr/config/sensors.json'
-        
-        # Try to load from config file
-        try:
-            configs = SensorFactory.load_config(config_file)
-            config = configs.get('radio')
-            
-            if config is None:
-                self.get_logger().error(f'Radio config not found in config file: {config_file}')
-                raise ValueError(f'Radio configuration not found in {config_file}')
-            
-            self.get_logger().info(f'Loaded Radio config from {config_file}')
-        except Exception as e:
-            self.get_logger().error(f'Failed to load config file: {e}')
-            raise
-        
         # Create Radio connection
         try:
-            self.radio_connection = create_sensor('radio', config)
+            self.radio_connection = create_sensor('radio', config_file)
             self.radio_connection.start()
             
-            conn_type = 'simulated' if 'Sim' in self.radio_connection.__class__.__name__ else 'real'
-            self.get_logger().info(f'Radio connection initialized in {config.mode} mode (using {conn_type} connection)')
+            mode_type = 'simulated' if 'Sim' in self.radio_connection.__class__.__name__ else 'real'
+            self.get_logger().info(f'Radio connection initialized in {mode_type} mode (using {mode_type} connection)')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize Radio: {e}')
             raise

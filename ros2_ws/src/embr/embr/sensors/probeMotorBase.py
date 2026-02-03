@@ -9,12 +9,14 @@ import random
 
 from pymodbus.client import ModbusTcpClient
 
+from embr.sensors import SensorConfig
+
 @dataclass
 class ProbeMotorConfig:
-    mode: str = "real"
-    device: Optional[str] = None
-    baud: Optional[str] = None
-    params: Dict[str, Any] = field(default_factory=dict)
+    mode: str
+    device: Optional[str]
+    baud: Optional[str] 
+    params: Dict[str, Any]
 
 
 class ProbeMotorBase(ABC):
@@ -26,9 +28,15 @@ class ProbeMotorBase(ABC):
         "acceleration" : -1          # unit in step/second^2
     }
 
-    def __init__(self, config: Optional[ProbeMotorConfig] = None):
+    def __init__(self, config: Optional[SensorConfig] = None):
+        
+        
+        self._running = False
+        self.start()
+
         # initialize CONFIG settings' value
         params = config["params"]
+        print("params initialized")
         if params:
             for setting, value in params.items():
                 if params[setting]:
@@ -39,7 +47,7 @@ class ProbeMotorBase(ABC):
             raise ValueError(f"Probe motor configuration is empty")
 
 
-        self._running = False
+        
 
     @abstractmethod
     def start(self) -> bool:
@@ -121,8 +129,8 @@ class RealProbeMotor(ProbeMotorBase):
             else:
                 return response, None
 
-    def _updateMotorSettings(setting : str, value : int) -> bool:
-            response = self._write_registers(REGISTERS["setting"], value)
+    def _updateMotorSettings(self, setting : str, value : int) -> bool:
+            response = self._write_registers(self.REGISTERS["setting"], value)
             if response.isError():
                 return False
         
@@ -133,7 +141,7 @@ class RealProbeMotor(ProbeMotorBase):
             return True
 
         #Establish connection to the probe motor
-        self.client = ModbusTcpClient(DRIVE_IP, port=DRIVE_PORT)
+        self.client = ModbusTcpClient(self.DRIVE_IP, port=self.DRIVE_PORT)
         self.client.connect()
 
         if not self.client.connected:
@@ -175,7 +183,7 @@ class RealProbeMotor(ProbeMotorBase):
         if not self.CONFIG[setting]:
             return False
         
-        elif not _updateMotorSettings(setting,value):
+        elif not self._updateMotorSettings(setting,value):
             return False
         
         else: 

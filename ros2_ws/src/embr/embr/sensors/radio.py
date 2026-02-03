@@ -15,8 +15,8 @@ class RealRadioConnection(RadioConnection):
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
-        self.device = config.device if config else '/dev/ttyAMA1'
-        self.baud = config.baud if config else 57600
+        self.device = config["device"] if config else '/dev/ttyAMA1'
+        self.baud = config["baud"] if config else 57600
         self.connection = None
         self.mav = None
     

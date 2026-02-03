@@ -5,7 +5,7 @@ from rclpy.executors import MultiThreadedExecutor
 
 from std_msgs.msg import Int32
 from msg_interface.msg import ProbeMotorFeedback
-from embr.sensors import create_probeMotor, ProbeMotorConfig, ProbeMotorFactory
+from embr.sensors import create_sensor, ProbeMotorConfig
 
 
 class ProbeMotor(Node):
@@ -19,14 +19,14 @@ class ProbeMotor(Node):
         
         # Declare parameter for config file path
         self.declare_parameter('config_file', '')
-        config_file = self.get_parameter('config_file')
-        config_path = config_file.value
+        config_path = self.get_parameter('config_file').value
+        
 
         # Create probeMotor
         try:
-            self.probeMotor = create_probeMotor('probeMotor', config_path)
-            probeMotor_type = 'simulated' if isinstance(self.probeMotor.__class__.__name__, str) and 'Sim' in self.probeMotor.__class__.__name__ else 'real'
-            self._log.info(f'probe motor initialized in {probeMotor_type} mode (using {probeMotor_type} probe motor)')
+            self.probeMotor = create_sensor('probeMotor', config_path)
+            mode_type = 'simulated' if isinstance(self.probeMotor.__class__.__name__, str) and 'Sim' in self.probeMotor.__class__.__name__ else 'real'
+            self._log.info(f'probe motor initialized in {mode_type} mode (using {mode_type} probe motor)')
             if not self.probeMotor.start():
                 self._log.error("Failed to start probe motor")
         except Exception as e:

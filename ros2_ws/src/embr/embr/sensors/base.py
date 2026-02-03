@@ -8,10 +8,10 @@ from dataclasses import dataclass, field
 @dataclass
 class SensorConfig:
     """Configuration for a sensor instance."""
-    mode: str = "real"  # real, sim
-    device: Optional[str] = None
-    baud: int = 9600
-    params: Dict[str, Any] = field(default_factory=dict)
+    mode: str  # real, sim
+    device: Optional[str]
+    baud: int
+    params: Dict[str, Any]
     
 class Sensor(ABC):
     """Abstract base class for all sensors."""
