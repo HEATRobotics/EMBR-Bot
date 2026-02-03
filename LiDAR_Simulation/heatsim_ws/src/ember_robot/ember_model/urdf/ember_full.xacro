@@ -75,6 +75,7 @@ Cylindar
 <xacro:include filename="main_parts/body.xacro"/>
 <xacro:include filename="main_parts/wheels.xacro"/>
 <xacro:include filename="sensors/SF45B_lidar/SF45B.xacro"/>
+<xacro:include filename="sensors/FLIR_Lepton_ThermalCamera/FLIR_Lepton.xacro"/>
 
 <!-- ################################################ -->
 <!-- MARK: LINKS, JOINTS HERE                         -->

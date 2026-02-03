@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="FLIR_Lepton_Thermal">
+
+  <!-- Bring in the gazebo sensor macro -->
+  <xacro:include filename="FLIR_Lepton.gazebo"/>
+
+
+  <xacro:macro name="FLIR_Thermal" params="parent xyz rpy panel_t panel_w panel_h">
+    
+    <!-- Physical link -->
+    <link name="thermal_camera">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.2"/>
+        <inertia ixx="0.001087473" ixy="0" ixz="0"
+                iyy="0.001087473" iyz="0"
+                izz="0.001092437"/>
+      </inertial>
+
+      <collision name="base_collision">
+        <geometry>
+          <box>
+            <size>${panel_t} ${panel_w} ${panel_h}</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <!-- URDF visual (RViz only, mostly ignored by Ignition (Gazebo Version == Harmonic+)) -->
+      <visual name="thermal_visual">
+        <geometry>
+          <box>
+            <size>${panel_t} ${panel_w} ${panel_h}</size>
+          </box>
+        </geometry>
+        <material name="Thermal_Orange">
+          <color rgba="1 0.35 0 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <!-- (Ignition visual) --> 
+    <gazebo reference="thermal_camera">
+      <visual>
+        <geometry>
+          <box>
+            <size>0.4 0.4 0.4</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>1 0.2 0 1</ambient>
+          <diffuse>1 0.2 0 1</diffuse>
+        </material>
+      </visual>
+    </gazebo>
+
+    <!-- Mount joint -->
+    <joint name="thermal_mount" type="fixed">
+      <parent link="${parent}"/>
+      <child link="thermal_camera"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+
+    <!-- Thermal sensor -->
+    <xacro:FLIR_thermal_gazebo
+      topic="thermal_camera_8bit/image"
+      update_rate="30"
+      visualize="true"/>
+
+  </xacro:macro>
+  <!-- Panel dimensions -->
+  <xacro:property name="panel_t" value="0.10"/>   <!-- thickness (x) -->
+  <xacro:property name="panel_w" value="0.18"/>   <!-- width (y) -->
+  <xacro:property name="panel_h" value="0.12"/>   <!-- height (z) -->
+
+  <xacro:FLIR_Thermal
+    parent="body_link"
+    xyz="${bl/2 + panel_t/2} 0 ${body_z_from_ground}"
+    rpy="0 0 0"
+    panel_t="${panel_t}"
+    panel_w="${panel_w}"
+    panel_h="${panel_h}"/>
+
+</robot>

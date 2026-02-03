@@ -58,9 +58,7 @@
 <link name="body_link">
   <visual name="body_visual">
     <origin rpy="0 0 0" xyz="0 0 ${body_z_from_ground}"/>
-    <!-- NOTE: In your original you had box size="${bl} ${bh} ${bw}" -->
-    <!-- URDF expects box size = x y z, so I'd normally do ${bl} ${bw} ${bh}. -->
-    <!-- Keeping your exact ordering for consistency: -->
+    <!-- URDF expects box size = x y z, so do ${bl} ${bw} ${bh}. -->
     <geometry>
       <box size="${bl} ${bw} ${bh}"/>
     </geometry>

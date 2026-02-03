@@ -31,6 +31,7 @@
         <!-- ================================== -->
         <!-- Thermal Camera Testing Grounds V.1 -->
         <!-- ================================== -->
+        <!-- See: https://gazebosim.org/api/sensors/6/thermalcameraigngazebo.html -->
 
         <!-- Atmospheric Temperature -->
         <atmosphere type="adiabatic">
@@ -246,7 +247,7 @@
             <static>true</static>
 
             <!-- Position: x y z roll pitch yaw -->
-            <pose>16 0 0.5 0 0 0</pose>
+            <pose>-8 2 0.5 0 0 0</pose>
 
             <!-- Custom semantic data -->
             <user_data>
@@ -274,8 +275,15 @@
                         <diffuse>1.0 0.4 0.1 1</diffuse>
                         <specular>0.15 0.15 0.15 1</specular>
                     </material>
+
+                    <!-- Note that you can do varying temperatures, but is not extremely neccessary for prototyping / debugging early stages -->
+                    <!-- Ref: https://gazebosim.org/api/sensors/6/thermalcameraigngazebo.html -->
+                    <!-- However, if using ML, or just for testing at later phases in general, to keep the camera "calibrated" use varying heat sources,
+                            Most likely not a issue in sim (Bsides for priority assesment), thought worth mentioning though incase problems do arrise :).
+                            https://www.flir.com/discover/professional-tools/how-do-you-calibrate-a-thermal-imaging-camera/#:~:text=Beyond%20Self%2DTesting:%20The%20Importance,to%20rely%20on%20its%20readings. 
+                    -->
                     <plugin filename="ignition-gazebo-thermal-system" name="gz::sim::systems::Thermal">
-                        <temperature>285.0</temperature>
+                        <temperature>300.0</temperature>
                     </plugin>
                 </visual>
             </link>
