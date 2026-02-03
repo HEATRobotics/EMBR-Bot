@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="FLIR_Lepton_gazebo">
 
   <!-- Gazebo thermal sensor attachment macro -->
-  <xacro:macro name="FLIR_thermal_gazebo" params="topic update_rate visualize">
+  <xacro:macro name="FLIR_thermal_gazebo" params="topic:=thermal_camera_8bit/image update_rate:=30 visualize:=true">
     <gazebo reference="thermal_camera">
       <sensor name="thermal_camera_8bit" type="thermal">
         <camera>
