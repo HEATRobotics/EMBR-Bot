@@ -283,7 +283,8 @@
                             https://www.flir.com/discover/professional-tools/how-do-you-calibrate-a-thermal-imaging-camera/#:~:text=Beyond%20Self%2DTesting:%20The%20Importance,to%20rely%20on%20its%20readings. 
                     -->
                     <plugin filename="ignition-gazebo-thermal-system" name="gz::sim::systems::Thermal">
-                        <temperature>300.0</temperature>
+                        <!-- Tree root fires can be from 670 - 870 Kelvin on average -->
+                        <temperature>700.0</temperature>
                     </plugin>
                 </visual>
             </link>
