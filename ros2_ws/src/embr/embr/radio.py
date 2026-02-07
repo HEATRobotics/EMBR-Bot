@@ -50,6 +50,10 @@ class CommSubscriber(Node):
         )
 
         self.get_logger().info('Radio Subscriber node initialized')
+
+        self.radio_connection.read()
+        self.get_logger().info('done reading')
+
     
     def temperature_callback(self, msg):
         """Handle temperature messages."""

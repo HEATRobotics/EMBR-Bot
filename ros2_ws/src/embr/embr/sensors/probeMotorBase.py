@@ -34,9 +34,12 @@ class ProbeMotorBase(ABC):
         self._running = False
         self.start()
 
+        print("before config init:")
+        for setting, value in self.CONFIG.items():
+            print(f"{setting} : {value}")
+
         # initialize CONFIG settings' value
         params = config["params"]
-        print("params initialized")
         if params:
             for setting, value in params.items():
                 if params[setting]:
@@ -45,6 +48,10 @@ class ProbeMotorBase(ABC):
                     raise ValueError(f"Invalid configuration setting")
         else:
             raise ValueError(f"Probe motor configuration is empty")
+
+        print("after config init:")
+        for setting, value in self.CONFIG.items():
+            print(f"{setting} : {value}")
 
 
         
@@ -106,12 +113,13 @@ class RealProbeMotor(ProbeMotorBase):
 
     def __init__(self, config: Optional[ProbeMotorConfig] = None):
         super().__init__(config)
-        self.client = None
 
     def _write_registers(self, register, value):
         if register["length"] == 1:
             return self.client.write_registers(register["address"], [value])
         elif register["length"] == 2:
+            high = (value >> 16) & 0xFFFF
+            low = value & 0xFFFF
             return self.client.write_registers(register["address"], [low,high])
 
     def _read_registers(self, register):
