@@ -1,4 +1,5 @@
 """
+Author: MacKenzie
 Thermal Hotspot GPS Locator - ROS Integration Version
 Works with FLIR Lepton 2.5 or 3.1R on PureThermal 3
 
@@ -18,8 +19,8 @@ from flirpy.camera.lepton import Lepton
 
 # Operating mode configuration
 IS_WINDOWS = platform.system() == "Windows"
-SIMULATION_MODE = False  # Set to False when running in ROS on rover
-CALIBRATION_MODE = True  # Set to True for testing with real camera + fake GPS
+SIMULATION_MODE = True  # Set to False when running in ROS on rover
+CALIBRATION_MODE = False  # Set to True for testing with real camera + fake GPS
 USE_ROS = not SIMULATION_MODE and not CALIBRATION_MODE  # Use ROS only in production
 
 # ROS imports (only when USE_ROS is True)

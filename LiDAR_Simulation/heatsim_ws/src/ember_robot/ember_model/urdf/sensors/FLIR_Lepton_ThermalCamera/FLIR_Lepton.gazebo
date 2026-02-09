@@ -6,10 +6,12 @@
     <gazebo reference="thermal_camera">
       <sensor name="thermal_camera_8bit" type="thermal">
         <camera>
-          <horizontal_fov>1.047</horizontal_fov>
+          <!-- Radians -> Deg -->
+          <!-- Check Thermal Script -->
+          <horizontal_fov>0.89</horizontal_fov>
           <image>
-            <width>320</width>
-            <height>240</height>
+            <width>80</width>
+            <height>60</height>
             <format>L8</format>
           </image>
           <!-- Allowances for camera viewing distance in metres.-->
