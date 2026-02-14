@@ -34,3 +34,29 @@ services:
     
     # Keep container running
     command: /bin/bash
+
+  ember_robot_sim:
+    build:
+        context: ./LiDAR_Simulation
+        dockerfile: Dockerfile
+    container_name: ember_gz_sim
+    image: gz_sim
+    restart: "no"
+
+    network_mode: host
+    ipc: host
+
+    environment:
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_INDIRECT=0
+
+    working_dir: /home/ros/heatsim_ws
+    user: ros
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./LiDAR_Simulation/heatsim_ws:/home/ros/heatsim_ws
+
+    security_opt:
+      - seccomp:unconfined

@@ -1,5 +1,5 @@
 services:
-  heat_robotics:
+  ember_robot_sim:
     container_name: ember_gz_sim
     image: gz_sim
     restart: "no"

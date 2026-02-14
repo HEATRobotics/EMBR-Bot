@@ -143,6 +143,7 @@ docker compose up -d
 
 # Access container
 docker compose exec embr-sim /bin/bash
+docker compose exec ember_robot_sim /bin/bash
 
 # Inside container: Source ROS
 source install/setup.bash
