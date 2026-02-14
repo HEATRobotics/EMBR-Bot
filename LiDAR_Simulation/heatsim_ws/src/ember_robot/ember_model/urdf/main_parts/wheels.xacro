@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!-- Ember_Robot_Sim 1.0                                 -->
+<!-- ################################################    -->
+<!-- URDF DESCRIPTION OF THE EMBER BOT                   -->
+<!-- Author: Maison Gulyas | (250) 258 - 1736            -->
+<!-- ################################################    -->
+
+<robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ################################################    -->
+<!--            Geometry & Constants                     -->
+<!--            MARK: G & C                              -->
+<!-- ################################################    -->
+
+<!-- Useful Constants -->
+<xacro:property name="pi_const" value="3.14159265"/>
+
+<!-- Wheel Dimensions -->
+<xacro:property name="r" value="0.15"/>  <!-- Radius -->
+<xacro:property name="w" value="0.10"/>  <!-- Width  -->
+
+<!-- Left/right wheel COM Y placement -->
+<xacro:property name="wheel_com_y" value="${w/2}"/>
+
+<!-- Keep wheel axles slightly inside the body ends -->
+<xacro:property name="wheel_axle_margin" value="0.02"/>
+
+<!-- Front/Rear wheel axle X positions (relative to body center) -->
+<xacro:property name="wheel_axle_y" value="${ bl/2 - wheel_axle_margin }"/>
+
+<!-- ################################################    -->
+<!--                  Mass & Inertia                     -->
+<!--                  MARK: M & I                        -->
+<!-- ################################################    -->
+
+<!-- Density -->
+<xacro:property name="wheel_density" value="2710.0"/>  
+
+<!-- Mass -->
+<xacro:property name="wheel_mass" value="${wheel_density*pi_const*r*r*w}"/>
+
+<!-- Wheel inertia -->
+<xacro:property name="Iz_wheel" value="${0.5*wheel_mass*r*r}"/>
+<xacro:property name="I_wheel" value="${(1.0/12.0)*wheel_mass*(3.0*r*r + w*w)}"/>
+
+<!-- Inertia macros -->
+
+<xacro:macro name="inertia_wheel">
+    <inertial>
+        <origin rpy="${pi_const/2} 0 0" xyz="0 0 0"/>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${I_wheel}" ixy="0" ixz="0" iyy="${I_wheel}" iyz="0" izz="${Iz_wheel}"/>
+    </inertial>
+</xacro:macro>
+
+
+<!-- ################################################ -->
+<!--            Include Additional Files              -->
+<!--            MARK: File Incl.                      -->
+<!-- ################################################ -->
+
+<xacro:include filename="wheels.gazebo"/>
+
+<!-- ################################################ -->
+<!-- MARK: LINKS, JOINTS HERE                        -->
+<!-- ################################################ -->
+
+<!-- ################################################  -->
+<!-- START: Front Left Wheel of the Robot + Joint      -->
+<!-- ################################################  -->
+
+<joint name="front_left_wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="flw_link"/>
+    <origin xyz="${wheel_axle_y} ${wheel_com_y} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="flw_link">
+    <visual>
+        <origin xyz="0 ${wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 ${wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- END: Front Left wheel                             -->
+<!-- ################################################  -->
+
+<!-- ################################################  -->
+<!-- START: Front Right wheel of the Robot + Joint     -->
+<!-- ################################################  -->
+
+<joint name="front_right_wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="frw_link"/>
+    <origin xyz="${wheel_axle_y} ${-wheel_com_y} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="frw_link">
+    <visual>
+        <origin xyz="0 ${-wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 ${-wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- END: Front Right Wheel                            -->
+<!-- ################################################  -->
+
+<!-- ################################################  -->
+<!-- START: Back Left Wheel of the Robot + Joint       -->
+<!-- ################################################  -->
+
+<joint name="back_left_wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="blw_link"/>
+    <origin xyz="${-wheel_axle_y} ${wheel_com_y} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="blw_link">
+    <visual>
+        <origin xyz="0 ${wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 ${wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- END: Back Left Wheel                              -->
+<!-- ################################################  -->
+
+<!-- ################################################  -->
+<!-- START: Back Right Wheel of the Robot + Joint       -->
+<!-- ################################################  -->
+
+<joint name="back_right_wheel_joint" type="continuous">
+    <parent link="body_link"/>
+    <child link="brw_link"/>
+    <origin xyz="${-wheel_axle_y} ${-wheel_com_y} ${r}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+<link name="brw_link">
+    <visual>
+        <origin xyz="0 ${-wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </visual>
+
+    <collision>
+        <origin xyz="0 ${-wheel_axle_y} 0" rpy="${pi_const/2} 0 0"/>
+        <geometry><cylinder radius="${r}" length="${w}"/></geometry>
+    </collision>
+
+    <xacro:inertia_wheel/>
+</link>
+
+<!-- ################################################  -->
+<!-- END: Back Right Wheel                              -->
+<!-- ################################################  -->
+
+</robot>

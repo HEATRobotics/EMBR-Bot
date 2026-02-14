@@ -1,0 +1,139 @@
+<sdf version='1.11'>
+  <model name='SF45B_lidar'>
+    <link name='base'>
+      <inertial>
+        <pose>0 0 0.029335 0 0 0</pose>
+        <mass>1.2</mass>
+        <inertia>
+          <ixx>0.001087473</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.001087473</iyy>
+          <iyz>0</iyz>
+          <izz>0.0010924369999999999</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_collision_collision'>
+        <pose>0 0 0.029335 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.05867</length>
+            <radius>0.04267</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='base_visual_visual'>
+        <pose>0 0 0.029335 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.05867</length>
+            <radius>0.04267</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.125 0.37500003 1 1</diffuse>
+          <ambient>0.125 0.37500003 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='joint' type='revolute'>
+      <pose relative_to='base'>0 0 0.088005 0 0 0</pose>
+      <parent>base</parent>
+      <child>top</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <effort>10</effort>
+          <velocity>6.2800000000000002</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='top'>
+      <pose relative_to='joint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.10000000000000001</mass>
+        <inertia>
+          <ixx>9.0623000000000003e-05</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.0623000000000003e-05</iyy>
+          <iyz>0</iyz>
+          <izz>9.1036e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name='top_collision_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.05867</length>
+            <radius>0.04267</radius>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
+      </collision>
+      <visual name='top_visual_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.05867</length>
+            <radius>0.04267</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.3125 0.3125 0.3125 1</diffuse>
+          <ambient>0.3125 0.3125 0.3125 1</ambient>
+        </material>
+      </visual>
+      <sensor name='gpu_lidar_sensor' type='gpu_lidar'>
+        <pose relative_to='top'>0 0 0 0 0 0</pose>
+        <visualize>true</visualize>
+        <always_on>true</always_on>
+        <update_rate>10</update_rate>
+        <topic>scan</topic>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.1415926535900001</min_angle>
+              <max_angle>3.1415926535900001</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>32</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.53529247999999996</min_angle>
+              <max_angle>0.18622663</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.050000000000000003</min>
+            <max>50</max>
+            <resolution>0.02</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </link>
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+  </model>
+</sdf>

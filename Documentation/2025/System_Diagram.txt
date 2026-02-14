@@ -1,0 +1,169 @@
+workspace {
+  model {
+    
+    user = person "Controller" "Remotely controls the robot in wildfire areas"{ 
+            tags "IncludeInSystemContext" 
+        }
+    herelinkGround = softwareSystem "HereLink Ground Unit" "Physical remote controller" { 
+            tags "IncludeInSystemContext" 
+        }
+    fireStation = softwareSystem "Fire Station Website" "Receives and processes data from the robot." { 
+            tags "IncludeInSystemContext, Website" 
+        }
+
+    robot = softwareSystem "Robot" "Navigates " {
+        tags "Robot"
+      devices = container "Devices" {
+        tags "Devices"  
+        temperatureSensor = component "Temperature Sensor" "" "Sensor"{ 
+            tags "IncludeInSystemContext, Devices" 
+        }
+        thermalCamera = component "FLIR Lepton 3.1R" "" "Camera"{ 
+            tags "IncludeInSystemContext, Devices"  
+        }
+        probeMotor = component "Temperature Probe Motor" "" "Motor"{ 
+            tags "IncludeInSystemContext, Devices"  
+        }
+        radio = component "RFD900x-US Radio" "" "Radio"{ 
+            tags "IncludeInSystemContext, Devices"  
+        }
+        fpvCamera = component "Hawkeye V5" "FPV Camera" "Camera"{ 
+            tags "IncludeInSystemContext, Devices"  
+        }
+        cubeOrange = component "Cube Orange" "Motor Controller"{
+            tags "IncludeInSystemContext, Devices, Cube"
+        }
+        motors = component "Motors"{ 
+            tags "IncludeInSystemContext, Devices" 
+        }
+        2DLidar = component "Lightware SF45/B" "2D Lidar" "Camera"{
+            tags "IncludeInSystemContext, Devices"
+        }
+        herelinkAir = component "HereLink Air Unit" "Listens to ground unit & transmits video streams" "Radio"{
+            tags "IncludeInSystemContext, Devices"
+        }
+        here4 = component "Here4" "GPS module"{
+            tags "IncludeInSystemContext, Devices"
+        }
+      }
+
+      rpi = container "Raspberry Pi" {
+        tempNode = component "Temperature Sensor Node" "" "Ros2 Node (Server)"{ 
+            tags "IncludeInSystemContext" 
+        }
+        thermalStream = component "Thermal Image Streaming Unit" "Highlights hotspots on FLIR frame and streams out via HDMI" "Ros2 Node"{ 
+            tags "IncludeInSystemContext" 
+        }
+        hotspotLocator = component "Hotspot Locating Unit" "Finds GPS coordinate of hotspot from FLIR frame" "Ros2 Node"{
+            tags "IncludeInSystemContext" 
+        }
+        navigator = component "Navigation Unit" "" "Ros2 Node"{ 
+            tags "IncludeInSystemContext" 
+        }
+        coms = component "Radio Transmitter Node" "Handles Data Transmission" "Ros2 Node"{ 
+            tags "IncludeInSystemContext" 
+        }
+        cubeConnector = component "Cube Connection Unit" "Sends commands and receives data from Cube Orange" "Ros2 Node"{
+            tags "IncludeInSystemContext"
+        }
+        probeServer = component "Probe Controller Unit" "Sends extend and retract commands to temp probe" "Ros2 Node (Server)"{
+            tags "IncludeInSystemContext"
+        }
+        
+        
+      }
+    }
+
+    # --- RELATIONSHIPS ---
+    # Note: Syntax is -> destination "Description" "Technology" "TAG"
+
+    # Physical / Human Connections (Tagged "Physical")
+    user -> hereLinkGround "Controls" "" "Physical"
+    user -> fireStation "Monitors bots, controlls missions" "" "Physical"
+    
+    temperatureSensor -> tempNode "Sends temperature data to" "GPIO" "Physical"
+    thermalCamera -> thermalStream "Sends thermal image frames to" "USB-C" "Physical"
+    radio -> coms "Mission area coords, Temp Threshold" "UART" "Physical"
+    probeMotor -> probeServer "Control Signal" "Ethernet" "Physical"
+    fpvCamera -> herelinkAir "Video Feed" "HDMI" "Physical"
+    2DLidar -> cubeOrange "Distance Data" "I2C/UART" "Physical"
+    here4 -> cubeOrange "GPS Data" "CAN" "Physical"
+    cubeConnector -> cubeOrange "Mavlink" "UART" "Physical"
+    herelinkAir -> herelinkGround "Telemetry/Video" "Wireless" "Physical"
+    cubeOrange -> motors "PWM" "Wire" "Physical"
+    hereLinkAir -> cubeOrange "RC Override" "SBUS" "Physical"
+    thermalStream -> herelinkAir "Thermal Frames with hotspots" "HDMI" "Physical"
+    
+    # ROS Software Connections (Tagged "ROS")
+    coms -> radio "BotID, GPS, IMU, Temp" "UART Write" "Physical" 
+    
+    tempNode -> coms "Temperature" "Topic" "ROS"
+    thermalStream -> hotspotLocator "Thermal Image Frames" "Topic" "ROS"
+    coms -> navigator "Mission area coordinates, Temp Threshold, # of temp readings / hotspot" "Topic" "ROS"
+    navigator -> tempNode "Read Command" "Service" "ROS"
+    tempNode -> navigator "Success/failure feedback" "Response" "ROS"
+    navigator -> probeServer "Move Commands" "Service" "ROS"
+    probeServer -> navigator "Feedback" "Response" "ROS"
+    navigator -> thermalStream "Temp Threshold (Once)" "Topic" "ROS"
+    cubeConnector -> thermalStream "GPS, IMU" "Topic" "ROS"
+    cubeConnector -> coms "GPS, IMU" "Topic" "ROS"
+    cubeConnector -> navigator "GPS, IMU" "Topic" "ROS"
+    navigator -> cubeConnector "GPS (dest)" "Topic" "ROS"
+    hotspotLocator -> navigator "GPS (potential hotspot)" "Topic" "ROS"
+    
+    # External Data Links
+    radio -> fireStation "BotID, GPS, IMU, Temp" "Telemetry" "Physical"
+    fireStation -> radio "Mission area coordinates, Temp Threshold, # of temp readings / hotspot" "Telemetry" "Physical"
+
+  }
+
+  views {
+
+    
+    component rpi {
+        description "Full View"
+      include "element.tag==IncludeInSystemContext"
+    }
+    
+    styles {
+        element "Website" {
+            shape WebBrowser
+        }
+        
+        element "Robot" {
+            shape Robot
+        }
+        
+        element "Devices" {
+            shape Circle
+            background #999999
+            color #ffffff
+        }
+        
+        element "Cube" {
+            shape Box
+            background #EE7B10
+            color #000000
+        }
+        element "Container" {
+            border Solid
+        }
+        
+        # --- NEW STYLES FOR CONNECTIONS ---
+        relationship "Physical" {
+            style Solid
+            color #000000
+            thickness 5
+        }
+        
+        relationship "ROS" {
+            style Dotted
+            color #000000
+            thickness 5
+            routing Direct
+        }
+    }
+
+    theme default
+  }
+}
