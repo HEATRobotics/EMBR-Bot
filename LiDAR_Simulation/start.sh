@@ -1,2 +1,2 @@
 #!/bin/bash
-docker start heat_jazzy && docker exec -it heat_jazzy bash
+docker start ember_gz_sim && docker exec -it ember_gz_sim bash

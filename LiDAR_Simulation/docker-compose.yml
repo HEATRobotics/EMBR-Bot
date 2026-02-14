@@ -1,7 +1,7 @@
 services:
   heat_robotics:
-    container_name: heat_jazzy
-    image: heat_rb_jazzy
+    container_name: ember_gz_sim
+    image: gz_sim
     restart: "no"
 
     network_mode: host

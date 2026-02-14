@@ -22,6 +22,7 @@ See /scan/points Point Cloud
 ```Bash
 gz topic -e -t /scan/points | head -n 40
 ```
+
 ## 3D Visualization
 Check ROS Version, Should Be ROS2 
 ```Bash
@@ -59,3 +60,10 @@ Will dump PCD files to your current directory... **Change This?**
 move *.pcd heatsim_ws\src\ember_robot\datarecordings\Point_Cloud_Data
 ```
 (Look for an alternative way to do this)
+
+## Docker Commands 
+
+Snapshot of the current state of your services
+```Bash
+docker compose ps
+```

@@ -125,7 +125,7 @@ echo ""
 # Build the Docker image
 echo ""
 echo "Building Docker image (this may take 5-10 minutes)..."
-docker build -t heat_rb_jazzy .
+docker build -t gz_sim .
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker build failed!"
@@ -137,11 +137,11 @@ echo ""
 
 # Clean up any existing container
 echo "Checking for existing container..."
-if docker ps -a | grep -q heat_jazzy; then
+if docker ps -a | grep -q ember_gz_sim; then
     echo "Removing existing container..."
-    docker stop heat_jazzy 2>/dev/null || true
+    docker stop ember_gz_sim 2>/dev/null || true
     sleep 1
-    docker rm -f heat_jazzy 2>/dev/null || true
+    docker rm -f ember_gz_sim 2>/dev/null || true
     sleep 1
 fi
 
@@ -175,7 +175,7 @@ fi
 sleep 2
 
 # Check if container is running
-if docker ps | grep -q heat_jazzy; then
+if docker ps | grep -q ember_gz_sim; then
     echo ""
     echo "===================================="
     echo "✓ Setup Complete!"
@@ -185,7 +185,7 @@ if docker ps | grep -q heat_jazzy; then
     
     # Verify display settings in container
     echo "🔍 Verifying container display settings..."
-    CONTAINER_DISPLAY=$(docker exec heat_jazzy printenv DISPLAY 2>/dev/null || echo "NOT SET")
+    CONTAINER_DISPLAY=$(docker exec ember_gz_sim printenv DISPLAY 2>/dev/null || echo "NOT SET")
     echo "  Host DISPLAY: ${DISPLAY:-NOT SET}"
     echo "  Container DISPLAY: $CONTAINER_DISPLAY"
     
@@ -212,10 +212,10 @@ if docker ps | grep -q heat_jazzy; then
     echo ""
     
     echo "To access the container:"
-    echo "  docker exec -it heat_jazzy bash"
+    echo "  docker exec -it ember_gz_sim bash"
     echo ""
     echo "To test Gazebo:"
-    echo "  docker exec -it heat_jazzy gz sim"
+    echo "  docker exec -it ember_gz_sim gz sim"
     echo ""
     echo "To stop the container:"
     echo "  docker compose down"
@@ -228,7 +228,7 @@ if docker ps | grep -q heat_jazzy; then
         if [[ "$response" =~ ^[Yy]$ ]]; then
             echo ""
             echo "Testing GUI with a simple X application..."
-            if docker exec heat_jazzy bash -c "DISPLAY=$DISPLAY xeyes" 2>/dev/null &
+            if docker exec ember_gz_sim bash -c "DISPLAY=$DISPLAY xeyes" 2>/dev/null &
             then
                 echo "✓ If you see a small window with eyes, GUI is working!"
                 echo "  Close it and press Enter to continue..."
@@ -242,9 +242,9 @@ if docker ps | grep -q heat_jazzy; then
     # Automatically enter the container
     echo ""
     echo "Entering container..."
-    docker exec -it heat_jazzy bash
+    docker exec -it ember_gz_sim bash
 else
     echo "❌ Container failed to start. Check logs with:"
-    echo "  docker logs heat_jazzy"
+    echo "  docker logs ember_gz_sim"
     exit 1
 fi
