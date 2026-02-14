@@ -13,6 +13,11 @@ See A Topic
 gz topic -e -t /topic
 ```
 
+View Topics In A Graph
+```Bash
+rqt_graph
+```
+
 See /scan/points Point Cloud
 ```Bash
 gz topic -e -t /scan/points | head -n 40
