@@ -12,6 +12,14 @@ See A Topic
 ```Bash
 gz topic -e -t /topic
 ```
+Or
+```Bash
+#To see the topic once
+ros2 topic echo --once /topic_name
+
+#To see the topic a limited amount of times
+ros2 topic echo /topic_name | head -n 50
+```
 
 View Topics In A Graph
 ```Bash

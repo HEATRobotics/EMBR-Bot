@@ -1,6 +1,0 @@
-services:
-  ember_robot_sim:
-    environment:
-      - DISPLAY=host.docker.internal:0
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw

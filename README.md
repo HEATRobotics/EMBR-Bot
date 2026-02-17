@@ -30,6 +30,8 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
 - [Docker Simulation](#docker-simulation)
   - [Quick Start](#docker-setup-for-development-off-raspberry-pi)
   - [Docker Commands](#docker-documentation)
+- [Gazebo Simulation](#gazebo-simulation)
+  - [Quick Start](#docker-setup--gazebo-simulation-for-embr)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Automated Installation](#automated-installation)
@@ -139,22 +141,61 @@ For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/c
 To start Docker and run EMBR in simulation mode:
 ```bash
 # Build and start container
-docker compose up -d <service_name >
+docker compose up -d embr_sim
 
 # Access container
 docker compose exec embr-sim /bin/bash
-docker compose exec ember_robot_sim /bin/bash
 
 # Inside container: Source ROS
 source install/setup.bash
 
 # Launch with simulation config
+
 ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
 ```
 
 ### Docker Documentation
 - **[DOCKER_CHEATSHEET.md](DOCKER_CHEATSHEET.md)** - Quick command reference
 - **[Configuration Guide](ros2_ws/src/embr/config/CONFIG.md)** - Sensor config documentation
+
+## Docker Setup & Gazebo Simulation for Embr 
+To enter the container:
+```Bash
+# To Enter the Gazebo Simulation Container if already running
+bash start.sh 
+
+# if Gazebo Simulation is not running run this:
+bash setup.sh
+```
+
+To run the sim 
+```Bash
+#While in container
+bash sim.sh
+```
+
+To Visualize LiDAR Point Cloud
+```Bash
+#In a second terminal after running bash sim.sh in another
+bash start.sh
+rviz2
+```
+```Bash
+#While in rviz2:
+1. Set the "Fixed Frame" to: ember_bot/sf45b_top/sf45b_gpu_lidar
+2. Press "Add" and add PointCloud2
+3. Set PountCloud2 topic to: /scan/points
+```
+
+To Visualize The Thermal Camera in Gazebo
+```Bash
+1. Click the three buttons in the top right
+2. Search "Image Display"
+3. Set topic to: /thermal_camera_8bit/image
+```
+
+Troubleshooting:
+1. If ran ```bash sim.sh``` while in container, and the sim does not show, most likely there is an issue within the DISPLAY process. The usual fix is exiting the container and running ```bash setup.sh```. This will force a clean build.
 
 ## Installation
 
