@@ -32,6 +32,7 @@ EMBR is designed to assist in wildfire response by mapping hot spots that may re
   - [Docker Commands](#docker-documentation)
 - [Gazebo Simulation](#gazebo-simulation)
   - [Quick Start](#docker-setup--gazebo-simulation-for-embr)
+- [Docker Communication](#container-communication)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Automated Installation](#automated-installation)
@@ -204,6 +205,25 @@ bash controls.sh
 Troubleshooting:
 1. If ran ```bash sim.sh``` while in container, and the sim does not show, most likely there is an issue within the DISPLAY process. The usual fix is exiting the container and running ```bash setup.sh```. This will force a clean build.
 2. For further troubleshooting check simulation documentation with ./LIDAR_SIMULATION
+
+## Container Communication
+In the docker-compose.yml file the service ```embr-sim```  is linked to ```ember_robot_sim``` and refers to it as ```gz_simulation```
+
+When ```ember_robot_sim``` is running and the simulation is live, you can get its topics within ```embr-sim``` by running commands like:
+```Bash
+# See all existing topics
+ros2 topic list -t
+
+#To see the topic once
+ros2 topic echo --once /topic_name
+
+#To see the topic a limited amount of times
+ros2 topic echo /topic_name | head -n 50
+```
+
+Note that these still operate as seperate containers, so dependencies only exist respectively.
+
+Refer To: [Networking In Compose](https://docs.docker.com/compose/how-tos/networking/)
 
 ## Installation
 
