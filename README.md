@@ -194,8 +194,16 @@ To Visualize The Thermal Camera in Gazebo
 3. Set topic to: /thermal_camera_8bit/image
 ```
 
+To Control Embr
+```Bash
+#Again we will need another terminal to access the container
+bash start.sh
+bash controls.sh
+```
+
 Troubleshooting:
 1. If ran ```bash sim.sh``` while in container, and the sim does not show, most likely there is an issue within the DISPLAY process. The usual fix is exiting the container and running ```bash setup.sh```. This will force a clean build.
+2. For further troubleshooting check simulation documentation with ./LIDAR_SIMULATION
 
 ## Installation
 

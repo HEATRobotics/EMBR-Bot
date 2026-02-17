@@ -2,20 +2,6 @@
 ROS2 Jazzy + Gazebo Harmonic development environment for robotics simulation, fully containerized with Docker for cross-platform compatibility.
 Simulation Goal: Working LiDAR Robot🤖🫨🚨
 
-## 🚀 Quick Start
-**If Container exists**
-```bash
-bash start.sh
-```
-## 🚨 If Having Display Issues
-```bash
-bash diagnose-display.sh
-```
-## 🚨 If Having Build Issues on "bash sim.sh"
-*Must be in the container*
-```bash
-rm -rf build install log
-```
 ## 🚨 If Having LF/CRLF Issues
 : invalid optionline 2: set: -
 set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
@@ -26,6 +12,7 @@ set: usage: set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
 
 **Make sure files End of Line Sequence are in LF**
 Can also change this in your .vscode/launch..json by adding. 
+A big reasoning for this is for scrip usages as they have a preffered line ending sequence etc. 
 ```Javascript
 {
   "files.eol": "\n", 
@@ -100,56 +87,6 @@ exit
 docker compose down
 ```
 
-## 📁 Project Structure
-
-```
-LiDAR_Simulation/
-├── Dockerfile                    # Container image definition
-├── docker-compose.yml            # Base container configuration
-├── docker-compose.linux.yml      # Linux-specific overrides
-├── docker-compose.windows.yml    # Windows-specific overrides
-├── docker-compose.mac.yml        # macOS-specific overrides
-├── entrypoint.sh                 # Container startup script
-├── setup.sh                      # Initial setup script (first time)
-├── start.sh                      # Quick start script (daily use)
-├── diagnose-display.sh           # Check Display If having issues
-```
-
-## 🛠️ Development Workflow
-
-### Running Gazebo Simulations
-```bash
-# Launch Gazebo
-gz sim
-```
-
-## 🔧 Common Commands
-
-### Container Management
-
-```bash
-# Start container (if stopped)
-docker start heat_jazzy
-
-# Enter running container
-docker exec -it heat_jazzy bash
-
-# Stop container
-docker compose down
-
-# View container logs
-docker logs heat_jazzy
-
-# Rebuild image (after Dockerfile changes)
-docker compose down
-docker build -t heat_rb_jazzy .
-docker compose up -d
-```
-
-### ROS2 Jazzy Commands
-```
-...
-```
 ## 🖥️ Platform-Specific Notes
 
 ### Windows
@@ -176,7 +113,7 @@ docker compose up -d
 
 ## 🐛 Troubleshooting
 
-### GUI Doesn't Open
+### GUI Still Doesnt Open After Clean Builds
 
 **Windows:**
 - Verify VcXsrv is running (check system tray)
@@ -252,21 +189,12 @@ git reset --hard
 - [Docker Documentation](https://docs.docker.com/)
 - [ROS-Gazebo Integration](https://github.com/gazebosim/ros_gz)
 - [Universal Robot Description Format in Gazebo](https://classic.gazebosim.org/tutorials/?tut=ros_urdf)
-
+Support
 ---
-
-## 👥 Team
-
-HEAT Robotics - [Your Team Info]
-
----
-
-## 🆘 Support
 
 For issues or questions:
 - Open an issue on GitHub
 - Contact: [Maison Gulyas (250)258 1736] : Let me know you're a Heat Robotics Member, will get lost in emails but can also contact @ maison.personal03@gmail.com
-
 
 ---
 
