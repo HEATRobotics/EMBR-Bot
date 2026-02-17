@@ -142,10 +142,10 @@ For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/c
 To start Docker and run EMBR in simulation mode:
 ```bash
 # Build and start container
-docker compose up -d embr-sim
+docker compose up -d embr-ras-sim
 
 # Access container
-docker compose exec embr-sim /bin/bash
+docker compose exec embr-ras-sim /bin/bash
 
 # Inside container: Source ROS
 source install/setup.bash
@@ -207,13 +207,13 @@ Troubleshooting:
 2. For further troubleshooting check simulation documentation with ./LIDAR_SIMULATION
 
 ## Container Communication
-In the docker-compose.yml file the service ```embr-sim```   communicates with ```ember_robot_sim``` on a defined network. This is possible since they are both in the same compose file. 
+In the docker-compose.yml file the service ```embr-ras-sim```   communicates with ```ember_robot_sim``` on a defined network. This is possible since they are both in the same compose file. 
 
 - [Networking Overview](https://docs.docker.com/engine/network/)
 - [Compose Networking Specifics](https://docs.docker.com/compose/how-tos/networking/)
 - [Bridge Networks](https://docs.docker.com/engine/network/drivers/bridge/)
 
-When ```ember_robot_sim``` is running and the simulation is live, you can get its topics within ```embr-sim``` by running commands like:
+When ```ember_robot_sim``` is running and the simulation is live, you can get its topics within ```embr-ras-sim``` by running commands like:
 ```Bash
 # See all existing topics
 ros2 topic list -t

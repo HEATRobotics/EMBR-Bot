@@ -17,13 +17,13 @@ docker compose restart
 ### Access Container
 ```bash
 # Primary terminal
-docker compose exec embr-sim /bin/bash
+docker compose exec embr-ras-sim /bin/bash
 
 # Additional terminal
-docker exec -it embr-sim /bin/bash
+docker exec -it embr-ras-sim /bin/bash
 
 # Run single command
-docker exec embr-sim ros2 topic list
+docker exec embr-ras-sim ros2 topic list
 ```
 
 ### Build & Update
@@ -97,8 +97,8 @@ ros2 node info /temperature_publisher
 ### View Logs
 ```bash
 # Container logs
-docker logs embr-sim
-docker logs -f embr-sim  # Follow
+docker logs embr-ras-sim
+docker logs -f embr-ras-sim  # Follow
 
 # ROS logs (inside container)
 ros2 run embr getTemp --ros-args --log-level debug
@@ -108,7 +108,7 @@ ros2 run embr getTemp --ros-args --log-level debug
 ```bash
 # Container status
 docker ps
-docker stats embr-sim
+docker stats embr-ras-sim
 
 # ROS status (inside container)
 ros2 doctor
@@ -152,26 +152,26 @@ volumes:
   - ./my_config.json:/workspace/ros2_ws/src/embr/config/sensors.json
 
 # Or copy into container
-docker cp my_config.json embr-sim:/workspace/ros2_ws/src/embr/config/
+docker cp my_config.json embr-ras-sim:/workspace/ros2_ws/src/embr/config/
 ```
 
 ## Multi-Terminal Workflow
 
 ### Terminal 1: Run Nodes
 ```bash
-docker compose exec embr-sim /bin/bash
+docker compose exec embr-ras-sim /bin/bash
 ros2 launch embr embr_launch.py
 ```
 
 ### Terminal 2: Monitor Topics
 ```bash
-docker exec -it embr-sim /bin/bash
+docker exec -it embr-ras-sim /bin/bash
 ros2 topic echo /temperature
 ```
 
 ### Terminal 3: Development
 ```bash
-docker exec -it embr-sim /bin/bash
+docker exec -it embr-ras-sim /bin/bash
 cd /workspace/ros2_ws
 colcon build --packages-select embr
 ```
@@ -181,10 +181,10 @@ colcon build --packages-select embr
 ### Check Resources
 ```bash
 # Docker resource usage
-docker stats embr-sim
+docker stats embr-ras-sim
 
 # Container processes
-docker top embr-sim
+docker top embr-ras-sim
 
 # Disk usage
 docker system df
@@ -240,7 +240,7 @@ docker compose --profile tools up -d
 ### Save Container State
 ```bash
 # Commit container to image
-docker commit embr-sim embr-bot:backup
+docker commit embr-ras-sim embr-bot:backup
 
 # Save image to file
 docker save embr-bot:backup -o embr-backup.tar
@@ -252,11 +252,11 @@ docker load -i embr-backup.tar
 ### Export Logs
 ```bash
 # Export container logs
-docker logs embr-sim > container.log 2>&1
+docker logs embr-ras-sim > container.log 2>&1
 
 # Export ROS logs (inside container)
 tar -czf logs.tar.gz /workspace/ros2_ws/log/
-docker cp embr-sim:/workspace/ros2_ws/log/logs.tar.gz .
+docker cp embr-ras-sim:/workspace/ros2_ws/log/logs.tar.gz .
 ```
 
 ## CI/CD
@@ -292,13 +292,13 @@ Add to your `~/.bashrc`:
 ```bash
 alias embr-start='docker compose up -d'
 alias embr-stop='docker compose down'
-alias embr-shell='docker compose exec embr-sim /bin/bash'
-alias embr-logs='docker logs -f embr-sim'
+alias embr-shell='docker compose exec embr-ras-sim /bin/bash'
+alias embr-logs='docker logs -f embr-ras-sim'
 ```
 
 ### One-Liner Launch
 ```bash
-docker compose up -d && docker compose exec embr-sim bash -c "
+docker compose up -d && docker compose exec embr-ras-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
   ros2 launch embr embr_launch.py
@@ -308,14 +308,14 @@ docker compose up -d && docker compose exec embr-sim bash -c "
 ### Background Launch
 ```bash
 # Launch in background
-docker exec -d embr-sim bash -c "
+docker exec -d embr-ras-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
   ros2 launch embr embr_launch.py
 "
 
 # Then monitor from outside
-docker exec embr-sim bash -c "
+docker exec embr-ras-sim bash -c "
   source /opt/ros/humble/setup.bash &&
   source /workspace/ros2_ws/install/setup.bash &&
   ros2 topic list
@@ -327,7 +327,7 @@ docker exec embr-sim bash -c "
 ### Issue: Container won't start
 ```bash
 # Check logs
-docker compose logs embr-sim
+docker compose logs embr-ras-sim
 
 # Try recreating
 docker compose down
@@ -337,10 +337,10 @@ docker compose up -d
 ### Issue: Can't connect to topics
 ```bash
 # Check ROS_DOMAIN_ID matches
-docker exec embr-sim printenv | grep ROS_DOMAIN_ID
+docker exec embr-ras-sim printenv | grep ROS_DOMAIN_ID
 
 # Check network mode
-docker inspect embr-sim | grep NetworkMode
+docker inspect embr-ras-sim | grep NetworkMode
 ```
 
 ### Issue: Build fails
@@ -363,4 +363,4 @@ docker system df
 
 ---
 
-**Quick Start**: `docker compose up -d && docker compose exec embr-sim /bin/bash`
+**Quick Start**: `docker compose up -d && docker compose exec embr-ras-sim /bin/bash`

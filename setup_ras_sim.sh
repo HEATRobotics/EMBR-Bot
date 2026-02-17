@@ -3,7 +3,7 @@
 set -e
 
 # Build and start container
-docker compose up -d embr-sim
+docker compose up -d embr-ras-sim
 
 # Access container & Source 
-docker compose exec embr-sim bash -c "source install/setup.bash && bash"
+docker compose exec embr-ras-sim bash -c "source install/setup.bash && bash"

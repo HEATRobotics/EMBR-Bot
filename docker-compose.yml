@@ -1,10 +1,10 @@
 services:
-  embr-sim:
+  embr-ras-sim:
     build:
       context: .
       dockerfile: Dockerfile
     image: embr-bot:simulation
-    container_name: embr-simulation
+    container_name: embr-ras-simulation
     hostname: embr-raspberrypi
     networks:
       - ros_net
