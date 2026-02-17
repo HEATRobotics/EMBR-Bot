@@ -139,7 +139,7 @@ For detailed configuration options, see [Configuration Guide](ros2_ws/src/embr/c
 To start Docker and run EMBR in simulation mode:
 ```bash
 # Build and start container
-docker compose up -d
+docker compose up -d <service_name >
 
 # Access container
 docker compose exec embr-sim /bin/bash

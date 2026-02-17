@@ -6,6 +6,9 @@ services:
     image: embr-bot:simulation
     container_name: embr-simulation
     hostname: embr-raspberrypi
+
+    links: 
+      - "ember_robot_sim:gz_simulation"
     
     # Interactive terminal
     stdin_open: true
@@ -20,7 +23,7 @@ services:
       - ./ros2_ws:/workspace/ros2_ws:rw
     
     # Network configuration
-    network_mode: host
+    # network_mode: host
     
     # Resource limits (simulating Raspberry Pi 4)
     deploy:
@@ -43,8 +46,8 @@ services:
     image: gz_sim
     restart: "no"
 
-    network_mode: host
-    ipc: host
+    # network_mode: host
+    # ipc: host
 
     environment:
       - QT_X11_NO_MITSHM=1
