@@ -6,10 +6,9 @@ services:
     image: embr-bot:simulation
     container_name: embr-simulation
     hostname: embr-raspberrypi
+    networks:
+      - ros_net
 
-    links: 
-      - "ember_robot_sim:gz_simulation"
-    
     # Interactive terminal
     stdin_open: true
     tty: true
@@ -21,9 +20,6 @@ services:
     # Mount workspace for live development (optional)
     volumes:
       - ./ros2_ws:/workspace/ros2_ws:rw
-    
-    # Network configuration
-    # network_mode: host
     
     # Resource limits (simulating Raspberry Pi 4)
     deploy:
@@ -45,13 +41,13 @@ services:
     container_name: ember_gz_sim
     image: gz_sim
     restart: "no"
-
-    # network_mode: host
-    # ipc: host
+    networks:
+      - ros_net
 
     environment:
       - QT_X11_NO_MITSHM=1
       - LIBGL_ALWAYS_INDIRECT=0
+      - ROS_DOMAIN_ID=0
 
     working_dir: /home/ros/heatsim_ws
     user: ros
@@ -63,3 +59,7 @@ services:
 
     security_opt:
       - seccomp:unconfined
+
+networks:
+  ros_net:
+    driver: bridge
