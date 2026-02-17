@@ -111,6 +111,39 @@ docker compose down
 
 ---
 
+## Directory 
+``` Bash
+./LIDAR_SIMULATION
+├── Dockerfile                    # Dockerfile for simulation
+├── README.md                     
+├── UsefulCommands.md
+├── diagnose-display.sh       
+├── entrypoint.sh
+└── heatsim_ws
+    ├── LiDAR_Simulation.md
+    ├── TFs_2026-02-17.gv
+    ├── TFs_2026-02-17.pdf
+    ├── build
+    ├── controls.sh
+    ├── install
+    ├── log
+    ├── sim.sh
+    └── src
+          ├── ember_robot 
+              ├── datarecordings  # Not neccessary but useful for playback if recording data
+              ├── ember_model     # The home of Embr URDF's and Gazebo files for the robot
+              ├── ember_robot
+              ├── launch          #Home of the Launch File needed for GZ
+              ├── package.xml
+              ├── parameters      #Home for ROS prarameters in the GZ <--> ROS relationship
+              ├── resource
+              ├── setup.cfg       # XML Format Declaration 
+              ├── setup.py        #ROS package registry, installs robot model and allows ROS to find everything 
+              ├── test
+              └── worlds          #Gazebo Worlds
+```
+
+---
 ## 🐛 Troubleshooting
 
 ### GUI Still Doesnt Open After Clean Builds

@@ -3,8 +3,8 @@
 <package format="3">
   <name>ember_robot</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="ros@todo.todo">ros</maintainer>
+  <description>TODO: Embr Basic Abstract Robot</description>
+  <maintainer email="maison.personal03@gmail.com">ros</maintainer>
   <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
