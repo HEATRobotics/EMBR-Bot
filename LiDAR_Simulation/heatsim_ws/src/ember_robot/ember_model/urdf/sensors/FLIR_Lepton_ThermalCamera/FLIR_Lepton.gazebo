@@ -12,7 +12,7 @@
           <image>
             <width>80</width>
             <height>60</height>
-            <format>L8</format>
+            <format>L16</format>
           </image>
           <!-- Allowances for camera viewing distance in metres.-->
           <clip>

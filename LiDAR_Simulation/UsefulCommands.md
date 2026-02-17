@@ -12,11 +12,14 @@ ros2 topic list -t
 
 See specific topic designated times
 ```Bash
-#To see the topic once
+#To see the topic once (remove "topic" if errors occur)
 ros2 topic echo --once /topic_name
 
 #To see the topic a limited amount of times
 ros2 topic echo /topic_name | head -n 50
+
+#Print once, --no-arr hides raw pixel data
+ros2 topic echo /thermal_camera_8bit/image --once --no-arr
 ```
 
 ### VIA Gazebo Command
@@ -24,7 +27,16 @@ See A Topic, note only useable in containers containing GZ
 ```Bash
 gz topic -e -t /topic
 ```
-Or
+
+## Checking Nodes
+Prints the ROS2 ndoes currently running in ROS graph
+```Bash
+ros2 node list
+```
+Prints I/O map for the specified node: what it publishes, subscribes to, services, etc.
+```Bash
+ros2 node info /ros_gz_bridge
+```
 
 ### ROS Nodes
 View Topics In A Graph
