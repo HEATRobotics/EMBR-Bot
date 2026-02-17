@@ -77,12 +77,19 @@ Cylindar
 <xacro:include filename="sensors/SF45B_lidar/SF45B.xacro"/>
 <xacro:include filename="sensors/FLIR_Lepton_ThermalCamera/FLIR_Lepton.xacro"/>
 <xacro:include filename="sensors/IMU/imu.xacro"/>
+<xacro:include filename="sensors/GPS/Embr_GPS.xacro"/>
 
 <xacro:imu_sensor
   parent_link="body_link"
   imu_name="imu_sensor"
   topic="imu"
   update_rate="100" />
+
+<xacro:gps_sensor
+    parent_link="body_link"
+    gps_name="gps_sensor"
+    topic="gps/fix"
+    update_rate="1" />
 
 <!-- ################################################ -->
 <!-- MARK: LINKS, JOINTS HERE                         -->
