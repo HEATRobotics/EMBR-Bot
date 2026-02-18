@@ -37,15 +37,18 @@ RUN pip3 install --no-cache-dir \
     dronekit \
     opencv-python-headless \
     numpy \
-    pytest
-
-# Note: smbus and flirpy are hardware-specific, skipped in simulation
+    pytest \
+    geopy \
+    flirpy
 
 # Create workspace directory
 WORKDIR /workspace
 
 # Copy the ROS2 workspace
 COPY ros2_ws /workspace/ros2_ws
+
+#Copy the Tools workspace
+COPY Tools /workspace/Tools    
 
 # Set working directory to ros2_ws
 WORKDIR /workspace/ros2_ws

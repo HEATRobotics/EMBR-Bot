@@ -205,6 +205,7 @@ bash controls.sh
 Troubleshooting:
 1. If ran ```bash sim.sh``` while in container, and the sim does not show, most likely there is an issue within the DISPLAY process. The usual fix is exiting the container and running ```bash setup.sh```. This will force a clean build.
 2. For further troubleshooting check simulation documentation with ./LIDAR_SIMULATION
+3. Make sure when running scripts line endings are set to ```LF```
 
 ## Container Communication
 In the docker-compose.yml file the service ```embr-ras-sim```   communicates with ```ember_robot_sim``` on a defined network. This is possible since they are both in the same compose file. 
