@@ -1,0 +1,92 @@
+<!-- Gazebo Specifics -->
+<!-- ############################################## -->
+<!-- GAZEBO ADDITIONAL DESCRIPTION OF EMBER-Bot     -->
+<!-- Inspiration and initial beginnings
+     reference: Aleksandar Haber       
+     ############################################## 
+     Note: This handles Gazebo-specific extras. 
+        meaning friction, materials, plugins,
+        sensors. In other words robot behavior.     -->
+<!-- ############################################## -->
+
+<robot name="ember_bot">
+
+  <!-- ################################################ -->
+  <!-- BASE FRICTION AND MATERIALS                      -->
+  <!-- ################################################ -->
+
+  <!-- Wheels -->
+  <gazebo reference="flw_link">
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="frw_link">
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="blw_link">
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="brw_link">
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <!-- ################################################ -->
+  <!-- DIFF DRIVE CONTROLLER for EMBER-Bot              -->
+  <!-- ################################################ -->
+
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+
+      <!-- Multiple joints per side (front+back) -->
+      <left_joint>front_left_wheel_joint</left_joint>
+      <left_joint>back_left_wheel_joint</left_joint>
+
+      <right_joint>front_right_wheel_joint</right_joint>
+      <right_joint>back_right_wheel_joint</right_joint>
+
+      <!-- Kinematics (using your xacro props) -->
+    
+      <wheel_separation>${2*wheel_com_y}</wheel_separation>
+
+
+      <wheel_diameter>${2.0*r}</wheel_diameter>
+
+      <!-- Limits -->
+      <max_linear_acceleration>10</max_linear_acceleration>
+      <max_angular_acceleration>10</max_angular_acceleration>
+
+      <!-- Commands / odom -->
+      <topic>cmd_vel</topic>
+      <odom_topic>odom</odom_topic>
+
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+
+      <odom_publisher_frequency>30</odom_publisher_frequency>
+    </plugin>
+
+    <!-- ################################################ -->
+    <!-- Joint State Publisher System                     -->
+    <!-- ################################################ -->
+    <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+      <joint_name>front_left_wheel_joint</joint_name>
+      <joint_name>front_right_wheel_joint</joint_name>
+      <joint_name>back_left_wheel_joint</joint_name>
+      <joint_name>back_right_wheel_joint</joint_name>
+    </plugin>
+
+  </gazebo>
+
+</robot>

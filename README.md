@@ -2,6 +2,10 @@
 
 A ROS2-based autonomous robot system for wildfire cold trailing operations, running on Raspberry Pi 4 with flight controller integration.
 
+## System Diagram
+
+<img width="5824" height="3691" alt="Component-001" src="https://github.com/user-attachments/assets/f15a52b9-0866-49ae-942c-8c0e973d0b41" />
+
 ## Overview
 
 EMBR is designed to assist in wildfire response by mapping hot spots that may reignite into fires after a wildfire burns through an area, a procedure known as cold trailing. The system integrates a Cube Orange flight controller, RFD 900x radio telemetry, thermal camera, temperature sensors, and LIDAR to detect and map thermal anomalies and environmental conditions in post-wildfire areas.

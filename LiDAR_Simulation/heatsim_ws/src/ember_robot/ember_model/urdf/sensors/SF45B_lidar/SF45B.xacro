@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="SF45B_lidar">
+
+  <!-- Bring in the gazebo sensor macro -->
+  <xacro:include filename="SF45B.gazebo"/>
+
+  <xacro:macro name="SF45B_lidar" params="parent xyz rpy sf45b_height">
+
+    <!-- Base link -->
+    <link name="sf45b_base">
+      <inertial>
+        <origin xyz="0 0 0.029335" rpy="0 0 0"/>
+        <mass value="1.2"/>
+        <inertia ixx="0.001087473" ixy="0" ixz="0"
+                 iyy="0.001087473" iyz="0"
+                 izz="0.001092437"/>
+      </inertial>
+
+      <collision name="base_collision">
+        <origin xyz="0 0 0.029335" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.04267" length="${sf45b_height}"/>
+        </geometry>
+      </collision>
+
+      <visual name="base_visual">
+        <origin xyz="0 0 0.029335" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.04267" length="${sf45b_height}"/>
+        </geometry>
+        <material name="SF45B_Blue">
+          <color rgba="0.125 0.37500003 1 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Top link -->
+    <link name="sf45b_top">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.1"/>
+        <inertia ixx="9.0623e-05" ixy="0" ixz="0"
+                 iyy="9.0623e-05" iyz="0"
+                 izz="9.1036e-05"/>
+      </inertial>
+
+      <collision name="top_collision">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.04267" length="${sf45b_height}"/>
+        </geometry>
+      </collision>
+
+      <visual name="top_visual">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.04267" length="${sf45b_height}"/>
+        </geometry>
+        <material name="SF45B_Grey">
+          <color rgba="0.3125 0.3125 0.3125 1"/>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Mount joint -->
+    <joint name="sf45b_mount" type="fixed">
+      <parent link="${parent}"/>
+      <child link="sf45b_base"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+
+    <!-- Spin joint -->
+    <joint name="sf45b_joint" type="continuous">
+      <parent link="sf45b_base"/>
+      <child link="sf45b_top"/>
+      <origin xyz="0 0 0.088005" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="10" velocity="6.28"/>
+      <dynamics damping="0" friction="0"/>
+    </joint>
+
+    <!-- Attach the Gazebo sensor to sf45b_top -->
+    <xacro:SF45B_lidar_gazebo topic="scan" update_rate="10" visualize="true"/>
+
+  </xacro:macro>
+
+  <!-- Instantiate -->
+  <xacro:property name="sf45b_height" value="0.05867"/>
+  <xacro:SF45B_lidar
+      parent="body_link"
+      xyz="0 0 ${body_z_from_ground + bh - (2 * sf45b_height)}"
+      rpy="0 0 0"
+      sf45b_height="${sf45b_height}"/>
+
+</robot>

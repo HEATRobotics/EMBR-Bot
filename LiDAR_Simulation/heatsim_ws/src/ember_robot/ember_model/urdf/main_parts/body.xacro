@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!-- Ember_Robot_Sim 1.0                                 -->
+<!-- ################################################    -->
+<!-- URDF DESCRIPTION OF THE EMBER BOT                   -->
+<!-- Author: Maison Gulyas | (250) 258 - 1736            -->
+<!-- ################################################    -->
+
+<robot name="ember_bot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- ################################################    -->
+<!--                  Mass & Inertia                     -->
+<!--                  MARK: M & I                        -->
+<!-- ################################################    -->
+
+<!-- Density -->
+<xacro:property name="body_density" value="2710.0"/>  <!-- body -->
+
+<!-- Mass -->
+<xacro:property name="body_mass" value="${body_density*bl*bh*bw}"/>
+
+<!-- Body inertia -->
+<xacro:property name="Ix_body" value="${(1.0/12.0)*body_mass*(bh*bh + bw*bw)}"/>
+<xacro:property name="Iy_body" value="${(1.0/12.0)*body_mass*(bl*bl + bh*bh)}"/>
+<xacro:property name="Iz_body" value="${(1.0/12.0)*body_mass*(bl*bl + bw*bw)}"/>
+
+
+<xacro:macro name="inertia_body">
+  <inertial>
+    <mass value="${body_mass}"/>
+    <inertia ixx="${Ix_body}" ixy="0" ixz="0"
+             iyy="${Iy_body}" iyz="0"
+             izz="${Iz_body}"/>
+  </inertial>
+</xacro:macro>
+
+<!-- ============================== -->
+<!-- Base footprint + fixed joint   -->
+<!-- ============================== -->
+
+<link name="base_footprint"/>
+
+<joint name="body_link_joint" type="fixed">
+  <parent link="base_footprint"/>
+  <child link="body_link"/>
+</joint>
+
+<!-- ################################################ -->
+<!--            Include Additional Files              -->
+<!--            MARK: File Incl.                      -->
+<!-- ################################################ -->
+
+<xacro:include filename="body.gazebo"/>
+
+<!-- ============================== -->
+<!-- Body link                      -->
+<!-- ============================== -->
+
+<link name="body_link">
+  <visual name="body_visual">
+    <origin rpy="0 0 0" xyz="0 0 ${body_z_from_ground}"/>
+    <!-- NOTE: In your original you had box size="${bl} ${bh} ${bw}" -->
+    <!-- URDF expects box size = x y z, so I'd normally do ${bl} ${bw} ${bh}. -->
+    <!-- Keeping your exact ordering for consistency: -->
+    <geometry>
+      <box size="${bl} ${bw} ${bh}"/>
+    </geometry>
+  </visual>
+
+  <collision name="body_collision">
+    <origin rpy="0 0 0" xyz="0 0 ${body_z_from_ground}"/>
+    <geometry>
+      <box size="${bl} ${bw} ${bh}"/>
+    </geometry>
+  </collision>
+
+  <xacro:inertia_body/>
+</link>
+</robot>
