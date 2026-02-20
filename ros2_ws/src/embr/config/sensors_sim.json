@@ -23,5 +23,19 @@
   
   "radio": {
     "mode": "sim"
+  },
+  
+  "thermal": {
+    "mode": "real",
+    "params": {
+      "model": "3.1R",
+      "altitude_m": 1.0,
+      "pitch_deg": 45.0,
+      "display_width": 640,
+      "display_height": 480,
+      "colormap": "INFERNO",
+      "min_temp_c": 10.0,
+      "max_temp_c": 80.0
+    }
   }
 }

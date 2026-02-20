@@ -41,7 +41,7 @@ class TemperaturePublisher(Node):
             self.sensor.start()
             
             sensor_type = 'simulated' if isinstance(self.sensor.__class__.__name__, str) and 'Sim' in self.sensor.__class__.__name__ else 'real'
-            self.get_logger().info(f'Temperature sensor initialized in {config.mode} mode (using {sensor_type} sensor)')
+            self.get_logger().info(f'Temperature sensor initialized in {config.mode} mode')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize sensor: {e}')
             raise

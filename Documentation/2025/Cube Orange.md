@@ -15,7 +15,7 @@ Changes:
 
 Tip: To locate the file, you can run `python3 -c "import dronekit, inspect, os; print(os.path.dirname(inspect.getfile(dronekit)))"`.
 
-## Radio receiver and RC input
+## Radio receiver and RC input (Not required for Herelink)
 
 Connect your receiver to the Cube’s RC input:
 
@@ -29,6 +29,7 @@ Transmitter configuration (example):
 3. Choose output PPM and Serial i-BUS
 
 Calibrate radio in your flight stack (Mission Planner) so channels map as expected.
+This is done under Servo output in mission planner setup tab. 
 
 ## ESC and motor outputs
 
@@ -39,6 +40,7 @@ Connect ESC signal leads to Cube Main Out pins:
 	- Servo Output index correlates to Main Out N
 	- Set the Function to match your control output from Radio Calibration
 
-Safety
-- Remove props during setup and calibration
-- Ensure proper power distribution for ESCs and receiver
+**Note** You will need to "arm" the cube to be able to run the motors. This can be done by plugging in red led button that comes with the cube into the GPS port and holding it until it goes from flashing red to solid. 
+
+## Lidar
+https://www.youtube.com/watch?v=OCMjvF--N_E&t=112s

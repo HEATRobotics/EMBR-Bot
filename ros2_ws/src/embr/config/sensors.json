@@ -7,11 +7,31 @@
   "cube": {
     "mode": "real",
     "device": "/dev/ttyAMA0",
-    "baud": 57600
+    "baud": 57600,
+    "params": {
+      "start_lat": 37.7749,
+      "start_lon": -122.4194,
+      "start_alt": 100.0,
+      "velocity": 5.0,
+      "pattern": "hover"
+    }
   },
   "radio": {
     "mode": "real",
     "device": "/dev/ttyAMA1",
     "baud": 57600
+  },
+  "thermal": {
+    "mode": "real",
+    "params": {
+      "model": "3.1R",
+      "altitude_m": 0.086,
+      "pitch_deg": 0,
+      "display_width": 640,
+      "display_height": 480,
+      "colormap": "INFERNO",
+      "min_temp_c": 10.0,
+      "max_temp_c": 200.0
+    }
   }
 }

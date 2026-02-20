@@ -9,6 +9,7 @@ from .base import Sensor, SensorConfig
 from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
 from .radio import RealRadioConnection, SimRadioConnection
+from .thermal import RealThermalCameraSensor, SimThermalCameraSensor
 
 
 class SensorFactory:
@@ -27,6 +28,10 @@ class SensorFactory:
         'radio': {
             'real': RealRadioConnection,
             'sim': SimRadioConnection,
+        },
+        'thermal': {
+            'real': RealThermalCameraSensor,
+            'sim': SimThermalCameraSensor,
         },
     }
     

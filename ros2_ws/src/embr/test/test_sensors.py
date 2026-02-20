@@ -2,12 +2,14 @@
 
 import pytest
 import time
+import numpy as np
 from embr.sensors import (
     SensorConfig,
     create_sensor,
     SimTemperatureSensor,
     SimCubeSensor,
     SimRadioConnection,
+    SimThermalCameraSensor,
 )
 
 
@@ -98,6 +100,99 @@ class TestCubeSensor:
             # Velocity should match config
             assert all(abs(p.vel - 10.0) < 0.1 for p in positions)
 
+
+class TestThermalCameraSensor:
+    """Tests for thermal camera sensor."""
+    
+    def test_simulated_sensor_basic(self):
+        """Test basic simulated thermal camera operation."""
+        config = SensorConfig(
+            mode='sim',
+            params={
+                # Use 3.1R model (default) -> 160x120 resolution
+                'model': '3.1R',
+                'base_temp': 22.0,
+                'hotspot_temp': 40.0,
+                'num_hotspots': 2
+            }
+        )
+        sensor = create_sensor('thermal', config)
+        
+        assert not sensor.is_running
+        
+        sensor.start()
+        assert sensor.is_running
+        
+        # Read a frame
+        frame = sensor.read()
+        assert isinstance(frame, np.ndarray)
+        assert frame.dtype == np.uint16
+        assert frame.shape == (120, 160)
+        
+        sensor.stop()
+        assert not sensor.is_running
+    
+    def test_simulated_sensor_temperature_range(self):
+        """Test thermal camera outputs correct temperature range."""
+        config = SensorConfig(
+            mode='sim',
+            params={
+                # Use 2.5 model -> 80x60 resolution
+                'model': '2.5',
+                'base_temp': 22.0,
+                'temp_variation': 5.0,
+                'hotspot_temp': 40.0,
+                'num_hotspots': 1
+            }
+        )
+        sensor = create_sensor('thermal', config)
+        
+        with sensor:
+            frame = sensor.read()
+            
+            # Convert from Kelvin*100 to Celsius
+            temp_celsius = (frame / 100.0) - 273.15
+            
+            # Should have base temperature around 22C
+            assert temp_celsius.min() > 10.0
+            assert temp_celsius.max() < 50.0
+            
+            # Should have at least some hot pixels
+            hot_pixels = np.sum(temp_celsius > 30.0)
+            assert hot_pixels > 0
+    
+    def test_simulated_sensor_context_manager(self):
+        """Test using thermal sensor as context manager."""
+        config = SensorConfig(
+            mode='sim',
+            params={'model': '2.5'}
+        )
+        sensor = create_sensor('thermal', config)
+        
+        with sensor:
+            assert sensor.is_running
+            frame = sensor.read()
+            assert frame.shape == (60, 80)
+        
+        assert not sensor.is_running
+        
+    def test_simulated_sensor_multiple_frames(self):
+        """Test reading multiple frames shows temporal variation."""
+        config = SensorConfig(mode='sim', params={'num_hotspots': 2})
+        sensor = create_sensor('thermal', config)
+        
+        with sensor:
+            frames = [sensor.read() for _ in range(3)]
+            
+            # All frames should be valid
+            assert all(isinstance(f, np.ndarray) for f in frames)
+            assert all(f.dtype == np.uint16 for f in frames)
+            
+            # Frames should vary slightly due to temporal noise
+            # (though they may be very similar in sim mode)
+            means = [f.mean() for f in frames]
+            assert all(20000 < m < 35000 for m in means)  # Reasonable range in Kelvin*100
+
 class TestRadioConnection:
     """Tests for Radio connection."""
     
@@ -162,6 +257,19 @@ def sim_radio_connection():
     conn.start()
     yield conn
     conn.stop()
+
+
+@pytest.fixture
+def sim_thermal_sensor():
+    """Fixture providing a simulated thermal camera sensor."""
+    config = SensorConfig(
+        mode='sim',
+        params={'model': '3.1R', 'num_hotspots': 2}
+    )
+    sensor = create_sensor('thermal', config)
+    sensor.start()
+    yield sensor
+    sensor.stop()
 
 
 def test_integration_temperature_to_radio(sim_temperature_sensor, sim_radio_connection):

@@ -68,9 +68,11 @@ ros2 run embr getTemp --ros-args -p config_file:=config/sensors_sim.json
 
 ### Sensor Configuration
 
+All sensors (temperature, GPS/IMU, radio, thermal camera) use a unified sensor abstraction that supports both real hardware and simulated modes.
+
 Sensors are configured via JSON files in `src/embr/config/`:
 - `sensors.json` - Default config for real hardware
-- `sensors_sim.json` - Full simulation mode
+- `sensors_sim.json` - Full simulation mode (no hardware required)
 - `sensors_mixed.json` - Mixed real/sim example
 
 See [Configuration Guide](src/embr/config/CONFIG.md) for detailed documentation.
@@ -99,9 +101,35 @@ src/
 │   ├── launch/          # embr_launch.py
 │   └── setup.py         # entry points
 └── msg_interface/
-	 ├── msg/             # custom msgs (e.g., Gps.msg)
+	 ├── msg/             # custom msgs (e.g., GPSAndIMU.msg)
 	 └── package.xml
 ```
+
+## Nodes
+
+### getCube
+Interfaces with Cube Orange flight controller via MAVLink.
+
+### getTemp
+Publishes temperature data from serial sensor.
+
+### sendRf
+Handles RF communication for telemetry.
+
+### thermalStream
+Thermal camera streaming node with HDMI output and intelligent frame publishing.
+- Streams color-mapped thermal video over HDMI with direct framebuffer access
+- Highlights and annotates hotspots above configurable temperature threshold
+- Publishes raw radiometric frames (uint16, Kelvin×100) when vehicle velocity is zero
+- All parameters (camera mounting, thresholds, display settings) configurable via JSON
+- See [Thermal Camera Documentation](../Documentation/2025/Thermal Camera.md) for details
+
+### hotspotLocator
+GPS locator for thermal hotspots using camera geometry and vehicle position.
+- Subscribes to thermal radiometric arrays and GPS/IMU data
+- Computes GPS coordinates of detected hotspots using camera FOV and mounting angle
+- Publishes hotspot locations as PoseStamped messages
+- Camera mounting parameters (altitude, pitch) configurable via JSON
 
 ## Also see
 

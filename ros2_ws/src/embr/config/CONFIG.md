@@ -10,8 +10,15 @@ The default configuration file used by all nodes. This is configured for **real 
 - **Temperature Sensor**: `/dev/ttyACM0` @ 9600 baud
 - **Cube Orange (GPS)**: `/dev/ttyAMA0` @ 57600 baud  
 - **MAVLink Radio**: `/dev/ttyAMA1` @ 57600 baud
+- **Thermal Camera**: Lepton 3.1R with default mounting and display settings
 
 All sensors are set to `"mode": "real"` to use actual hardware connections.
+
+### `sensors_sim.json` (Full Simulation)
+Complete simulation configuration for testing without any hardware. All sensors generate synthetic data.
+
+### `sensors_mixed.json` (Mixed Mode Example)
+Example showing how to mix real and simulated sensors (e.g., real temperature sensor with simulated GPS).
 
 ## Configuration Structure
 
@@ -79,7 +86,7 @@ If a specific sensor is missing from your config file, you'll see an error like:
 Temperature sensor not found in config file: config/my_config.json
 ```
 
-Make sure your config file includes all required sensors: `temperature`, `cube`, and `radio`.
+Make sure your config file includes all required sensors: `temperature`, `cube`, `radio`, and `thermal`.
 
 ### Permission Denied on Serial Ports
 

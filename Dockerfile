@@ -85,9 +85,9 @@ echo "  # Simulation mode (default):"\n\
 echo "  ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json"\n\
 echo ""\n\
 echo "  # Individual nodes:"\n\
-echo "  ros2 run embr getTemp --ros-args -p config_file:=config/sensors_sim.json"\n\
-echo "  ros2 run embr getCube --ros-args -p config_file:=config/sensors_sim.json"\n\
-echo "  ros2 run embr radio --ros-args -p config_file:=config/sensors_sim.json"\n\
+echo "  ros2 run embr getTemp --ros-args -p config_file:=src/embr/config/sensors_sim.json"\n\
+echo "  ros2 run embr getCube --ros-args -p config_file:=src/embr/config/sensors_sim.json"\n\
+echo "  ros2 run embr radio --ros-args -p config_file:=src/embr/config/sensors_sim.json"\n\
 echo ""\n\
 echo "  # Monitoring:"\n\
 echo "  ros2 topic list                       - List topics"\n\

@@ -4,16 +4,21 @@ import time
 import math
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from math import degrees
 from .base import Sensor, SensorConfig
 
 
 @dataclass
 class GpsData:
-    """GPS data structure."""
-    lat: int  # latitude * 1e7
-    lon: int  # longitude * 1e7
-    alt: int  # altitude in mm
+    """GPS data structure with optional IMU fields."""
+    lat: float  # latitude in degrees
+    lon: float  # longitude in degrees
+    alt: float  # altitude in meters
     vel: float  # ground speed in m/s
+    # IMU fields in degrees
+    pitch: float = 0.0
+    yaw: float = 0.0
+    roll: float = 0.0
 
 
 class CubeSensor(Sensor):
@@ -49,11 +54,19 @@ class RealCubeSensor(CubeSensor):
         
         try:
             location = self.vehicle.location.global_frame
+            attitude = self.vehicle.attitude
+            yaw = attitude.yaw
+            pitch = attitude.pitch
+            roll = attitude.roll
+            # Return floats: lat/lon in degrees, alt in meters, vel in m/s
             return GpsData(
-                lat=int(location.lat * 1e7),
-                lon=int(location.lon * 1e7),
-                alt=int(location.alt * 1000),
-                vel=self.vehicle.groundspeed
+                lat=float(location.lat),
+                lon=float(location.lon),
+                alt=float(location.alt),
+                vel=float(self.vehicle.groundspeed),
+                pitch=float(degrees(pitch)),
+                yaw=float(degrees(yaw)),
+                roll=float(degrees(roll)),
             )
         except Exception as e:
             raise RuntimeError(f"Failed to read GPS data: {e}")
@@ -77,7 +90,7 @@ class SimCubeSensor(CubeSensor):
         self.start_alt = params.get('start_alt', 100.0)  # meters
         self.velocity = params.get('velocity', 5.0)  # m/s
         self.pattern = params.get('pattern', 'circle')  # circle, line, hover
-        self.pause_interval = params.get('pause_interval', 20.0)  # seconds between pauses
+        self.pause_interval = params.get('pause_interval', 10.0)  # seconds between pauses
         self.pause_duration = params.get('pause_duration', 5.0)  # seconds to pause
         self._start_time = 0.0
         self._last_pause_time = 0.0
@@ -109,10 +122,13 @@ class SimCubeSensor(CubeSensor):
                 lat, lon, alt = self._pause_position
             
             return GpsData(
-                lat=int(lat * 1e7),
-                lon=int(lon * 1e7),
-                alt=int(alt * 1000),
-                vel=0.0  # Zero velocity during pause
+                lat=float(lat),
+                lon=float(lon),
+                alt=float(alt),
+                vel=0.0,  # Zero velocity during pause
+                pitch=0.0,
+                yaw=0.0,
+                roll=0.0,
             )
         elif time_since_last_pause >= (self.pause_interval + self.pause_duration):
             # Pause ended - reset for next pause cycle
@@ -123,10 +139,13 @@ class SimCubeSensor(CubeSensor):
         lat, lon, alt = self._calculate_position(elapsed)
         
         return GpsData(
-            lat=int(lat * 1e7),
-            lon=int(lon * 1e7),
-            alt=int(alt * 1000),
-            vel=self.velocity
+            lat=float(lat),
+            lon=float(lon),
+            alt=float(alt),
+            vel=float(self.velocity),
+            pitch=5.0 * math.sin(elapsed / 5.0),
+            yaw=(elapsed * 10.0) % 360.0,
+            roll=2.0 * math.sin(elapsed / 3.0),
         )
     
     def _calculate_position(self, elapsed: float) -> tuple:
