@@ -14,8 +14,8 @@ def generate_launch_description():
     # Declare launch argument for config file
     config_file_arg = DeclareLaunchArgument(
         'config_file',
-        default_value='',
-        description='Path to sensor configuration file (default: config/sensors.json)'
+        default_value='src/embr/config/sensors.json',
+        description='Path to sensor configuration file (default: src/embr/config/sensors.json)'
     )
     
     # Get launch configuration
@@ -53,11 +53,17 @@ def generate_launch_description():
             executable='thermalStream',
             name='thermal_stream',
             output='screen',
-            emulate_tty=True
+            emulate_tty=True,
+            parameters=[{
+                'config_file': config_file,
+            }]
         ),
         Node(
             package='embr',
             executable='hotspotLocator',
-            name='hotspot_locator'
+            name='hotspot_locator',
+            parameters=[{
+                'config_file': config_file,
+            }]
         )
     ])
