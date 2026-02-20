@@ -175,26 +175,7 @@ class TestThermalCameraSensor:
             assert frame.shape == (60, 80)
         
         assert not sensor.is_running
-    
-    def test_simulated_sensor_frame_shape(self):
-        """Test get_frame_shape method."""
-        # Test both model resolutions
-        config_big = SensorConfig(mode='sim', params={'model': '3.1R'})
-        sensor_big = create_sensor('thermal', config_big)
-        assert sensor_big.get_frame_shape() == (120, 160)
-        with sensor_big:
-            assert sensor_big.get_frame_shape() == (120, 160)
-            frame_big = sensor_big.read()
-            assert frame_big.shape == sensor_big.get_frame_shape()
-
-        config_small = SensorConfig(mode='sim', params={'model': '2.5'})
-        sensor_small = create_sensor('thermal', config_small)
-        assert sensor_small.get_frame_shape() == (60, 80)
-        with sensor_small:
-            assert sensor_small.get_frame_shape() == (60, 80)
-            frame_small = sensor_small.read()
-            assert frame_small.shape == sensor_small.get_frame_shape()
-    
+        
     def test_simulated_sensor_multiple_frames(self):
         """Test reading multiple frames shows temporal variation."""
         config = SensorConfig(mode='sim', params={'num_hotspots': 2})

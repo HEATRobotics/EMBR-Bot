@@ -263,9 +263,12 @@ class ThermalStreamNode(Node):
                 if radiometric_frame is None:
                     self.get_logger().warn('Failed to grab frame from camera')
                     continue
+
+
+                undistorted = self.camera.get_undistorted_img(radiometric_frame)
                 
                 # Convert to Celsius (Lepton outputs in Kelvin * 100)
-                temp_celsius = (radiometric_frame / 100.0) - 273.15
+                temp_celsius = (undistorted / 100.0) - 273.15
                 
                 # Create display frame with colormap and overlays
                 display_frame = self._create_display_frame(temp_celsius)
@@ -367,7 +370,7 @@ class ThermalStreamNode(Node):
 
             for contour in contours:
                 # Skip tiny contours to avoid noise
-                if cv2.contourArea(contour) < 4:
+                if cv2.contourArea(contour) < 3:
                     continue
 
                 # Calculate temperature statistics for this region
@@ -379,10 +382,6 @@ class ThermalStreamNode(Node):
                     continue
 
                 max_temp = float(np.max(region_temps))
-
-                # Only annotate if above threshold (should be by mask, but double-check)
-                if max_temp <= self.temp_threshold:
-                    continue
 
                 # Scale contour to display size and draw a bounding box
                 scaled_contour = contour.astype(np.float32)
@@ -396,8 +395,6 @@ class ThermalStreamNode(Node):
 
                 # Prepare temperature label and draw above the box
                 temp_text = f"{max_temp:.1f}C"
-                text_size, _ = cv2.getTextSize(temp_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-                text_w, text_h = text_size
                 text_x = x
                 text_y = max(10, y - 6)
 
@@ -405,31 +402,10 @@ class ThermalStreamNode(Node):
                 cv2.putText(display_frame, temp_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
                 cv2.putText(display_frame, temp_text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
         
-        return display_frame
-    
-    def _add_info_overlay(self, frame, temp_celsius):
-        """Add informational text overlay to the frame"""
-        # Overall temperature statistics
-        min_temp = np.min(temp_celsius)
-        max_temp = np.max(temp_celsius)
-        mean_temp = np.mean(temp_celsius)
-        # Minimal overlay: show Min / Max / Avg to reduce per-frame work
-        info_text = f"Min: {min_temp:.1f}C  Max: {max_temp:.1f}C  Avg: {mean_temp:.1f}C"
-
-        # Draw a solid background for readability (fast)
-        cv2.rectangle(frame, (0, 0), (self.display_width, 30), (0, 0, 0), -1)
-        cv2.putText(
-            frame,
-            info_text,
-            (8, 20),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (255, 255, 255),
-            2
-        )
-    
+        return display_frame    
+   
     def _capture_and_publish(self):
-        """Capture once and publish both radiometric image and temperature array"""
+        """Capture once and publish temperature array"""
         try:
             # Capture fresh radiometric frame using sensor abstraction
             radiometric_frame = self.camera.read()
@@ -453,7 +429,7 @@ class ThermalStreamNode(Node):
             array_msg.data = rad_u16.flatten().tolist()
             self.array_publisher.publish(array_msg)
 
-            self.get_logger().info('Published radiometric array only (uint16, Kx100) (velocity = 0)')
+            self.get_logger().info('Published radiometric array (uint16, Kx100) (velocity = 0)')
             
         except Exception as e:
             self.get_logger().error(f'Failed to capture/publish radiometric data: {e}')

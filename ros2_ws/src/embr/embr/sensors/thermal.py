@@ -4,14 +4,11 @@ import time
 import numpy as np
 from typing import Optional, Dict, Any
 from .base import Sensor, SensorConfig
+import cv2
 
 
 class ThermalCameraSensor(Sensor):
     """Abstract thermal camera sensor interface."""
-    
-    def get_frame_shape(self) -> tuple:
-        """Get the shape of thermal frames (height, width)."""
-        raise NotImplementedError
 
 
 class RealThermalCameraSensor(ThermalCameraSensor):
@@ -21,6 +18,21 @@ class RealThermalCameraSensor(ThermalCameraSensor):
         super().__init__(config)
         self.camera = None
         self.lepton_model = config.params.get('model', '3.1R') if config else '3.1R'
+        camera_parameters = { 'camera matrix': [[104.65403680863373, 0.0, 79.12313258957062],
+                                                      [0.0, 104.48251047202757, 55.689070170705634],
+                                                      [0.0, 0.0, 1.0]],
+                                    'distortion coeff': [[-0.39758308581607127,
+                                                          0.18068641745671193,
+                                                          0.004626461618389028,
+                                                          0.004197358204037882,
+                                                          -0.03381399499591463]],
+                                    'new camera matrix':[[66.54581451416016, 0.0, 81.92717558174809],
+                                                             [0.0, 64.58526611328125, 56.23740168870427], 
+                                                             [0.0, 0.0, 1.0]]}
+        self.camera_matrix = np.array(camera_parameters.get('camera matrix'))
+        self.distortion_coeff = np.array(camera_parameters.get('distortion coeff'))
+        self.new_camera_matrix = np.array(camera_parameters.get('new camera matrix'))
+
         
     def start(self) -> None:
         """Initialize Lepton camera."""
@@ -34,6 +46,34 @@ class RealThermalCameraSensor(ThermalCameraSensor):
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Lepton camera: {e}")
     
+    def get_undistorted_img(self, img):
+        '''
+            Undistort the image
+
+            Args:
+                img = numpy array,
+                    distorted image in uint16
+            
+            Output:
+                undistorted_img = numpy array,
+                    corrected image, cropped
+        '''
+
+        # Keep all pixels from input after dewarp
+        undistorted_img = cv2.undistort(img, self.camera_matrix,
+                                        self.distortion_coeff,
+                                        None,
+                                        self.new_camera_matrix)
+        # Get image dimension
+        img_dim = undistorted_img.shape
+        row = img_dim[0]
+        col = img_dim[1]
+
+        # OpenCV generated cropping matrix still retains a few black pixels,
+        # return the corrected image with those pixels cropped out
+        undistorted_img = undistorted_img[14:row-18, 12:col-12]        
+        return undistorted_img
+
     def read(self) -> np.ndarray:
         """
         Read radiometric frame from camera.
@@ -51,16 +91,6 @@ class RealThermalCameraSensor(ThermalCameraSensor):
             return frame
         except Exception as e:
             raise RuntimeError(f"Failed to read thermal frame: {e}")
-    
-    def get_frame_shape(self) -> tuple:
-        """Get the shape of thermal frames based on Lepton model."""
-        if self.lepton_model == '2.5':
-            return (60, 80)
-        elif self.lepton_model == '3.1R':
-            return (120, 160)
-        else:
-            # Default to 3.1R
-            return (120, 160)
     
     def stop(self) -> None:
         """Close camera connection."""
@@ -147,10 +177,6 @@ class SimThermalCameraSensor(ThermalCameraSensor):
         time.sleep(1.0 / 9.0)  # ~9 FPS like Lepton
         
         return frame_uint16
-    
-    def get_frame_shape(self) -> tuple:
-        """Get the shape of simulated thermal frames."""
-        return (self.height, self.width)
     
     def stop(self) -> None:
         """Stop simulated camera."""

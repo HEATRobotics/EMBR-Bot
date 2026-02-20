@@ -1,5 +1,9 @@
 # **FLIR Lepton 3.1R Radiometric Camera Guide**
 
+## Setup with Herelink
+You must be running the `thermalStream` node with the FLIR connected over USB-C. The HDMI output must be connected to HDMI 1 (not 0). Then connect HDMI to herelink air unit. 
+Ensure cube is turned on and connected to herelink airunit. Open QGroundControl on Herelink ground unit, click drop down from box showing values and choose Video Stream 1 and enable. 
+
 This guide covers using the FLIR Lepton 3.1R camera with a PureThermal 3 (PT3) breakout board. The Lepton 3.1R is a **radiometric** camera, meaning it can output a 2D array of actual temperature values, not just a colorized image.
 
 This document focuses on the software stack required to access this 14-bit raw temperature data, primarily on Linux.

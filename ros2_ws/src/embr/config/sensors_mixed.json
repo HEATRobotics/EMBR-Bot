@@ -14,13 +14,24 @@
     "mode": "real",
     "params": {
       "model": "3.1R",
-      "altitude_m": 1.0,
-      "pitch_deg": 45.0,
-      "display_width": 640,
-      "display_height": 480,
+      "altitude_m": 0.508,
+      "pitch_deg": 0,
+      "display_width": 1024,
+      "display_height": 768,
       "colormap": "INFERNO",
       "min_temp_c": 10.0,
       "max_temp_c": 80.0
     }
+  },
+  "temperature": {
+    "mode": "sim",
+    "params": {
+      "base_temp": 22.0,
+      "variation": 2.0,
+      "noise": 0.1
+    }
+  },
+  "radio": {
+    "mode": "sim"
   }
 }

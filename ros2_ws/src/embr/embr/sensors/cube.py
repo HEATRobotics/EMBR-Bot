@@ -90,7 +90,7 @@ class SimCubeSensor(CubeSensor):
         self.start_alt = params.get('start_alt', 100.0)  # meters
         self.velocity = params.get('velocity', 5.0)  # m/s
         self.pattern = params.get('pattern', 'circle')  # circle, line, hover
-        self.pause_interval = params.get('pause_interval', 20.0)  # seconds between pauses
+        self.pause_interval = params.get('pause_interval', 10.0)  # seconds between pauses
         self.pause_duration = params.get('pause_duration', 5.0)  # seconds to pause
         self._start_time = 0.0
         self._last_pause_time = 0.0

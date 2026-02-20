@@ -23,7 +23,7 @@ from rclpy.node import Node
 from std_msgs.msg import UInt16MultiArray
 from geometry_msgs.msg import PoseStamped
 from msg_interface.msg import GPSAndIMU
-from embr.sensors import SensorFactory, SensorConfig
+from embr.sensors import SensorFactory, SensorConfig, create_sensor
 
 import numpy as np
 import cv2
@@ -61,6 +61,9 @@ class hotspotLocator(Node):
             self.lepton_model = '3.1R'
             params = {}
 
+        # Create thermal sensor object from config so we can access camera intrinsics
+        self.thermal_sensor = create_sensor('thermal', thermal_config)
+
         # Configuration - load from config params with defaults
         # Camera geometry
         self.altitude_m = params.get('altitude_m', 1.0)      # Camera height above ground (meters)
@@ -73,11 +76,14 @@ class hotspotLocator(Node):
         self.gps_imu_topic = 'gps'
 
         # Set Lepton model parameters based on config
-        self._set_camera_model(self.lepton_model)
+        self._set_camera_model(self.lepton_model)      
 
         # State
         self.current_gps: Optional[Tuple[float, float]] = None  # (lat, lon)
         self.current_heading_deg: float = 0.0  # compass heading 0-360, 0=N, 90=E
+        self.current_roll_deg: float = 0.0
+        self.current_pitch_deg: float = 0.0
+        self.current_yaw_deg: float = 0.0
         self.have_gps: bool = False
         # internal flag to avoid spamming the log while waiting for GPS
         self._warned_waiting_gps: bool = False
@@ -106,20 +112,22 @@ class hotspotLocator(Node):
 
     # -------------------- Subscribers --------------------
     def _gps_imu_cb(self, msg: GPSAndIMU) -> None:
-        # Extract GPS (lat/lon are int32 in 1e7 format, alt is int32 in mm)
-        self.current_gps = (float(msg.lat) / 1e7, float(msg.lon) / 1e7)
+        # Extract GPS (lat/lon are floats in degrees)
+        self.current_gps = (float(msg.lat), float(msg.lon))
         self.have_gps = True
-        
-        # Extract heading from yaw (yaw is in radians as int32, needs conversion)
-        # The yaw field appears to be in radians based on getCube.py using attitude.yaw
-        yaw_rad = float(msg.yaw)
-        
+
+        # Store IMU attitude (assume msg pitch/yaw/roll are in degrees from cube sensor)
+        self.current_pitch_deg = float(msg.pitch)
+        self.current_yaw_deg = float(msg.yaw)
+        self.current_roll_deg = float(msg.roll)
+
         # Convert yaw to compass heading: 0 = North, 90 = East
         # Assuming yaw is ENU convention: 0 = East, +pi/2 = North
-        heading = (90.0 - math.degrees(yaw_rad)) % 360.0
+        heading = (90.0 - math.degrees(msg.yaw)) % 360.0
         self.current_heading_deg = heading
 
     def _array_cb(self, msg: UInt16MultiArray) -> None:
+        self.get_logger().info("Thermal Array received")
         if not self.have_gps:
             # warn once to avoid log spam while waiting for GPS
             if not getattr(self, '_warned_waiting_gps', False):
@@ -128,17 +136,10 @@ class hotspotLocator(Node):
             return
 
         # Determine image shape from layout
-        if len(msg.layout.dim) >= 2:
-            h = msg.layout.dim[0].size
-            w = msg.layout.dim[1].size
-        else:
-            # Fallback: assume Lepton 2.5 default if no layout
-            h, w = 60, 80
+        h = msg.layout.dim[0].size
+        w = msg.layout.dim[1].size
 
         rad = np.array(msg.data, dtype=np.uint16)
-        if rad.size != h * w:
-            self.get_logger().warning(f'Array size mismatch: {rad.size} vs {h}x{w}')
-            return
         rad = rad.reshape((h, w))
 
         # Convert to Celsius for analysis
@@ -147,10 +148,12 @@ class hotspotLocator(Node):
         # Detect hotspots and publish nearest
         hotspots = self._find_hotspots(temp_c, self.temp_threshold_c)
         if not hotspots:
+            self.get_logger().info("No hotspots found")
             return
 
         nearest = self._compute_nearest_hotspot_gps(hotspots, w, h)
         if nearest is None:
+            self.get_logger().info("Nearest hotspot not found")
             return
 
         self._publish_hotspot(nearest)
@@ -186,6 +189,42 @@ class hotspotLocator(Node):
         el = ny * self.vfov
         return az, el
 
+    # New camera-based helpers
+    def _pixel_to_camera_ray(self, u: float, v: float, width: int, height: int) -> np.ndarray:
+        """Return unit ray in camera coords for pixel (u,v). Uses intrinsics"""
+        pts = np.array([[[u, v]]], dtype=np.float64)
+        und = cv2.undistortPoints(pts, self.thermal_sensor.camera_matrix, self.thermal_sensor.distortion_coeff, P=None)
+        x_norm = float(und[0, 0, 0])
+        y_norm = float(und[0, 0, 1])
+        ray = np.array([x_norm, y_norm, 1.0], dtype=np.float64)
+        ray /= np.linalg.norm(ray)
+        return ray
+
+    def _camera_to_world_ray(self, ray_cam: np.ndarray, roll_deg: float, pitch_deg: float, yaw_deg: float) -> np.ndarray:
+        """Rotate ray from camera frame to world frame using roll/pitch/yaw (degrees)."""
+        r = math.radians(roll_deg)
+        p = math.radians(pitch_deg)
+        y = math.radians(yaw_deg)
+        Rx = np.array([[1, 0, 0], [0, math.cos(r), -math.sin(r)], [0, math.sin(r), math.cos(r)]], dtype=np.float64)
+        Ry = np.array([[math.cos(p), 0, math.sin(p)], [0, 1, 0], [-math.sin(p), 0, math.cos(p)]], dtype=np.float64)
+        Rz = np.array([[math.cos(y), -math.sin(y), 0], [math.sin(y), math.cos(y), 0], [0, 0, 1]], dtype=np.float64)
+        R_world_cam = Rz @ Ry @ Rx
+        ray_world = R_world_cam @ ray_cam
+        ray_world /= np.linalg.norm(ray_world)
+        return ray_world
+
+    def _intersect_ray_ground(self, camera_alt_m: float, ray_world: np.ndarray):
+        """Intersect a world ray with z=0 ground plane. Returns (distance_m, ground_vec) or None."""
+        dz = ray_world[2]
+        if dz >= 0:
+            return None
+        t = - camera_alt_m / dz
+        if t <= 0:
+            return None
+        horiz_vec = ray_world * t
+        horiz_distance = math.hypot(horiz_vec[0], horiz_vec[1])
+        return horiz_distance, horiz_vec
+
     def _estimate_ground_distance(self, el_offset: float) -> Optional[float]:
         pitch = math.radians(self.pitch_deg)
         elevation_angle = pitch - el_offset
@@ -202,31 +241,62 @@ class hotspotLocator(Node):
 
         nearest = None
         min_dist = float('inf')
+        self.get_logger().info(f"hotspots found: {len(hotspots)}")
+
         for blob in hotspots[:10]:
-            az, el = self._pixel_to_angle(blob['centroid_x'], blob['centroid_y'], width, height)
-            bearing = (self.current_heading_deg + math.degrees(az)) % 360.0
-            ground_dist = self._estimate_ground_distance(el)
-            if ground_dist is None:
+            u = blob['centroid_x']
+            v = blob['centroid_y']
+
+            ray_cam = self._pixel_to_camera_ray(u, v, width, height)
+
+            # Camera attitude: roll/yaw follow the vehicle; pitch adds the fixed camera tilt
+            cam_roll = self.current_roll_deg
+            cam_pitch = self.current_pitch_deg + float(self.pitch_deg)
+            cam_yaw = self.current_yaw_deg
+
+            # Convert Optical Frame (OpenCV) to Body Frame (ENU)
+            ray_body = np.array([
+                ray_cam[2],  # Body X (Forward) <- Optical Z
+                -ray_cam[0], # Body Y (Left) <- Optical -X
+                -ray_cam[1]  # Body Z (Up) <- Optical -Y
+            ])
+
+            ray_world = self._camera_to_world_ray(ray_body, cam_roll, cam_pitch, cam_yaw)
+            dz = ray_world[2]
+            self.get_logger().info(
+                f"Hotspot centroid=({u:.2f},{v:.2f}), ray_world={ray_world}, dz={dz:.4f}, cam_pitch={cam_pitch:.2f}, cam_yaw={cam_yaw:.2f}, cam_roll={cam_roll:.2f}"
+            )
+
+            ground_res = self._intersect_ray_ground(self.altitude_m, ray_world)
+            if ground_res is None:
+                self.get_logger().info("Ray does not intersect ground (dz >= 0 or t <= 0)")
                 continue
 
+            ground_dist, ground_vec = ground_res
+
+            # compute bearing from north clockwise
+            east = ground_vec[0]
+            north = ground_vec[1]
+            bearing_rad = math.atan2(east, north)
+            bearing_deg = (math.degrees(bearing_rad) + 360.0) % 360.0
+
             start = Point(self.current_gps[0], self.current_gps[1])
-            dest = geopy_distance(meters=ground_dist).destination(start, bearing)
-            dist_m = ground_dist
+            dest = geopy_distance(meters=ground_dist).destination(start, bearing_deg)
 
             info = {
-                'centroid_x': blob['centroid_x'],
-                'centroid_y': blob['centroid_y'],
+                'centroid_x': u,
+                'centroid_y': v,
                 'size_pixels': blob['size_pixels'],
                 'max_temperature_c': blob['max_temp'],
                 'avg_temperature_c': blob['avg_temp'],
                 'latitude': dest.latitude,
                 'longitude': dest.longitude,
-                'bearing': bearing,
-                'distance_m': dist_m,
+                'bearing': bearing_deg,
+                'distance_m': ground_dist,
             }
 
-            if dist_m < min_dist:
-                min_dist = dist_m
+            if ground_dist < min_dist:
+                min_dist = ground_dist
                 nearest = info
 
         return nearest
@@ -244,7 +314,7 @@ class hotspotLocator(Node):
         self.hotspot_pub.publish(msg)
         self.get_logger().info(
             f"Hotspot -> lat={data['latitude']:.6f}, lon={data['longitude']:.6f}, "
-            f"bearing={data['bearing']:.1f}°, dist={data['distance_m']:.1f}m, "
+            f"bearing={data['bearing']:.1f}°, dist={data['distance_m']:.5f}m, "
             f"max={data['max_temperature_c']:.1f}C, size={data['size_pixels']}px"
         )
 
