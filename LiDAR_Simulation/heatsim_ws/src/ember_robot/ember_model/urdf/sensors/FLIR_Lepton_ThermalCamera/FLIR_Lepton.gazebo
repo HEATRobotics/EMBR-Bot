@@ -13,6 +13,11 @@
             <width>80</width>
             <height>60</height>
             <format>L16</format>
+            <!--  <format>L16</format>
+            The hot spot locator python script that uses this (ros2_ws/src/embr/embr/hotspotLocator.py)
+            needs to subscribe to a topic like /thermal/radiometric_array (std_msgs/UInt16MultiArray). 
+            This is raw radiometric data (Kelvin * 100)
+             -->
           </image>
           <!-- Allowances for camera viewing distance in metres.-->
           <clip>
