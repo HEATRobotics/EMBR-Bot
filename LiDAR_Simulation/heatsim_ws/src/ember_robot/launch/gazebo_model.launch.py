@@ -100,6 +100,15 @@ def generate_launch_description():
         output='screen'
     )
 
+    #Name custom topics with "custom_" prior to topics that are in it or other names etc.
+    costum_gps_imu = Node(
+        package='ember_robot',
+        executable='gps_imu_topic',
+        name='gps_imu_fusion',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )
+
     # Bridge parameters yaml
     bridge_params = os.path.join(
         get_package_share_directory(package_name),
@@ -124,6 +133,7 @@ def generate_launch_description():
     ld.add_action(spawn_model_node_gazebo)
     ld.add_action(node_robot_state_publisher)
     ld.add_action(lidar_static_tf)
+    ld.add_action(costum_gps_imu)
     ld.add_action(start_gazebo_ros_bridge_cmd)
 
     return ld

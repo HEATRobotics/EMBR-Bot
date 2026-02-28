@@ -35,6 +35,8 @@ setup(
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': []
+        'console_scripts': [
+            'gps_imu_topic = ember_robot.cutom_ros_topics.gps_imu_topic:main',
+        ]
     }
 )
