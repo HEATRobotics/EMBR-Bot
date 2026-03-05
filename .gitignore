@@ -24,3 +24,7 @@ ros2_ws/src/embr/embr/sensors/__pycache__
 *.mcap
 *.bag
 *.db3
+
+#__pycache__/
+*.pyc
+*.pyo
