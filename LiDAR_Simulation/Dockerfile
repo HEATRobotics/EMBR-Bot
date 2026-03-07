@@ -5,12 +5,14 @@ FROM osrf/ros:jazzy-desktop
 
 SHELL ["/bin/bash", "-c"]
 
-# 1. Install core tools
+# 1. Install core tools & Python Dependencies 
+#   (Do not use pip, unless neccessary but will most likely need to break python system packages)
 RUN apt-get update && apt-get install -y \
     sudo nano curl git locales build-essential wget \
     python3-colcon-common-extensions \
     python3-rosdep \
     python3-vcstool \
+    python3-sklearn \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Configure locale
