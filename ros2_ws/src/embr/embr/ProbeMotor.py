@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
+from typing import Optional
 from std_msgs.msg import Int32
 from msg_interface.msg import ProbeMotorFeedback
 from embr.sensors import create_sensor
@@ -54,7 +55,7 @@ class ProbeMotor(Node):
     
         return SetParametersResult(successful=True)
             
-    async def move_callback(self, received_msg : Int32) -> None:
+    async def move_callback(self, received_msg : Optional[Int32] = None) -> None:
         """
         Callback that handles move probe publishes. Commands the probe motor to move via its interface. 
         Publishes the feedback of probe motor after a command.
@@ -63,7 +64,8 @@ class ProbeMotor(Node):
             received_msg(Int32): The position to move the probe to in cm.
         """
         response_msg = ProbeMotorFeedback()
-        move_position = received_msg.data
+
+        move_position = received_msg.data or self.probeMotor.CONFIG['motion_range']['value'] # If range not specified use motion range
         
         try:
             originalPosition = self.probeMotor.readPosition()
