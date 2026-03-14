@@ -24,8 +24,11 @@
   "radio": {
     "mode": "sim"
   },
+  
   "probeMotor": {
     "mode": "sim",
+    "device": "",
+    "baud": 0,
     "params": {
       "max_velocity":  768000, 
       "acceleration":  1000000,
