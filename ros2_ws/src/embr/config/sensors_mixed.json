@@ -20,5 +20,23 @@
   
   "mavlink": {
     "mode": "sim"
+  },
+  
+  "thermal": {
+    "mode": "sim",
+    "params": {
+      "model": "3.1R",
+      "base_temp": 22.0,
+      "temp_variation": 5.0,
+      "hotspot_temp": 40.0,
+      "num_hotspots": 2,
+      "altitude_m": 1.0,
+      "pitch_deg": 45.0,
+      "display_width": 640,
+      "display_height": 480,
+      "colormap": "INFERNO",
+      "min_temp_c": 10.0,
+      "max_temp_c": 80.0
+    }
   }
 }

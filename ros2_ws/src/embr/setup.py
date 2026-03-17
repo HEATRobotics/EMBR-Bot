@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'getCube = embr.getCube:main',
             'getTemp = embr.getTemp:main',
+            'thermalStream = embr.thermalStream:main',
             'radio = embr.radio:main'
         ],
     },

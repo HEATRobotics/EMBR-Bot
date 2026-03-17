@@ -1,11 +1,21 @@
-# Fusion script for creating the gps_imu node needed for custom ros topic /gps_imu (msg_interface/GPSAndIMU).
-#   This is the GPS position and orientation
-# Scripts thay may use this:
-# |- ros2_ws/src/embr/embr/hotspotLocator.py
-# |- ros2_ws/src/embr/embr/thermalStream.py
-# |- ros2_ws/src/embr/embr/sensors/thermal.py
-
 #!/usr/bin/env python3
+"""
+Fusion node for publishing custom GPSAndIMU messages on topic /gps.
+
+msg_interface/GPSAndIMU fields:
+- float32 lat
+- float32 lon
+- float32 alt
+- float32 vel
+- float32 pitch
+- float32 yaw
+- float32 roll
+
+Intended consumers:
+- ros2_ws/src/embr/embr/hotspotLocator.py
+- ros2_ws/src/embr/embr/thermalStream.py
+- ros2_ws/src/embr/embr/sensors/thermal.py
+"""
 
 import math
 
@@ -14,7 +24,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 from sensor_msgs.msg import Imu, NavSatFix
-from nav_msgs.msg import Odometry
+from msg_interface.msg import GPSAndIMU
 
 import message_filters
 
@@ -24,63 +34,52 @@ class GpsImuFusion(Node):
         super().__init__('gps_imu_fusion')
 
         # --- Parameters ---
-        # If you're in Gazebo, set use_sim_time true in launch or via param.
         if not self.has_parameter('use_sim_time'):
             self.declare_parameter('use_sim_time', False)
 
-        # --- Output params ---
-        self.declare_parameter('output_topic', '/gps_imu')
-        self.declare_parameter('frame_id', 'map')
-        self.declare_parameter('child_frame_id', 'base_link')
-
-        self.output_topic = str(self.get_parameter('output_topic').value)
-        self.frame_id = str(self.get_parameter('frame_id').value)
-        self.child_frame_id = str(self.get_parameter('child_frame_id').value)
-
-        # --- Publisher ---
-        self.odom_pub = self.create_publisher(Odometry, '/gps_imu', 10)
-
-        # --- Local ENU origin (set on first valid GPS fix) ---
-        self._origin_set = False
-        self._lat0 = 0.0
-        self._lon0 = 0.0
-        self._alt0 = 0.0
-        self._cos_lat0 = 1.0
-
-        # WGS84-ish earth radius (meters)
-        self._R = 6378137.0
-
-        # Approx sync parameters
-        self.declare_parameter('queue_size', 20)
-        self.declare_parameter('slop', 0.05)  # seconds
-
-        # Topic names as parameters (so you can remap without editing code)
+        self.declare_parameter('output_topic', 'gps')
         self.declare_parameter('imu_topic', '/imu')
         self.declare_parameter('gps_topic', '/gps/fix')
 
-        # Debug options
+        self.declare_parameter('queue_size', 20)
+        self.declare_parameter('slop', 0.05)
+
         self.declare_parameter('warn_on_frame_mismatch', True)
         self.declare_parameter('warn_on_zero_stamp', True)
-        self.declare_parameter('log_every_n', 1)  # set to e.g. 10 to reduce spam
+        self.declare_parameter('log_every_n', 1)
+
+        self.output_topic = str(self.get_parameter('output_topic').value)
+        self.imu_topic = str(self.get_parameter('imu_topic').value)
+        self.gps_topic = str(self.get_parameter('gps_topic').value)
 
         self.queue_size = int(self.get_parameter('queue_size').value)
         self.slop = float(self.get_parameter('slop').value)
-        self.imu_topic = str(self.get_parameter('imu_topic').value)
-        self.gps_topic = str(self.get_parameter('gps_topic').value)
 
         self.warn_on_frame_mismatch = bool(self.get_parameter('warn_on_frame_mismatch').value)
         self.warn_on_zero_stamp = bool(self.get_parameter('warn_on_zero_stamp').value)
         self.log_every_n = max(1, int(self.get_parameter('log_every_n').value))
 
+        # --- Publisher ---
+        self.pub = self.create_publisher(GPSAndIMU, self.output_topic, 10)
+
+        # --- Speed estimation state ---
+        self._prev_lat = None
+        self._prev_lon = None
+        self._prev_alt = None
+        self._prev_time = None
+
+        # --- Debug state ---
+        self._sync_count = 0
+        self._last_sync_clock_ns = None
+
         # --- QoS ---
-        # Many IMU/GPS drivers publish BEST_EFFORT. If you subscribe RELIABLE, you may get nothing.
         sensor_qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
             history=HistoryPolicy.KEEP_LAST,
             depth=max(10, self.queue_size),
         )
 
-        # --- Subscribers (message_filters) ---
+        # --- Subscribers ---
         self.imu_sub = message_filters.Subscriber(
             self, Imu, self.imu_topic, qos_profile=sensor_qos
         )
@@ -88,87 +87,132 @@ class GpsImuFusion(Node):
             self, NavSatFix, self.gps_topic, qos_profile=sensor_qos
         )
 
-        # --- Time synchronizer ---
+        # --- Approximate sync ---
         self.sync = message_filters.ApproximateTimeSynchronizer(
             [self.imu_sub, self.gps_sub],
             queue_size=self.queue_size,
             slop=self.slop,
-            allow_headerless=False,  # keep strict; better to fix publishers than guess time
+            allow_headerless=False,
         )
         self.sync.registerCallback(self.synced_cb)
-
-        # --- Debug state ---
-        self._sync_count = 0
-        self._last_sync_clock_ns = None
 
         self.get_logger().info(
             f"GpsImuFusion started.\n"
             f"  IMU topic: {self.imu_topic}\n"
             f"  GPS topic: {self.gps_topic}\n"
+            f"  Output topic: {self.output_topic}\n"
             f"  queue_size: {self.queue_size}\n"
             f"  slop: {self.slop:.3f}s\n"
-            f"  log_every_n: {self.log_every_n}\n"
             f"Waiting for synced message pairs..."
         )
 
-    def _gps_to_local_xy(self, lat_deg: float, lon_deg: float, alt_m: float):
-        """Convert lat/lon (deg) to local ENU meters relative to first fix (equirectangular approx)."""
-        if not self._origin_set:
-            self._lat0 = lat_deg
-            self._lon0 = lon_deg
-            self._alt0 = alt_m
-            self._cos_lat0 = math.cos(math.radians(self._lat0))
-            self._origin_set = True
-            self.get_logger().info(
-                f"Set GPS origin: lat0={self._lat0:.8f}, lon0={self._lon0:.8f}, alt0={self._alt0:.3f}"
-            )
-
-        dlat = math.radians(lat_deg - self._lat0)
-        dlon = math.radians(lon_deg - self._lon0)
-
-        x_east  = self._R * dlon * self._cos_lat0
-        y_north = self._R * dlat
-        z_up    = alt_m - self._alt0
-        return x_east, y_north, z_up
-
     @staticmethod
     def _stamp_to_float(stamp) -> float:
-        """Convert builtin_interfaces/Time to seconds as float."""
         return float(stamp.sec) + float(stamp.nanosec) * 1e-9
 
+    @staticmethod
+    def _quat_to_euler(x, y, z, w):
+        """
+        Convert quaternion to roll, pitch, yaw in radians.
+        """
+        sinr_cosp = 2.0 * (w * x + y * z)
+        cosr_cosp = 1.0 - 2.0 * (x * x + y * y)
+        roll = math.atan2(sinr_cosp, cosr_cosp)
+
+        sinp = 2.0 * (w * y - z * x)
+        if abs(sinp) >= 1.0:
+            pitch = math.copysign(math.pi / 2.0, sinp)
+        else:
+            pitch = math.asin(sinp)
+
+        siny_cosp = 2.0 * (w * z + x * y)
+        cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
+        yaw = math.atan2(siny_cosp, cosy_cosp)
+
+        return roll, pitch, yaw
+
+    @staticmethod
+    def _haversine_distance(lat1, lon1, lat2, lon2):
+        """
+        Great-circle distance between two lat/lon points in meters.
+        """
+        R = 6378137.0
+
+        lat1_rad = math.radians(lat1)
+        lon1_rad = math.radians(lon1)
+        lat2_rad = math.radians(lat2)
+        lon2_rad = math.radians(lon2)
+
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+
+        a = (
+            math.sin(dlat / 2.0) ** 2
+            + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2.0) ** 2
+        )
+        c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+        return R * c
+
+    def _estimate_speed(self, lat, lon, alt, current_time):
+        """
+        Estimate scalar speed in m/s from consecutive GPS fixes.
+        """
+        if self._prev_lat is None or self._prev_time is None:
+            self._prev_lat = lat
+            self._prev_lon = lon
+            self._prev_alt = alt
+            self._prev_time = current_time
+            return 0.0
+
+        dt = current_time - self._prev_time
+        if dt <= 1e-6:
+            return 0.0
+
+        horizontal_dist = self._haversine_distance(
+            self._prev_lat, self._prev_lon, lat, lon
+        )
+        vertical_dist = alt - self._prev_alt
+        total_dist = math.sqrt(horizontal_dist * horizontal_dist + vertical_dist * vertical_dist)
+
+        speed = total_dist / dt
+
+        self._prev_lat = lat
+        self._prev_lon = lon
+        self._prev_alt = alt
+        self._prev_time = current_time
+
+        return speed
+
     def synced_cb(self, imu_msg: Imu, gps_msg: NavSatFix):
-        """Called when a matched IMU + GPS pair is found within slop window."""
         self._sync_count += 1
 
-        # --- Timestamp sanity ---
         imu_t = self._stamp_to_float(imu_msg.header.stamp)
         gps_t = self._stamp_to_float(gps_msg.header.stamp)
         dt = abs(imu_t - gps_t)
 
+        # --- Timestamp sanity ---
         if self.warn_on_zero_stamp:
             if imu_msg.header.stamp.sec == 0 and imu_msg.header.stamp.nanosec == 0:
-                self.get_logger().warn("IMU has zero timestamp (sec=0,nanosec=0).")
+                self.get_logger().warn("IMU has zero timestamp.")
             if gps_msg.header.stamp.sec == 0 and gps_msg.header.stamp.nanosec == 0:
-                self.get_logger().warn("GPS has zero timestamp (sec=0,nanosec=0).")
+                self.get_logger().warn("GPS has zero timestamp.")
 
         # --- Frame sanity ---
         if self.warn_on_frame_mismatch:
             imu_frame = imu_msg.header.frame_id
             gps_frame = gps_msg.header.frame_id
-            # Some GPS drivers leave frame_id empty; only warn if both are set and mismatch.
             if imu_frame and gps_frame and imu_frame != gps_frame:
                 self.get_logger().warn(
                     f"Frame mismatch: IMU frame='{imu_frame}' vs GPS frame='{gps_frame}'"
                 )
 
-        # --- Debug: sync rate ---
+        # --- Debug sync period ---
         now_ns = self.get_clock().now().nanoseconds
         sync_period_s = None
         if self._last_sync_clock_ns is not None:
             sync_period_s = (now_ns - self._last_sync_clock_ns) / 1e9
         self._last_sync_clock_ns = now_ns
 
-        # --- Logging (rate-limited by log_every_n) ---
         if (self._sync_count % self.log_every_n) == 0:
             msg = (
                 f"[sync #{self._sync_count}] "
@@ -178,65 +222,39 @@ class GpsImuFusion(Node):
                 msg += f" | period={sync_period_s:.3f}s"
             self.get_logger().info(msg)
 
-        # --- Build + publish fused Odometry (local meters ENU) ---
-        # Skip if GPS has no fix
+        # Skip invalid GPS
         if gps_msg.status.status < 0:
             return
 
-        out = Odometry()
-        out.header.stamp = self.get_clock().now().to_msg()
-        out.header.frame_id = self.frame_id
-        out.child_frame_id = self.child_frame_id
+        lat = float(gps_msg.latitude)
+        lon = float(gps_msg.longitude)
+        alt = float(gps_msg.altitude)
 
-        # Position: GPS -> local ENU meters
-        x, y, z = self._gps_to_local_xy(float(gps_msg.latitude),
-                                    float(gps_msg.longitude),
-                                    float(gps_msg.altitude))
-        out.pose.pose.position.x = x
-        out.pose.pose.position.y = y
-        out.pose.pose.position.z = z
+        speed = self._estimate_speed(lat, lon, alt, gps_t)
 
-        # Orientation: IMU quaternion
-        out.pose.pose.orientation = imu_msg.orientation
+        roll, pitch, yaw = self._quat_to_euler(
+            float(imu_msg.orientation.x),
+            float(imu_msg.orientation.y),
+            float(imu_msg.orientation.z),
+            float(imu_msg.orientation.w),
+        )
 
-        # Twist: use IMU angular velocity (optional but better than zeros)
-        out.twist.twist.angular = imu_msg.angular_velocity
+        out = GPSAndIMU()
+        out.lat = lat
+        out.lon = lon
+        out.alt = alt
+        out.vel = float(speed)
+        out.pitch = float(pitch)
+        out.yaw = float(yaw)
+        out.roll = float(roll)
 
-        # --- Covariance mapping ---
-        # Odometry pose.covariance is 6x6 row-major:
-        # [x y z roll pitch yaw]
-        # GPS gives 3x3 position covariance. Map it into x/y/z block.
-        pc = gps_msg.position_covariance
-        if len(pc) == 9:
-            out.pose.covariance[0]  = pc[0]  # xx
-            out.pose.covariance[1]  = pc[1]  # xy
-            out.pose.covariance[2]  = pc[2]  # xz
-            out.pose.covariance[6]  = pc[3]  # yx
-            out.pose.covariance[7]  = pc[4]  # yy
-            out.pose.covariance[8]  = pc[5]  # yz
-            out.pose.covariance[12] = pc[6]  # zx
-            out.pose.covariance[13] = pc[7]  # zy
-            out.pose.covariance[14] = pc[8]  # zz
-
-        # IMU orientation covariance is 3x3 for roll/pitch/yaw (if provided).
-        oc = imu_msg.orientation_covariance
-        if len(oc) == 9 and oc[0] >= 0.0:  # ROS uses -1 to mean "unknown"
-            out.pose.covariance[21] = oc[0]  # roll-roll
-            out.pose.covariance[22] = oc[1]
-            out.pose.covariance[23] = oc[2]
-            out.pose.covariance[27] = oc[3]
-            out.pose.covariance[28] = oc[4]  # pitch-pitch
-            out.pose.covariance[29] = oc[5]
-            out.pose.covariance[33] = oc[6]
-            out.pose.covariance[34] = oc[7]
-            out.pose.covariance[35] = oc[8]  # yaw-yaw
-
-        self.odom_pub.publish(out)
+        self.pub.publish(out)
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = GpsImuFusion()
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
