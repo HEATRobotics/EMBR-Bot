@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y ros-humble-ros-base ros-dev-tools pytho
 RUN rosdep init && rosdep update
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir \
+RUN python3 -m pip install --no-cache-dir \
     pyserial \
     pymavlink \
     dronekit \

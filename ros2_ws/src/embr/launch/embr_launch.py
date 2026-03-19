@@ -47,5 +47,17 @@ def generate_launch_description():
             parameters=[{
                 'config_file': config_file,
             }]
+        ),
+        Node(
+            package='embr',
+            executable='thermalStream',
+            name='thermal_stream',
+            output='screen',
+            emulate_tty=True
+        ),
+        Node(
+            package='embr',
+            executable='hotspotLocator',
+            name='hotspot_locator'
         )
     ])
