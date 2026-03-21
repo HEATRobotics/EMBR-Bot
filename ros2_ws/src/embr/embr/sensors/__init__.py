@@ -25,5 +25,5 @@ __all__ = [
     'RealRadioConnection',
     'SimRadioConnection',
     'RealProbeMotor', 
-    'SimProbeMotorr'
+    'SimProbeMotor'
 ]
