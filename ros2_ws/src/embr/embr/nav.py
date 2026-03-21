@@ -12,7 +12,7 @@ class Nav(Node):
 
     def __init__(self):
         super().__init__('nav')
-        self.moveProbeMotorTopic = self.create_publisher(Int32, 'move_probe_motor', 10)
+        self.moveProbeMotorTopic = self.create_publisher(Int32, 'move_probe', 10)
         self.probeMotorFeedbackTopic = self.create_subscription(ProbeMotorFeedback, 'probe_motor_feedback', self.probeMotorFeedback_callback, 10)
         self.probe_motor_feedback_event = threading.Event()
 

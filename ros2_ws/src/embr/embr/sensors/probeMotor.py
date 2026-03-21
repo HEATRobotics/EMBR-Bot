@@ -185,7 +185,11 @@ class RealProbeMotor(ProbeMotorBase):
         if not self.is_running:
             raise Exception("probe motor is not running")
 
-        positionInSteps = position * self.CONFIG["steps_per_distance"]
+        motion_range = self.CONFIG["motion_range"]["value"]
+        if not (0 <= position <= motion_range):
+            raise ValueError(f"Position {position}cm is out of motion range [0, {motion_range}]")
+
+        positionInSteps = position * self.CONFIG["steps_per_distance"]["value"]
 
         # spin the motor by number of steps
         response = self._write_registers(self.REGISTERS["move_absolute"], positionInSteps)
@@ -200,7 +204,7 @@ class RealProbeMotor(ProbeMotorBase):
         
         response, positionInSteps = self._read_registers(self.REGISTERS["position_counter"])
  
-        positionInDistance = positionInSteps / self.CONFIG["steps_per_distance"]
+        positionInDistance = positionInSteps / self.CONFIG["steps_per_distance"]["value"]
 
         return int(positionInDistance)
 
@@ -213,7 +217,7 @@ class RealProbeMotor(ProbeMotorBase):
             lowerbound = self.CONFIG[setting]['range'][0]
             upperbound = self.CONFIG[setting]['range'][1]
         
-            if not (value in range(lowerbound,upperbound)):
+            if not (lowerbound <= value <= upperbound):
                 raise ValueError(f'{setting} value {value} is not in range [{lowerbound}, {upperbound}]')
 
             response = self._write_registers(self.REGISTERS[setting], value)
@@ -260,15 +264,15 @@ class SimProbeMotor(ProbeMotorBase):
 
         # sleep to mimic the time a motor would take to complete spin
         time.sleep(abs((position 
-                        - (self.POSITION/self.CONFIG["steps_per_distance"] if self.POSITION else 0)) 
+                        - (self.POSITION/self.CONFIG["steps_per_distance"]["value"] if self.POSITION else 0)) 
                         * self.TIME_PER_DISTANCE)) # /100 to convert mili sec to sec
 
         # update the position by converting received position from cm to steps
-        self.POSITION = position * self.CONFIG["steps_per_distance"]
+        self.POSITION = position * self.CONFIG["steps_per_distance"]["value"]
 
 
     def readPosition(self) -> int:
-        return int(self.POSITION / self.CONFIG["steps_per_distance"])
+        return int(self.POSITION / self.CONFIG["steps_per_distance"]["value"])
 
     def read(self) -> int:
         return readPosition()

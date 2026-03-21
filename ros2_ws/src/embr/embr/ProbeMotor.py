@@ -65,7 +65,7 @@ class ProbeMotor(Node):
         """
         response_msg = ProbeMotorFeedback()
 
-        move_position = received_msg.data or self.probeMotor.CONFIG['motion_range']['value'] # If range not specified use motion range
+        move_position = received_msg.data
         
         try:
             originalPosition = self.probeMotor.readPosition()
