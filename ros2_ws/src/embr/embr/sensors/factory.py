@@ -2,6 +2,7 @@
 
 import os
 import json
+from rclpy.node import Node
 from typing import Dict, Any, Optional
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from .base import Sensor, SensorConfig
 from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
 from .radio import RealRadioConnection, SimRadioConnection
-from .thermal import RealThermalCameraSensor, SimThermalCameraSensor
+from .thermal import RealThermalCameraSensor, SimThermalCameraSensor, GazeboThermalSensor
 
 
 class SensorFactory:
@@ -32,11 +33,12 @@ class SensorFactory:
         'thermal': {
             'real': RealThermalCameraSensor,
             'sim': SimThermalCameraSensor,
+            'gz' : GazeboThermalSensor,
         },
     }
     
     @classmethod
-    def create(cls, sensor_type: str, config: Optional[SensorConfig] = None) -> Sensor:
+    def create(cls, sensor_type: str, config: Optional[SensorConfig] = None, node: Optional[Node] = None) -> Sensor:
         """
         Create a sensor instance.
         
@@ -68,7 +70,12 @@ class SensorFactory:
         
         # Create and return instance
         try:
-            return sensor_class(config)
+            if mode == 'gz':
+                if node is None:
+                    raise ValueError("Gazebo sensor requires a ROS node")
+                return sensor_class(node=node, config=config)
+            else:
+                return sensor_class(config)
         except Exception as e:
             raise RuntimeError(f"Failed to create {sensor_type} sensor in {mode} mode: {e}")
     
@@ -82,10 +89,10 @@ class SensorFactory:
         2. Default to 'real'
         
         Returns:
-            'real' or 'sim'
+            'real' or 'sim' or in case of Gazebo Simulation 'gz'
         """
         # If mode is explicitly set to 'real' or 'sim', use it
-        if config.mode in ('real', 'sim'):
+        if config.mode in ('real', 'sim', 'gz'):
             return config.mode
         
         # Default to real hardware
@@ -145,7 +152,7 @@ class SensorFactory:
             raise RuntimeError(f"Failed to load config from {config_path}: {e}")
 
 
-def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None) -> Sensor:
+def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None, node: Optional[Node]= None) -> Sensor:
     """
     Convenience function to create a sensor.
     
@@ -156,4 +163,4 @@ def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None) -> Se
     Returns:
         Sensor instance
     """
-    return SensorFactory.create(sensor_type, config)
+    return SensorFactory.create(sensor_type, config, node)

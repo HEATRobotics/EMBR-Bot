@@ -1,7 +1,9 @@
 """Thermal camera sensor implementations."""
 
+import rclpy
 import time
 import numpy as np
+from msg_interface.msg import GPSAndIMU
 from typing import Optional, Dict, Any
 from .base import Sensor, SensorConfig
 
@@ -155,3 +157,85 @@ class SimThermalCameraSensor(ThermalCameraSensor):
     def stop(self) -> None:
         """Stop simulated camera."""
         self._running = False
+
+class GazeboThermalSensor(ThermalCameraSensor):
+    """Thermal sensor that reads from a Gazebo ROS2 image topic."""
+    
+    def __init__(self, node, config: Optional[SensorConfig] = None):
+        super().__init__(config)
+        import threading
+        
+        params = config.params if config else {}
+        self._node = node
+        self._topic = params.get('topic', '/thermal_camera_8bit/image')
+        self._latest_frame = None
+        self._frame_lock = threading.Lock()
+        self._subscription = None 
+
+        
+    def start(self) -> None:
+        from sensor_msgs.msg import Image
+        from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
+
+        if self._running:
+            return
+
+        qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self._subscription = self._node.create_subscription(
+            Image,
+            self._topic,
+            self._image_callback,
+            qos
+        )
+
+        self._running = True
+        self._node.get_logger().info(f"Subscribed to thermal topic {self._topic}")
+    
+    def _image_callback(self, msg):
+        try:
+            if msg.encoding != 'mono16':
+                self._node.get_logger().error(
+                    f"Unexpected Image Encoding: {msg.encoding}, expected Mono16"
+                )
+                return
+            
+            arr = np.frombuffer(msg.data, dtype=np.uint16).reshape(msg.height, msg.width)
+
+            with self._frame_lock:
+                self._latest_frame = arr.copy()
+        except Exception as e:
+            self._node.get_logger().error(f"Thermal image callback failed: {e}")
+
+    def wait_for_first_frame(self, timeout=2.0):
+        start = time.time()
+        while True:
+            with self._frame_lock:
+                if self._latest_frame is not None:
+                    return
+
+            if timeout is not None and (time.time() - start) > timeout:
+                raise RuntimeError("Timed out waiting for first thermal frame")
+
+            time.sleep(0.01)
+
+    def read(self):
+        with self._frame_lock:
+            if self._latest_frame is None:
+                return None
+            return self._latest_frame.copy()
+        
+    def get_frame_shape(self):
+        with self._frame_lock:
+            if self._latest_frame is not None:
+                return self._latest_frame.shape
+            return (60,80)
+    
+    def stop(self):
+        self._running = False
+        self._subscription = None

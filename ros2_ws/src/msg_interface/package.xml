@@ -10,8 +10,11 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   
+  <!-- Dependencies for the Gazebo thermal_camera_8bit/image topic -->
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
   <exec_depend>rosidl_default_runtime</exec_depend>
-  
   <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>

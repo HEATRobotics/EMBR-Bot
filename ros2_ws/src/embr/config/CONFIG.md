@@ -57,6 +57,14 @@ Pass a custom config file to override the default:
 # Single node with simulation config
 ros2 run embr getTemp --ros-args -p config_file:=src/embr/config/sensors_sim.json
 
+## Running ThermalStream in Sim with Specified outputs
+### Open CV
+ros2 run embr thermalStream --ros-args -p config_file:=src/embr/config/sensors_gz_sim.json
+
+Or
+### HDMI
+ros2 run embr thermalStream  --ros-args -p config_file:=src/embr/config/sensors_gz_sim.json -p output_mode:=hdmi
+
 # All nodes with simulation config via launch file
 ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
 
