@@ -21,7 +21,7 @@ Communication Medium
   - [pymodbus](#pymodbus)
 
 Setup
-  - Static IP Setup
+  - [Static IP Setup](#static-ip-setup)
 
 ---
 
