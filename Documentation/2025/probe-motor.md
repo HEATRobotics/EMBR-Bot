@@ -29,7 +29,9 @@ Setup
 The probe-motor's task is to provide linear motion to a temperature probe, allowing the probe to take readings closer to the surface of the hotspot. The chosen motor for this task is the **LMDCE421**, a stepper with high precision and high load capacity.
 
 ## LMDCE421
-The LMDCE421 is an integrated Lexium MDrive (LMD) motor combining a stepper motor, drive electronics, and a controller into a single package. 
+<img alt="image" src="https://www.novantaims.com/wp-content/uploads/2017/01/lmd17_right_facing_hirez-234x300-NL.jpg" />
+
+[LMDCE421](https://www.novantaims.com/liberty-mdrives/lm42-nema-17-ethernet-tcpip-ip20-lmoe42/) is an integrated Lexium MDrive (LMD) motor combining a stepper motor, drive electronics, and a controller into a single package. 
 
 * **Operating Principle:** It uses microstepping to achieve high resolution. For our application, the motor translates rotary motion into linear motion via a lead screw.
 * **Power Requirements:** Typically operates on **12–48 VDC**. 
@@ -51,7 +53,7 @@ To achieve the goals of the probe-motor assembly, the codebase supports the foll
 The LMDCE421 offers an ethernet and serial interface. We have used the ethernet interface communication because there is extensive library support for encoding/decoding data easily over this interface and communication can easily be reproduced from any computer with an ethernet port. **MODBUS/TCP** is the chosen communication protocol for this interface.
 
 ## MODBUS/TCP
-MODBUS/TCP is a variant of the Modbus family of vendor-neutral communication protocols intended for supervision and control of automation equipment. 
+[MODBUS/TCP](https://www.novantaims.com/application-note/modbustcp-vs-mcodetcp-overview/) is a variant of the Modbus family of vendor-neutral communication protocols intended for supervision and control of automation equipment. 
 
 <img width="646" height="259" alt="image" src="https://github.com/user-attachments/assets/230d1731-48d0-426b-b00b-496c96136636" />
 
@@ -76,7 +78,7 @@ The following table illustrates how the request parameters are structured within
 
 
 ## pymodbus
-`pymodbus` is a full Python implementation of the Modbus protocol. It abstracts the low-level socket handling into readable Python methods. 
+[pymodbus](https://pymodbus.readthedocs.io/en/latest/) is a full Python implementation of the Modbus protocol. It abstracts the low-level socket handling into readable Python methods. 
 
 ### 1. read_holding_registers
 Used to retrieve current settings or state data from the motor.
