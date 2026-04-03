@@ -53,7 +53,8 @@ def generate_launch_description():
             executable='thermalStream',
             name='thermal_stream',
             output='screen',
-            emulate_tty=True
+            emulate_tty=True,
+            parameters=[{'no_display': True}]
         ),
         Node(
             package='embr',

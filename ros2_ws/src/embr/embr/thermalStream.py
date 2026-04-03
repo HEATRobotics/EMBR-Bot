@@ -5,16 +5,15 @@ Uses sensor abstraction to support both real and simulated thermal cameras.
 Streams via HDMI with direct framebuffer access and publishes the radiometric array (UInt16, Kelvin*100) when stationary.
 """
 
-
 import rclpy
 from rclpy.node import Node
-from time import sleep, time
 from std_msgs.msg import UInt16MultiArray, MultiArrayDimension, MultiArrayLayout
+from sensor_msgs.msg import Image
 from msg_interface.msg import GPSAndIMU
 from embr.sensors import create_sensor, SensorConfig, SensorFactory
 import cv2
+from cv_bridge import CvBridge
 import numpy as np
-import subprocess
 import threading
 import queue
 
@@ -47,6 +46,9 @@ class ThermalStreamNode(Node):
         
         # Configuration - load from config params with defaults
         params = config.params if config else {}
+        # Get Display Flag from command 
+        self.declare_parameter('no_display', False)
+        self.no_display = self.get_parameter('no_display').get_parameter_value().bool_value        
         # Temp threshold will be set via radio commands, default here
         self.temp_threshold = 30.0  # Celsius - will be updated via radio
         self.video_fps = 9.0  # Lepton typical fps
@@ -68,16 +70,18 @@ class ThermalStreamNode(Node):
             'thermal/radiometric_array',
             10
         )
+
+        # Bridge + Publisher
+        self.bridge = CvBridge()
+        self.image_publisher = self.create_publisher(Image, 'thermal/image',10)
         
-        # Subscribers
+        # Subscriber:
         self.gps_subscription = self.create_subscription(
             GPSAndIMU,
             'gps',
             self.gps_callback,
             10
         )
-        #Output Mode
-        self.use_opencv_display = None
 
         # Initialize camera using sensor abstraction
         self.get_logger().info('Initializing thermal camera...')
@@ -86,24 +90,17 @@ class ThermalStreamNode(Node):
             self.camera.start()
             
             if 'Sim' in self.camera.__class__.__name__:
-                sensor_type = 'simulated'
+                self.sensor_type = 'simulated'
             elif 'Gazebo' in self.camera.__class__.__name__:
-                sensor_type = 'gz'
+                self.sensor_type = 'gz'
             else:
-                sensor_type = 'real'
-            
-            # Set output mode - Gazebo Simulation
-            display_backend = params.get('display_backend', '')
-            if display_backend:
-                self.use_opencv_display = (display_backend == 'opencv')
-            else:
-                self.use_opencv_display = self.camera_mode in ('gz', 'sim')
-
-            self.get_logger().info(f'Thermal camera initialized in {config.mode} mode (using {sensor_type} sensor)')
+                self.sensor_type = 'real'
+        
+            self.get_logger().info(f'Thermal camera initialized in {config.mode} mode (using {self.sensor_type} sensor)')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize camera: {e}')
             raise
-        
+
         # FFmpeg process for HDMI streaming
         self.ffmpeg_process = None
         # queue used to buffer frames for ffmpeg writer thread; small size to keep latency low
@@ -116,13 +113,11 @@ class ThermalStreamNode(Node):
         self.stream_thread = threading.Thread(target=self._streaming_loop, daemon=True)
         self.stream_thread.start()
         
-        # Choose Diplay mode
-        # Start FFmpeg process if Real or Sim and OpenCV if 'gz'
-        if not self.use_opencv_display:
+        # Start FFmpeg process
+        if not self.no_display:
             self._start_ffmpeg()
         else:
-            self._fbdev_active = False
-            self.get_logger().info('Using OpenCV display backend')
+            self.get_logger().info('No Screen Output Declared in Command')
         
         self.get_logger().info('Thermal stream node initialized')
     
@@ -276,30 +271,22 @@ class ThermalStreamNode(Node):
     def _streaming_loop(self):
         """Main loop for capturing and processing thermal frames"""
         self.get_logger().info('Starting thermal streaming loop')
-        
-        first_frame_logged = False
-
         while self.streaming_active and rclpy.ok():
             try:
                 # Capture radiometric frame from camera using sensor abstraction
                 radiometric_frame = self.camera.read()
                 
                 if radiometric_frame is None:
-                    if not first_frame_logged:
-                        self.get_logger().info('Waiting for first thermal frame...')
-                        first_frame_logged = True
-                    sleep(0.05)
+                    self.get_logger().warn('Failed to grab frame from camera')
                     continue
-
-                if first_frame_logged:
-                    self.get_logger().info('First thermal frame received!')
-                    first_frame_logged = False
 
                 # Convert to Celsius (Lepton outputs in Kelvin * 100)
                 temp_celsius = (radiometric_frame / 100.0) - 273.15
                 
                 # Create display frame with colormap and overlays
                 display_frame = self._create_display_frame(temp_celsius)
+                if 'gz' in self.sensor_type:
+                    self.gz_sim_stream(display_frame)
                 
                 # Optionally skip expensive overlays every N frames
                 if self.overlay_every_n_frames > 1:
@@ -319,11 +306,7 @@ class ThermalStreamNode(Node):
                         display_frame = cv2.resize(display_frame, (self.display_width, self.display_height), interpolation=cv2.INTER_LINEAR)
 
                 # Send to framebuffer writer via queue or display with OpenCV
-                if self.use_opencv_display:
-                    # OpenCV prioritized
-                    cv2.imshow('Thermal Stream', display_frame)
-                    cv2.waitKey(1)
-                elif getattr(self, '_fbdev_active', False):
+                if getattr(self, '_fbdev_active', False):
                     try:
                         # Non-blocking enqueue; drop oldest frame if queue is full to preserve low latency
                         try:
@@ -339,9 +322,8 @@ class ThermalStreamNode(Node):
                     except Exception:
                         self.get_logger().error('Frame queue error for fbdev writer')
                 else:
-                    # Fallback: display with OpenCV (useful for debugging)
-                    cv2.imshow('Thermal Stream', display_frame)
-                    cv2.waitKey(1)
+                    # Implement GZ Streaming
+                    self.get_logger().warn('Capturing & Publishing')                        
                 
             except Exception as e:
                 self.get_logger().error(f'Error in streaming loop: {e}')
@@ -487,12 +469,18 @@ class ThermalStreamNode(Node):
             )
             array_msg.data = rad_u16.flatten().tolist()
             self.array_publisher.publish(array_msg)
-
             self.get_logger().info('Published radiometric array only (uint16, Kx100) (velocity = 0)')
             
         except Exception as e:
             self.get_logger().error(f'Failed to capture/publish radiometric data: {e}')
     
+    def gz_sim_stream(self, display_frame):
+        msg = self.bridge.cv2_to_imgmsg(display_frame, encoding='bgr8')
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = 'Thermal_Optical_Frame'
+        self.image_publisher.publish(msg)
+        
+
     def destroy_node(self):
         """Clean shutdown"""
         self.get_logger().info('Shutting down thermal stream node...')
@@ -527,9 +515,9 @@ class ThermalStreamNode(Node):
 
 
 def main(args=None):
-    node = None
+    rclpy.init(args=args)
+    
     try:
-        rclpy.init(args=args)
         node = ThermalStreamNode()
         rclpy.spin(node)
     except KeyboardInterrupt:
@@ -539,9 +527,8 @@ def main(args=None):
         import traceback
         traceback.print_exc()
     finally:
-        if node is not None:
-            node.destroy_node()
         if rclpy.ok():
+            node.destroy_node()
             rclpy.shutdown()
 
 

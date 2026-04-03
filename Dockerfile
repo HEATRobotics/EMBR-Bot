@@ -30,16 +30,20 @@ RUN apt-get update && apt-get install -y ros-humble-ros-base ros-dev-tools pytho
 # Initialize rosdep
 RUN rosdep init && rosdep update
 
-# Install Python dependencies
+# Install Python dependencies (Numpy Specific Version due to cv_bridge)
 RUN python3 -m pip install --no-cache-dir \
     pyserial \
     pymavlink \
     dronekit \
     opencv-python-headless \
-    numpy \
+    numpy==1.26.4 \
     pytest \
     geopy \
     flirpy
+
+# Install CV-Bridge for ROS
+RUN apt update && apt install -y \
+    ros-humble-cv-bridge
 
 # Create workspace directory
 WORKDIR /workspace

@@ -11,8 +11,7 @@
             "display_height": 480,
             "colormap": "INFERNO",
             "min_temp_c": 10.0,
-            "max_temp_c": 80.0,
-            "display_backend": "opencv"
+            "max_temp_c": 80.0
         }
     }
 }
