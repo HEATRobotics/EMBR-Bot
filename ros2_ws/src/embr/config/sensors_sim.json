@@ -22,7 +22,8 @@
   },
   
   "radio": {
-    "mode": "sim"
+    "mode": "sim",
+    "params": ""
   },
   
   "probeMotor": {
