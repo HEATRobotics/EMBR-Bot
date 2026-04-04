@@ -221,7 +221,7 @@ class RealProbeMotor(ProbeMotorBase):
             if not (lowerbound <= value <= upperbound):
                 raise ValueError(f'{setting} value {value} is not in range [{lowerbound}, {upperbound}]')
 
-            response = self._write_registers(self.REGISTERS[setting], value)
+            self._write_registers(self.REGISTERS[setting], value)
             self.CONFIG[setting]["value"] = value
         
         else: 
