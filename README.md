@@ -151,7 +151,6 @@ docker compose exec embr-ras-sim /bin/bash
 source install/setup.bash
 
 # Launch with simulation config
-
 ros2 launch embr embr_launch.py config_file:=config/sensors_sim.json
 ```
 
