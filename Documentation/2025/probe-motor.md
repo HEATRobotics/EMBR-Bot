@@ -120,7 +120,7 @@ The system is divided into three layers:
 
 1. **Hardware/Simulation Layer**: Handles Modbus TCP communication or simulated physics.
 2. **Abstraction Layer**: The `StepperFactory` uses `sensors.json` to decide which driver to instantiate.
-3. **ROS2 Layer**: The `probeStepper` node acts as the server, while `nav` acts as the mission controller.
+3. **ROS2 Layer**: The `probeMotor` node acts as the server, while `nav` acts as the mission controller.
 
 ---
 
