@@ -71,7 +71,7 @@ The following table illustrates how the request parameters are structured within
 | **Read Position** | `03` (Read Holding) | `00 64` (100) | `00 02` | Reads two registers to get a 32-bit position value. |
 | **Check Status** | `04` (Read Input) | `00 0A` (10) | `00 01` | Checks a single register for the "Ready" flag. |
 | **Set Velocity** | `06` (Write Single) | `01 2C` (300) | `03 E8` | Writes a fixed speed (e.g., 1000) to the velocity register. |
-| **Multi-Move** | `10` (Write Multiple) | `02 58` (600) | `00 04` | Updates acceleration, deceleration, and target at once. |
+| **Multi-Move** | `10` (Write Multiple) | `02 58` (600) | `00 04` | Updates acceleration/deceleration, and target at once. |
 
 
 
