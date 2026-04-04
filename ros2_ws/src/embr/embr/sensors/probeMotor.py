@@ -127,7 +127,10 @@ class RealProbeMotor(ProbeMotorBase):
             # encode int_32 into two int_16 values(one lower 16-bits, one upper 16-bits)
             high = (value >> 16) & 0xFFFF
             low = value & 0xFFFF
-            return self.client.write_registers(register["address"], [low,high])
+            response = self.client.write_registers(register["address"], [low,high])
+            
+        if response.isError():
+            raise RuntimeError(f"Error writing {value} to register {register}")
 
 
     def _read_registers(self, register):
