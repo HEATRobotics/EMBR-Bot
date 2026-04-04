@@ -122,8 +122,6 @@ class RealProbeMotor(ProbeMotorBase):
         if register["length"] == 1:
             response = self.client.write_registers(register["address"], [value])
 
-            if response.isError():
-                raise RuntimeError(f"Error writing {value} to register {register}")
 
         elif register["length"] == 2:
             # encode int_32 into two int_16 values(one lower 16-bits, one upper 16-bits)
