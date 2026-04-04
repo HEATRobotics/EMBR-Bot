@@ -79,7 +79,7 @@ The following table illustrates how the request parameters are structured within
 [pymodbus](https://pymodbus.readthedocs.io/en/latest/) is a full Python implementation of the Modbus protocol. It abstracts the low-level socket handling into readable Python methods. 
 
 ### 1. read_holding_registers
-Used to retrieve current settings or state data from the motor.
+Used to retrieve current settings or state data from the motor. Returns 2 registers in Little-Endian format: registers[0] = low, registers[1] = high.
 ```python
 # Read 2 registers starting at address 100
 response = client.read_holding_registers(address=100, count=2)
