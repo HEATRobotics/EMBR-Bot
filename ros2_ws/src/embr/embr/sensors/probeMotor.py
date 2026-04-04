@@ -193,7 +193,7 @@ class RealProbeMotor(ProbeMotorBase):
         positionInSteps = position * self.CONFIG["steps_per_distance"]["value"]
 
         # spin the motor by number of steps
-        response = self._write_registers(self.REGISTERS["move_absolute"], positionInSteps)
+        self._write_registers(self.REGISTERS["move_absolute"], positionInSteps)
 
         await self._waitTillMoveFinish()
         return True
