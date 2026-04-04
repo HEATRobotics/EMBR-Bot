@@ -299,3 +299,4 @@ class SimProbeMotor(ProbeMotorBase):
             raise Exception("No active connection to probe motor")
 
         self.stop_running()
+        
