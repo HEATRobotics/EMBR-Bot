@@ -95,7 +95,7 @@ client.write_register(address=50, value=1)
 ```
 
 ### 3. write_registers
-Used for 32-bit values or simultaneous parameter updates.
+Used for 32-bit values or simultaneous parameter updates. Uses Little-Endian format[low,high] at the register level.
 ```python
 # Write a list of values to registers starting at address 200
 values = [1000, 500] 
