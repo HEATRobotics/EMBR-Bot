@@ -141,3 +141,4 @@ def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None) -> Se
         Sensor instance
     """
     return SensorFactory.create(sensor_type, config)
+    
