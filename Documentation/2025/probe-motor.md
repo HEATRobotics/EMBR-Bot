@@ -3,9 +3,7 @@
 # Overview
 This documentation provides setup guide and serves as a resource to understand the implementation of the LMDCE421(probe-motor) communication.
 
-This documentation hopes to achieve 2 goals:
-1. Educate the reader with just enough knowledge to make incremental changes to the probe-motor codebase.
-2. Educate the reader with enough knowledge to rebuild the probe-motor codebase.
+This document will give the reader sufficient knowledge to modify/rebuild the probe-motor codebase.
 
 With these goals in mind I have indicated (opt) next to topics or sections that I deem to be irrelevant to goal 1.
 
