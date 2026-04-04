@@ -62,7 +62,7 @@ class SimTemperatureSensor(TemperatureSensor):
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
-        params = config["params"] if config else {}
+        params = config.params if config else {}
         self.base_temp = params.get('base_temp', 22.0)
         self.variation = params.get('variation', 2.0)
         self.noise = params.get('noise', 0.1)
