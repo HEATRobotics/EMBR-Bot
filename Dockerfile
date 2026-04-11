@@ -37,6 +37,7 @@ RUN pip3 install --no-cache-dir \
     dronekit \
     opencv-python-headless \
     numpy \
+    scikit-learn \
     pytest \
     geopy \
     flirpy
