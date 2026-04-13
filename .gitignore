@@ -28,3 +28,8 @@ ros2_ws/src/embr/embr/sensors/__pycache__
 #__pycache__/
 *.pyc
 *.pyo
+
+# Personal Build Files
+**/build/
+**/install/
+**/log/

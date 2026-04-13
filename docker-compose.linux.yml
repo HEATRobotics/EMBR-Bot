@@ -4,5 +4,6 @@ services:
       - DISPLAY=${DISPLAY:-:0}
       - QT_X11_NO_MITSHM=1
       - LIBGL_ALWAYS_INDIRECT=0
+      - XAUTHORITY=${XAUTHORITY:-~/.Xauthority}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw

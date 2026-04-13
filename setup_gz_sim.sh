@@ -126,7 +126,7 @@ echo ""
 echo ""
 echo "Building Docker image (this may take 5-10 minutes)..."
 echo "Force Clean Build with Dockerfile from ./LiDAR_Simulation"
-docker build --no-cache -t gz_sim ./LiDAR_Simulation
+docker build --no-cache -t ember_gz_sim ./LiDAR_Simulation
 
 if [ $? -ne 0 ]; then
     echo "❌ Docker build failed!"
