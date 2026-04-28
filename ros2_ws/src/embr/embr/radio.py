@@ -7,6 +7,7 @@ from math import atan2, degrees, sqrt, pi
 import numpy as np
 import rclpy
 import time
+import threading
 from rclpy.node import Node
 from msg_interface.msg import Gps
 from sensor_msgs.msg import Temperature
@@ -28,31 +29,13 @@ class CommSubscriber(Node):
         self.declare_parameter('config_file', '')
         config_file = self.get_parameter('config_file').value
         
-        # Use default config path if not provided
-        if not config_file:
-            config_file = 'src/embr/config/sensors.json'
-        
-        # Try to load from config file
-        try:
-            configs = SensorFactory.load_config(config_file)
-            config = configs.get('radio')
-            
-            if config is None:
-                self.get_logger().error(f'Radio config not found in config file: {config_file}')
-                raise ValueError(f'Radio configuration not found in {config_file}')
-            
-            self.get_logger().info(f'Loaded Radio config from {config_file}')
-        except Exception as e:
-            self.get_logger().error(f'Failed to load config file: {e}')
-            raise
-        
         # Create Radio connection
         try:
-            self.radio_connection = create_sensor('radio', config)
+            self.radio_connection = create_sensor('radio', config_file)
             self.radio_connection.start()
             
-            conn_type = 'simulated' if 'Sim' in self.radio_connection.__class__.__name__ else 'real'
-            self.get_logger().info(f'Radio connection initialized in {config.mode} mode (using {conn_type} connection)')
+            mode_type = 'simulated' if 'Sim' in self.radio_connection.__class__.__name__ else 'real'
+            self.get_logger().info(f'Radio connection initialized in {mode_type} mode (using {mode_type} connection)')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize Radio: {e}')
             raise
@@ -62,10 +45,13 @@ class CommSubscriber(Node):
         # --- Publish lat/long points to new topic
 
         # --- Once initial message is received, create subscriptions and allow sending ---
-        self.subscription = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
+        self.subscription_gps = self.create_subscription(Gps, 'gps', self.cube_callback, 10)
         self.subscription_temperature = self.create_subscription(
             Temperature, 'temperature', self.temperature_callback, 10
         )
+
+        self.mission_handle = threading.Thread(target=self.handle_incoming_mission, daemon=True)
+        self.mission_handle.start()
 
         self.get_logger().info('Radio Subscriber node initialized')
     
@@ -89,6 +75,13 @@ class CommSubscriber(Node):
             self.radio_connection.send_gps(lat, lon, alt, vel)
         except Exception as e:
             self.get_logger().error(f'Error sending GPS: {e}')
+
+    def handle_incoming_mission(self):
+        while rclpy.ok():
+            num_temp_readings, lats, lons = self.radio_connection.read_mission_data()
+            self.get_logger().info(f'# readings: {num_temp_readings}')
+            self.get_logger().info(f'lats: {lats}')
+            self.get_logger().info(f'lons: {lons}')
     
     def destroy_node(self):
         """Cleanup connection on shutdown."""
