@@ -40,7 +40,7 @@ class SensorFactory:
         Create a sensor instance.
         
         Args:
-            sensor_type: Type of sensor ('temperature', 'cube', 'radio', 'probeMotor)
+            sensor_type: Type of sensor ('temperature', 'cube', 'radio', 'probeMotor')
             config: Sensor configuration
         
         Returns:
