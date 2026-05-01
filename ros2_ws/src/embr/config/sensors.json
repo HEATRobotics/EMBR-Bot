@@ -2,16 +2,30 @@
   "temperature": {
     "mode": "real",
     "device": "/dev/ttyACM0",
-    "baud": 9600
+    "baud": 9600,
+    "params": ""
   },
   "cube": {
     "mode": "real",
     "device": "/dev/ttyAMA0",
-    "baud": 57600
+    "baud": 57600,
+    "params": ""
   },
   "radio": {
     "mode": "real",
     "device": "/dev/ttyAMA1",
-    "baud": 57600
+    "baud": 57600,
+    "params": ""
+  },
+  "probeMotor": {
+    "mode": "real",
+    "device": "",
+    "baud": 0,
+    "params": {
+      "max_velocity":  768000, 
+      "acceleration":  1000000,
+      "steps_per_distance": 51200,
+      "motion_range": 10
+    }
   }
 }

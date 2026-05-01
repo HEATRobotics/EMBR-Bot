@@ -8,6 +8,7 @@ from .factory import SensorFactory, create_sensor
 from .temperature import TemperatureSensor, RealTemperatureSensor, SimTemperatureSensor
 from .cube import CubeSensor, RealCubeSensor, SimCubeSensor
 from .radio import RadioConnection, RealRadioConnection, SimRadioConnection
+from .probeMotor import RealProbeMotor, SimProbeMotor
 
 __all__ = [
     'Sensor',
@@ -23,4 +24,6 @@ __all__ = [
     'RadioConnection',
     'RealRadioConnection',
     'SimRadioConnection',
+    'RealProbeMotor', 
+    'SimProbeMotor'
 ]

@@ -9,7 +9,7 @@ from .base import Sensor, SensorConfig
 from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
 from .radio import RealRadioConnection, SimRadioConnection
-
+from .probeMotor import ProbeMotorBase, RealProbeMotor, SimProbeMotor
 
 class SensorFactory:
     """Factory for creating sensor instances."""
@@ -28,15 +28,19 @@ class SensorFactory:
             'real': RealRadioConnection,
             'sim': SimRadioConnection,
         },
+        'probeMotor' : {
+            'real' : RealProbeMotor,
+            'sim': SimProbeMotor,
+        }
     }
     
     @classmethod
-    def create(cls, sensor_type: str, config: Optional[SensorConfig] = None) -> Sensor:
+    def create(cls, sensor_type: str, config_path: Optional[str] = None):
         """
         Create a sensor instance.
         
         Args:
-            sensor_type: Type of sensor ('temperature', 'cube', 'radio')
+            sensor_type: Type of sensor ('temperature', 'cube', 'radio', 'probeMotor')
             config: Sensor configuration
         
         Returns:
@@ -48,8 +52,9 @@ class SensorFactory:
         """
         if sensor_type not in cls.SENSOR_MAP:
             raise ValueError(f"Unknown sensor type: {sensor_type}")
+
         
-        config = config or SensorConfig()
+        config = cls.load_config(sensor_type, config_path)
         
         # Determine mode - default to 'real' unless specified otherwise
         mode = cls._determine_mode(sensor_type, config)
@@ -57,7 +62,7 @@ class SensorFactory:
         # Get the appropriate class
         sensor_classes = cls.SENSOR_MAP[sensor_type]
         sensor_class = sensor_classes.get(mode)
-        
+
         if not sensor_class:
             raise ValueError(f"Unknown mode '{mode}' for sensor '{sensor_type}'")
         
@@ -87,7 +92,7 @@ class SensorFactory:
         return 'real'
     
     @classmethod
-    def load_config(cls, config_path: Optional[str] = None) -> Dict[str, SensorConfig]:
+    def load_config(cls, device_type: str ,config_path: Optional[str] = None) -> SensorConfig:
         """
         Load sensor configuration from JSON file.
         
@@ -97,10 +102,11 @@ class SensorFactory:
         Returns:
             Dictionary mapping sensor names to SensorConfig objects
         """
-        if config_path is None:
+
+        if not config_path:
             # Look for config in common locations within workspace
             search_paths = [
-                'config/sensors.json',
+                'src/embr/config/sensors.json',
                 'sensors.json',
                 os.path.expanduser('~/.embr/sensors.json'),
                 '/etc/embr/sensors.json',
@@ -110,31 +116,14 @@ class SensorFactory:
                 if os.path.exists(path):
                     config_path = path
                     break
-        
+
         if config_path is None or not os.path.exists(config_path):
-            return {}
+            raise RuntimeError(f"Failed to find configuration file: cannot find configuration file from {config_path} or default config paths")
         
         try:
             with open(config_path, 'r') as f:
                 data = json.load(f)
-            
-            configs = {}
-            for sensor_name, sensor_data in data.items():
-                # Skip non-sensor entries (like comments or metadata)
-                if not isinstance(sensor_data, dict):
-                    continue
-                
-                # Get mode from config, default to 'real'
-                mode = sensor_data.get('mode', 'real')
-                
-                configs[sensor_name] = SensorConfig(
-                    mode=mode,
-                    device=sensor_data.get('device'),
-                    baud=sensor_data.get('baud', 9600),
-                    params=sensor_data.get('params', {})
-                )
-            
-            return configs
+                return SensorConfig(**data[device_type])
         
         except Exception as e:
             raise RuntimeError(f"Failed to load config from {config_path}: {e}")
@@ -152,3 +141,4 @@ def create_sensor(sensor_type: str, config: Optional[SensorConfig] = None) -> Se
         Sensor instance
     """
     return SensorFactory.create(sensor_type, config)
+    
