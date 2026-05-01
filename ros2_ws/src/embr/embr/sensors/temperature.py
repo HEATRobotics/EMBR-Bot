@@ -17,8 +17,8 @@ class RealTemperatureSensor(TemperatureSensor):
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
         self.ser = None
-        self.device = config.device if config else '/dev/ttyACM0'
-        self.baud = config.baud if config else 9600
+        self.device = config["device"] if config else '/dev/ttyACM0'
+        self.baud = config["baud"] if config else 9600
     
     def start(self) -> None:
         """Open serial connection to temperature sensor."""

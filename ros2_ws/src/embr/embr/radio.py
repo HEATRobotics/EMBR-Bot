@@ -16,7 +16,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2
 import sensor_msgs_py.point_cloud2 as pc2
 
-from embr.sensors import create_sensor, SensorConfig, SensorFactory
+from embr.sensors import create_sensor, SensorConfig
 
 
 class CommSubscriber(Node):
@@ -54,6 +54,10 @@ class CommSubscriber(Node):
         self.mission_handle.start()
 
         self.get_logger().info('Radio Subscriber node initialized')
+
+        self.radio_connection.read()
+        self.get_logger().info('done reading')
+
     
     def temperature_callback(self, msg):
         """Handle temperature messages."""

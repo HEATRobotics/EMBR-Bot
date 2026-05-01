@@ -70,7 +70,7 @@ class SimCubeSensor(CubeSensor):
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
-        params = config.params if config else {}
+        params = config["params"] if config else {}
         # Starting position (default: somewhere in US)
         self.start_lat = params.get('start_lat', 37.7749)
         self.start_lon = params.get('start_lon', -122.4194)
