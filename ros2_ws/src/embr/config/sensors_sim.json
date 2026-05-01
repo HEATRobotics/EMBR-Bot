@@ -22,6 +22,7 @@
   },
   
   "radio": {
+<<<<<<< HEAD
     "mode": "sim",
     "params": ""
   },
@@ -35,6 +36,18 @@
       "acceleration":  1000000,
       "steps_per_distance": 51200,
       "motion_range": 10
+=======
+    "mode": "sim"
+  },
+
+  "bms": {
+    "mode": "sim",
+    "params": {
+      "voltage": 12.0,
+      "current": 1.0,
+      "soc": 100.0,
+      "discharge_rate": 0.5
+>>>>>>> 5b20656 (Changed File Dir Name, and added BMS files)
     }
   }
 }

@@ -27,5 +27,10 @@
       "steps_per_distance": 51200,
       "motion_range": 10
     }
+  },
+  "bms": {
+    "mode": "real",
+    "device": "/dev/ttyACM1",
+    "baud": 115200
   }
 }
