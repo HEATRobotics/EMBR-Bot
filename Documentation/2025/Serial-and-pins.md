@@ -103,5 +103,30 @@ BCM refers to Broadcom GPIO numbering. Unless noted, we reference the physical p
 Notes
 - All UART logic levels are 3.3V TTL on the Pi. Do not feed 5V logic into Pi GPIOs.
 - After wiring, verify ports appear as expected with `ls -l /dev/serial*`.
+### Raspberry Pi 3 Model B+ 
+Only one of the devices(cube orange, RFD900X) can be connected via UART(UART 0).
+  
+**Enabling UART**:
+We need to remove the "UART2" configuration and disable Bluetooth so the high-quality UART (UART0) is available on the connected pins.
 
+1. Open the file: `sudo nano /boot/firmware/config.txt`
+2. **Remove** these lines (since they don't work on Pi 3):
+* `dtoverlay=uart2`
+
+3. **Add/Verify** these lines are at the bottom:
+```text
+enable_uart=1
+dtoverlay=disable-bt
+```
+
+4. Save and **Reboot**: `sudo reboot`
+
+**Pin Connection for RFD900X**
+
+| Raspberry Pi Pin       | RFD Pin |
+|------------------------|---------|
+| Pin 4 (5V)             | 4 (5V)  |
+| Pin 6 (GND)            | 1 (GND) |
+| Pin 8  (GPIO14 / TX)   | 7 (RX)  |
+| Pin 9  (GPIO15 / RX)   | 9 (TX)  |
 
