@@ -30,6 +30,12 @@ RUN apt-get update && apt-get install -y ros-humble-ros-base ros-dev-tools pytho
 # Initialize rosdep
 RUN rosdep init && rosdep update
 
+# Install BlueZ and Dependencies 
+RUN apt-get update && apt-get install -y \
+    bluez \
+    dbus \
+    libreadline-dev
+
 # Install Python dependencies
 RUN pip3 install --no-cache-dir \
     pyserial \
@@ -37,7 +43,8 @@ RUN pip3 install --no-cache-dir \
     dronekit \
     opencv-python-headless \
     numpy \
-    pytest
+    pytest \
+    bleak 
 
 # Note: smbus and flirpy are hardware-specific, skipped in simulation
 
@@ -109,7 +116,7 @@ exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command
-CMD ["/bin/bash"]
+CMD ["/bin/bash", "/entrypoint.sh"]
 
 # Labels
 LABEL maintainer="HEAT Robotics"
