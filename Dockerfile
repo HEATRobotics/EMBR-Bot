@@ -30,11 +30,13 @@ RUN apt-get update && apt-get install -y ros-humble-ros-base ros-dev-tools pytho
 # Initialize rosdep
 RUN rosdep init && rosdep update
 
-# Install BlueZ and Dependencies 
+# Install BlueZ, Bleak, and Dependencies 
 RUN apt-get update && apt-get install -y \
     bluez \
     dbus \
-    libreadline-dev
+    libreadline-dev 
+
+RUN pip3 install --no-cache-dir bleak
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir \
@@ -43,8 +45,7 @@ RUN pip3 install --no-cache-dir \
     dronekit \
     opencv-python-headless \
     numpy \
-    pytest \
-    bleak 
+    pytest 
 
 # Note: smbus and flirpy are hardware-specific, skipped in simulation
 
