@@ -7,7 +7,6 @@
     "baud": 9600,
     "params": ""
   },
-  
   "cube": {
     "mode": "sim",
     "params": {
@@ -18,7 +17,6 @@
       "pattern": "hover"
     }
   },
-  
   "mavlink": {
     "mode": "sim",
     "params": ""

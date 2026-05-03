@@ -31,6 +31,10 @@ class SensorFactory:
         'probeMotor' : {
             'real' : RealProbeMotor,
             'sim': SimProbeMotor,
+        },
+        'bms': {
+            'real': 'RealBMSSensor',  
+            'sim': 'SimBMSSensor',  
         }
     }
     
