@@ -50,7 +50,7 @@ def generate_launch_description():
         ),
         Node(
             package='embr',
-            executalbe='getBMS',
+            executable='getBMS',
             name='getBMS',
             parameters=[{
                 'config_file': config_file,
