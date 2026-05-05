@@ -10,6 +10,7 @@ from .temperature import RealTemperatureSensor, SimTemperatureSensor
 from .cube import RealCubeSensor, SimCubeSensor
 from .radio import RealRadioConnection, SimRadioConnection
 from .probeMotor import ProbeMotorBase, RealProbeMotor, SimProbeMotor
+from .bms import BMS_Handler, SimBMSSensor, RealBMSSensor
 
 class SensorFactory:
     """Factory for creating sensor instances."""
@@ -33,8 +34,8 @@ class SensorFactory:
             'sim': SimProbeMotor,
         },
         'bms': {
-            'real': 'RealBMSSensor',  
-            'sim': 'SimBMSSensor',  
+            'real': RealBMSSensor,  
+            'sim': SimBMSSensor,  
         }
     }
     

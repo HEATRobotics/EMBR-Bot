@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'getCube = embr.getCube:main',
             'getTemp = embr.getTemp:main',
+            'getBMS = embr.getBMS:main',
             'radio = embr.radio:main',
             'probeMotor = embr.ProbeMotor:main',
             'nav = embr.nav:main'
