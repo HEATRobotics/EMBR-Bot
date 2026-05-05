@@ -3,3 +3,4 @@ pymavlink
 dronekit
 smbus
 flirpy
+bleak

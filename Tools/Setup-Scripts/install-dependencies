@@ -17,6 +17,9 @@ sudo apt install -y libuvc-dev
 echo "Installing pymodbus..."
 sudo apt install -y pymodbus
 
+echo "Installing Bluez..."
+sudo apt install -y bluez bluetooth
+
 echo "========================================="
 echo "Dependencies installed successfully!"
 echo "========================================="
