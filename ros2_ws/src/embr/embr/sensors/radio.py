@@ -4,6 +4,7 @@ import time
 from typing import Optional, Dict, Any
 from .base import Sensor, SensorConfig
 
+import struct
 
 class RadioConnection(Sensor):
     """Abstract Radio connection interface."""
@@ -15,8 +16,8 @@ class RealRadioConnection(RadioConnection):
     
     def __init__(self, config: Optional[SensorConfig] = None):
         super().__init__(config)
-        self.device = config.device if config else '/dev/ttyAMA1'
-        self.baud = config.baud if config else 57600
+        self.device = config.device if config else '/dev/serial0'
+        self.baud =  config.baud if config else 57600
         self.connection = None
         self.mav = None
     
@@ -35,12 +36,34 @@ class RealRadioConnection(RadioConnection):
         except Exception as e:
             raise RuntimeError(f"Failed to open Radio connection on {self.device}: {e}")
     
-    def read(self) -> Optional[Any]:
+    def read(self, msg_type = None, is_blocking = False) -> Optional[Any]:
         """Read Radio message (non-blocking)."""
         if not self._running:
             raise RuntimeError("Connection not started")
+        if type:
+            return self.connection.recv_match(type=msg_type, blocking=is_blocking)
+        else:
+            return self.connection.recv_match(blocking=is_blocking)
+    
+    def read_mission_data(self):
+        mission_data = self.read('LOGGING_DATA_ACKED',True)
+        self.mav.logging_ack_send(
+            target_system=1,
+            target_component=0,
+            sequence=0
+        )
+
+        byte_array = bytes(mission_data.data[:36]) 
         
-        return self.connection.recv_match(blocking=False)
+        # Format: i (1 int), 4i (4 ints), 4i (4 ints)
+        # Total: 9 integers * 4 bytes = 36 bytes
+        unpacked = struct.unpack('<i4i4i', byte_array)
+        
+        num_temp_readings = unpacked[0]
+        decoded_lats = [lat / 1e7 for lat in unpacked[1:5]]
+        decoded_lons = [lon / 1e7 for lon in unpacked[5:9]]
+        
+        return num_temp_readings, decoded_lats, decoded_lons
     
     def send_temperature(self, temperature: float) -> None:
         """Send temperature via Radio."""
