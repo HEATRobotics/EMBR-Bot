@@ -24,15 +24,19 @@ class RealBMSSensor(BMS_Handler):
         except Exception as e:
             raise RuntimeError(f"Failed to open BMS connection on {self.device}: {e}")
     
-    def read(self) -> None:
+    def read(self) -> bytes:
         """Read BMS data (non-blocking)."""
 
         if not self.connection or not self.connection.is_open:
             raise RuntimeError("Connection not started")
         
         try:
-            line = self.connection.readline().decode('utf-8').strip()
-            return line  # Return raw data for now; parsing can be added later
+            # Request basic battery info (register 0x03)
+            request = bytes([0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 0x77])
+            self.connection.write(request)
+
+            # Read & Return response (should be 10 bytes)
+            return self.connection.read(10)
         except Exception as e:
             raise RuntimeError(f"Failed to read from BMS: {e}")
     
@@ -45,8 +49,12 @@ class SimBMSSensor(BMS_Handler):
     """Simulated BMS sensor implementation."""
     
     def __init__(self, config):
-        self.sim_data = config.sim_data if config else ["Simulated BMS Data"]
-        self.index = 0
+        super().__init__(config)
+        params = config["params"] if config else {}
+        self.num_cells = params.get("num_cells", 6)
+        self.cell_voltage_range = params.get("cell_voltage_range", (3.0, 4.2))
+        self.current_range = params.get("current_range", (-100, 100))  # Amps
+        self.temperature_range = params.get("temperature_range", (20, 40))  # Celsius
     
     def start(self):
         """Start simulated BMS (no-op)."""

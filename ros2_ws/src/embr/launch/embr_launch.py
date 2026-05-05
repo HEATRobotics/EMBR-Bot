@@ -47,5 +47,13 @@ def generate_launch_description():
             parameters=[{
                 'config_file': config_file,
             }]
+        ),
+        Node(
+            package='embr',
+            executalbe='getBMS',
+            name='getBMS',
+            parameters=[{
+                'config_file': config_file,
+            }]
         )
     ])
