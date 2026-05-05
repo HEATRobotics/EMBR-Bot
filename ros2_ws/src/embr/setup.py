@@ -27,7 +27,9 @@ setup(
             'getTemp = embr.getTemp:main',
             'thermalStream = embr.thermalStream:main',
             'hotspotLocator = embr.hotspotLocator:main',
-            'radio = embr.radio:main'
+            'radio = embr.radio:main',
+            'probeMotor = embr.ProbeMotor:main',
+            'nav = embr.nav:main'
         ],
     },
 )

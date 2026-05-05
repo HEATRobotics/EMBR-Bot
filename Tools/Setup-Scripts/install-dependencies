@@ -16,6 +16,8 @@ sudo apt install -y libuvc-dev
 
 echo "Installing ffmpeg..."
 sudo apt install -y ffmpeg
+echo "Installing pymodbus..."
+sudo apt install -y pymodbus
 
 echo "========================================="
 echo "Dependencies installed successfully!"

@@ -15,33 +15,15 @@ class TemperaturePublisher(Node):
         
         # Declare parameter for config file path
         self.declare_parameter('config_file', '')
-        config_file = self.get_parameter('config_file').value
-        
-        # Use default config path if not provided
-        if not config_file:
-            config_file = 'src/embr/config/sensors.json'
-        
-        # Try to load from config file
-        try:
-            configs = SensorFactory.load_config(config_file)
-            config = configs.get('temperature')
-            
-            if config is None:
-                self.get_logger().error(f'Temperature sensor not found in config file: {config_file}')
-                raise ValueError(f'Temperature sensor configuration not found in {config_file}')
-            
-            self.get_logger().info(f'Loaded temperature config from {config_file}')
-        except Exception as e:
-            self.get_logger().error(f'Failed to load config file: {e}')
-            raise
-        
+        config_path = self.get_parameter('config_file').value
+               
         # Create sensor
         try:
-            self.sensor = create_sensor('temperature', config)
+            self.sensor = create_sensor('temperature', config_path)
             self.sensor.start()
             
-            sensor_type = 'simulated' if isinstance(self.sensor.__class__.__name__, str) and 'Sim' in self.sensor.__class__.__name__ else 'real'
-            self.get_logger().info(f'Temperature sensor initialized in {config.mode} mode')
+            mode_type = 'simulated' if isinstance(self.sensor.__class__.__name__, str) and 'Sim' in self.sensor.__class__.__name__ else 'real'
+            self.get_logger().info(f'Temperature sensor initialized in {mode_type} mode (using {mode_type} sensor)')
         except Exception as e:
             self.get_logger().error(f'Failed to initialize sensor: {e}')
             raise

@@ -33,5 +33,9 @@
   },
   "radio": {
     "mode": "sim"
+  },
+  "mavlink": {
+    "mode": "sim",
+    "params": ""
   }
 }

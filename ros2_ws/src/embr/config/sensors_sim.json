@@ -22,7 +22,8 @@
   },
   
   "radio": {
-    "mode": "sim"
+    "mode": "sim",
+    "params": ""
   },
   
   "thermal": {
@@ -36,6 +37,18 @@
       "colormap": "INFERNO",
       "min_temp_c": 10.0,
       "max_temp_c": 80.0
+    }
+  },
+  
+  "probeMotor": {
+    "mode": "sim",
+    "device": "",
+    "baud": 0,
+    "params": {
+      "max_velocity":  768000, 
+      "acceleration":  1000000,
+      "steps_per_distance": 51200,
+      "motion_range": 10
     }
   }
 }
