@@ -1,54 +1,24 @@
-"""
-BMS BLE (Battery Management System Bluetooth Low Energy) 
-sensor implementation for EMBR Bot.
-Supports both real hardware and simulated data for testing.
-"""
+"""Console entry point for a basic BMS Bluetooth scan."""
 
 import asyncio
-import inspect
 
-import rclpy
-from rclpy.node import Node
-
-from embr.sensors import create_sensor
-# import msg_interface.msg as ____ # Undecided if custom message is needed yet
+from embr.sensors.bms import RealBMSSensor
 
 
-import asyncio
-from typing import Optional
-from .base import Sensor, SensorConfig
+async def scan_bluetooth_devices() -> None:
+    """Run one Bluetooth scan and print discovered devices."""
+    sensor = RealBMSSensor()
+    try:
+        print("Scanning for Bluetooth devices with BlueZ/Bleak...")
+        await sensor.start()
+    finally:
+        await sensor.stop()
 
-class BMS_Handler(Sensor):
-    """Abstract BMS Handler Interface."""
-    pass
 
-class RealBMSSensor(BMS_Handler):
-    """Real BMS sensor implementation using BLE."""
+def main(args=None) -> None:
+    """ROS console-script entry point."""
+    asyncio.run(scan_bluetooth_devices())
 
-    def __init__(self, config: Optional[SensorConfig] = None):
-        super().__init__(config)
-        self.client = None  # Will hold BleakClient when connected
 
-    async def start(self) -> None:
-        """Initialize BLE connection to BMS."""
-        if self._running:
-            return
-        # TODO: Discover device, filter for BMS, connect BleakClient
-        self._running = True
-
-    def read(self) -> dict:
-        """Read data from BMS."""
-        if not self._running:
-            raise RuntimeError("Sensor not started")
-        # TODO: Replace with async GATT reads once client is connected
-        return {
-            "voltage": 48.0,
-            "current": 10.0,
-            "soc": 80.0,
-        }
-
-    async def stop(self) -> None:
-        """Stop BLE connection."""
-        if self._running:
-            # TODO: await self.client.disconnect()
-            self._running = False
+if __name__ == "__main__":
+    main()
