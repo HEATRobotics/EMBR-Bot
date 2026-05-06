@@ -31,6 +31,7 @@
   "bms": {
     "mode": "real",
     "device": "/dev/ttyACM1",
-    "baud": 115200
+    "baud": 115200,
+    "params": ""
   }
 }

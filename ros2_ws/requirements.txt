@@ -1,6 +1,7 @@
 pyserial
 pymavlink
 dronekit
+pymodbus
 smbus
 flirpy
 bleak

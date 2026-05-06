@@ -43,6 +43,7 @@ RUN pip3 install --no-cache-dir \
     pyserial \
     pymavlink \
     dronekit \
+    pymodbus \
     opencv-python-headless \
     numpy \
     pytest 
