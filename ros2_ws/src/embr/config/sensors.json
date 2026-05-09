@@ -29,9 +29,12 @@
     }
   },
   "bms": {
-    "mode": "real",
-    "device": "/dev/ttyACM1",
-    "baud": 115200,
-    "params": ""
+    "params": {
+      "name": "",
+      "address": "A4:C1:37:03:1E:15",
+      "characteristic": "",
+      "services": [],
+      "debug": false
+    }
   }
 }
