@@ -35,9 +35,10 @@ class RealBMSSensor(BMS_Handler):
         self.args.name = params.get("name", None)
         self.args.address = params.get("address", "A4:C1:37:03:1E:15")
         self.args.characteristic = params.get("characteristic")
-        self.args.services = params.get("services", []])
+        self.args.services = params.get("services", [])
         self.args.debug = params.get("debug", False)
 
+        self.queue = asyncio.Queue()
         self.device = None
 
     async def start(self) -> None:
@@ -47,9 +48,7 @@ class RealBMSSensor(BMS_Handler):
             return
 
         self._running = True
-
-        queue = asyncio.Queue()
-        await self.connect(self.args, queue)
+        await self.connect(self.args, self.queue)
 
     async def connect(self, args: Args, queue: asyncio.Queue[tuple[float, Optional[bytearray]]]):
         """Async function that takes BLE settings and 'conveyor belt', 
@@ -96,14 +95,30 @@ class RealBMSSensor(BMS_Handler):
             await client.stop_notify(notify_char)
             await queue.put((time.time(),None))
 
-    async def run_queue_consumer(self, queue: asyncio.Queue[tuple[float, Optional[bytearray]]]):
+    async def read(self, queue: asyncio.Queue[tuple[float, Optional[bytearray]]]) -> dict:
         """Consumer side of the 'conveyor belt', waits for data from run_ble_client"""
         # TODO: Mostly here for debugging, refactor as needed
         while True:
-            epoch, data = await queue.get()
+            epoch, data = await self.queue.get()
             if data is None:
                 # Got Disconnection Message from client, disconnecting
                 break
+
+            # Parse raw bytes into readable values 
+            # byte 0:   0xDD        Start Flag
+            # byte 1:   0x03        Command (0x03 = basic info)
+            # byte 2-3: 0x0F 0xD3   Voltage (0x0FD2 = 4050 = 40.50V)
+            # byte 4-5: 0x00 0x00   Current (0A)
+            # byte 6-7: 0x00 0x00   Remaining Capacity
+            # byte 8:   0x64        State of Charge (100%)
+            return {
+                "timestamp": epoch,
+                "voltage": int.from_bytes(data[2:4], byteorder='big') / 100,
+                "current": int.from_bytes(data[4:6], byteorder='big') / 100,
+                "soc": data[8],
+                "raw": data # Keep raw bytes for debugging purposes
+
+            }
 
     async def stop(self) -> None:
         """Stop the BMS scanner."""
