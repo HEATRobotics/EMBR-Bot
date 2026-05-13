@@ -9,9 +9,9 @@ from dataclasses import dataclass, field
 class SensorConfig:
     """Configuration for a sensor instance."""
     mode: str  # real, sim
-    device: Optional[str]
-    baud: int
-    params: Dict[str, Any]
+    device: Optional[str] = None 
+    baud: Optional[int] = None
+    params: Dict[str, Any] = field(default_factory=dict)
     
 class Sensor(ABC):
     """Abstract base class for all sensors."""

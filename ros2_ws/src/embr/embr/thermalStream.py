@@ -31,8 +31,7 @@ class ThermalStreamNode(Node):
         
         # Try to load from config file
         try:
-            configs = SensorFactory.load_config(config_file)
-            config = configs.get('thermal')
+            config = SensorFactory.load_config('thermal', config_file)
             
             if config is None:
                 self.get_logger().warning(f'Thermal sensor not found in config file: {config_file}. Using default real mode.')
@@ -78,7 +77,7 @@ class ThermalStreamNode(Node):
         # Initialize camera using sensor abstraction
         self.get_logger().info('Initializing thermal camera...')
         try:
-            self.camera = create_sensor('thermal', config)
+            self.camera = create_sensor('thermal', config_file)
             self.camera.start()
             
             sensor_type = 'simulated' if 'Sim' in self.camera.__class__.__name__ else 'real'
